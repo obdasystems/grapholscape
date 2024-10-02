@@ -1,0 +1,173 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Configuration | Grapholscape - v4.0.11</title><meta name="description" content="Documentation for Grapholscape - v4.0.11"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script async src="../assets/search.js" id="search-script"></script><link rel="stylesheet" href="../assets/pages.css"/><link rel="icon" href="../icon.png" />
+</head><body><select id="plugin-versions-select" class="title" name="versions"></select><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container">
+<div class="table-cell" id="tsd-search" data-base="..">
+<div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
+<div class="field">
+<div id="tsd-toolbar-links"></div></div>
+<ul class="results">
+<li class="state loading">Preparing search index...</li>
+<li class="state failure">The search index is not available</li></ul><a href="../index.html" class="title">Grapholscape - v4.0.11</a></div>
+<div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
+<div class="container container-main">
+<div class="col-8 col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb">
+<li><a href="../modules.html">Grapholscape - v4.0.11</a></li>
+<li><a href="configuration.html">Configuration</a></li></ul>
+<h1> Configuration</h1></div>
+<div class="tsd-panel tsd-typography"><p>It is possible to configure some aspects of the grapholscape instance we will create. You can do it passing a configuration object as third parameter to the factory functions (<a href="../functions/index.fullGrapholscape.htmlt">fullGrapholscape</a> and <a href="../functions/index.bareGrapholscape.htmlt">bareGrapholscape</a>) we&#39;ve seen in the <a href="./getting-started.html">getting started</a> section.</p>
+<p>The config object must be of type <a href="../types/config.GrapholscapeConfig.html">GrapholscapeConfig</a>. In the following we will see the purpose of each option and what values are allowed.</p>
+<p>Let&#39;s start with a plain object that we will pass to the factory function:</p>
+<pre><code class="language-ts"><span class="hl-0">  </span><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">configObject</span><span class="hl-0"> = {</span><br/><span class="hl-0">    ...</span><br/><span class="hl-0">  }</span><br/><br/><span class="hl-0">  </span><span class="hl-2">grapholscape</span><span class="hl-0"> = </span><span class="hl-1">await</span><span class="hl-0"> </span><span class="hl-6">fullGrapholscape</span><span class="hl-0">(</span><span class="hl-2">ontologyFile</span><span class="hl-0">, </span><span class="hl-2">container</span><span class="hl-0">, </span><span class="hl-2">configObject</span><span class="hl-0">)</span>
+</code></pre>
+<blockquote>
+<p><strong>NOTE</strong>:</p>
+<p>These options will be overwritten by the last options used by the user that are stored in the <em>local storage</em> of the browser.<br>If you want to always use your defined configuration, you can clear the last used one with:</p>
+<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">clearLocalStorage</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&#39;grapholscape&#39;</span><br/><br/><span class="hl-6">clearLocalStorage</span><span class="hl-0">()</span><br/><br/><span class="hl-8">// ...and then init grapholscape with the new configuration</span>
+</code></pre>
+</blockquote>
+
+<a href="#entitynametype" id="entitynametype" style="color: inherit; text-decoration: none;">
+  <h2>entityNameType</h2>
+</a>
+<p>set the starting type for displayed names on entities, it can be one of the values of the <a href="../enums/config.EntityNameType.html"><strong>EntityNameType</strong></a> enumeration: <code>label</code>, <code>fullIri</code> and <code>prefixedIri</code>.</p>
+<p>Assuming we want to see <em>prefixed IRI</em> as default we can do:</p>
+<pre><code class="language-ts"><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">configObject</span><span class="hl-0"> = { </span><span class="hl-2">entityNameType:</span><span class="hl-0"> </span><span class="hl-3">&quot;prefixedIri&quot;</span><span class="hl-0"> }</span>
+</code></pre>
+<p>or better using the enumeration:</p>
+<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">EntityNameType</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&#39;grapholscape&#39;</span><br/><br/><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">configObject</span><span class="hl-0"> = { </span><span class="hl-2">entityNameType:</span><span class="hl-0"> </span><span class="hl-2">EntityNameType</span><span class="hl-0">.</span><span class="hl-5">PREFIXED_IRI</span><span class="hl-0"> }</span>
+</code></pre>
+
+<a href="#language" id="language" style="color: inherit; text-decoration: none;">
+  <h2>language</h2>
+</a>
+<p>Set the starting language preference for entities&#39; labels and comment annotations.</p>
+<blockquote>
+<p><strong>NOTE</strong>: The ontology must support the language, otherwise the first supported language by the ontology will be used as fallback for any label or comment which is not defined in the specified language.</p>
+</blockquote>
+<p>Assuming we want italian as preferred language:</p>
+<pre><code class="language-ts"><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">configObject</span><span class="hl-0"> = { </span><span class="hl-2">language:</span><span class="hl-0"> </span><span class="hl-3">&#39;it&#39;</span><span class="hl-0"> }</span>
+</code></pre>
+
+<a href="#renderers" id="renderers" style="color: inherit; text-decoration: none;">
+  <h2>renderers</h2>
+</a>
+<p>A renderer is in charge of displaying the ontology in a certain way, zooming, filtering and so on. Grapholscape comes with four different renderers:</p>
+<ul>
+<li><code>GRAPHOL</code>: Graphol renderer, the default visualization of Graphol ontologies.</li>
+<li><code>GRAPHOL_LITE</code>: A simplification of the Graphol language, much more similar to an E/R diagram.</li>
+<li><code>FLOATY</code>: The most simple simplification of the original ontology, just <strong>classes</strong> (and their hierarchies), <strong>object properties</strong> links between classes and <strong>data properties</strong> on classes.</li>
+<li><code>INCREMENTAL</code> (or path): lets you explore the ontology starting from a class and proceed following the paths to other classes.</li>
+</ul>
+<p>This option defines an array of renderers which will be available for the user. Accepted values are those in the <a href="../enums/model.RendererStatesEnum.html">RenderersStatesEnum</a> enumeration.</p>
+<p>We might be interested only in <strong>Graphol</strong> and <strong>Floaty</strong>, then we can set it with:</p>
+<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">RendererStatesEnum</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&#39;grapholscape&#39;</span><br/><br/><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">configObject</span><span class="hl-0"> = { </span><br/><span class="hl-0">  </span><span class="hl-2">renderers:</span><span class="hl-0"> [ </span><span class="hl-2">RendererStatesEnum</span><span class="hl-0">.</span><span class="hl-5">FLOATY</span><span class="hl-0">, </span><span class="hl-2">RendererStatesEnum</span><span class="hl-0">.</span><span class="hl-5">GRAPHOL</span><span class="hl-0"> ]</span><br/><span class="hl-0">}</span>
+</code></pre>
+
+<a href="#selectedrenderer" id="selectedrenderer" style="color: inherit; text-decoration: none;">
+  <h2>selectedRenderer</h2>
+</a>
+<p>With this option you can decide what renderer you want to set as default at startup.
+The accepted values are those in the <a href="../enums/model.RendererStatesEnum.html">RenderersStatesEnum</a> enumeration.</p>
+<p>For example, to use the <strong><code>floaty</code></strong> renderer at startup you can use:</p>
+<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">RendererStatesEnum</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&#39;grapholscape&#39;</span><br/><br/><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">configObject</span><span class="hl-0"> = { </span><br/><span class="hl-0">  </span><span class="hl-2">selectedRenderer:</span><span class="hl-0"> </span><span class="hl-2">RendererStatesEnum</span><span class="hl-0">.</span><span class="hl-5">FLOATY</span><br/><span class="hl-0">}</span>
+</code></pre>
+<blockquote>
+<p><strong>NOTE</strong>: if you specify an array of renderers in the <code>renderers</code> option not including the <code>selectedRenderer</code>, then this option will be ignored because you have set a renderer not actually available.</p>
+</blockquote>
+
+<a href="#themes" id="themes" style="color: inherit; text-decoration: none;">
+  <h2>themes</h2>
+</a>
+<p>This options lets you choose which themes will be available for the user in the settings panel.
+The available default themes are stored in <a href="../enums/model.DefaultThemesEnum.html">DefaultThemesEnum</a> and are:</p>
+<ul>
+<li><code>GRAPHOLSCAPE</code>: the default light theme</li>
+<li><code>GRAPHOL</code>: the classic blank and white graphol theme</li>
+<li><code>DARK</code>: dark theme</li>
+</ul>
+<p>It accepts an array of predefined themes or objects of type <a href="../classes/model.GrapholscapeTheme.html">GrapholscapeTheme</a>.</p>
+<p>This allows you several scenarios.</p>
+
+<a href="#1-specify-a-subset-of-themes-to-be-available-to-the-user" id="1-specify-a-subset-of-themes-to-be-available-to-the-user" style="color: inherit; text-decoration: none;">
+  <h3>1. Specify a subset of themes to be available to the user</h3>
+</a>
+<p>For example just <code>GRAPHOLSCAPE</code> and <code>DARK</code></p>
+<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">DefaultThemesEnum</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&#39;grapholscape&#39;</span><br/><br/><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">configObject</span><span class="hl-0"> = { </span><br/><span class="hl-0">  </span><span class="hl-2">themes:</span><span class="hl-0"> [ </span><span class="hl-2">DefaultThemesEnum</span><span class="hl-0">.</span><span class="hl-5">GRAPHOLSCAPE</span><span class="hl-0">, </span><span class="hl-2">DefaultThemesEnum</span><span class="hl-0">.</span><span class="hl-5">DARK</span><span class="hl-0"> ]</span><br/><span class="hl-0">}</span>
+</code></pre>
+
+<a href="#2-defining-one-or-more-totally-new-custom-themes" id="2-defining-one-or-more-totally-new-custom-themes" style="color: inherit; text-decoration: none;">
+  <h3>2. Defining one or more totally new custom themes</h3>
+</a>
+<p>In this case just create first an object of the class <a href="../classes/model.GrapholscapeTheme.html">GrapholscapeTheme</a> and then insert it in the array.
+To create a theme you need to pass an <code>id</code>, a <a href="../types/model.ColourMap.html">ColourMap</a> and an optional <code>name</code> to be displayed to the user.</p>
+<p>The ColourMap is just an object in which you can define colours value for the colours defined in <a href="../enums/model.ColoursNames.html">ColourNames</a>.</p>
+<blockquote>
+<p><strong>NOTE</strong>: You don&#39;t need to define all colours but if you don&#39;t define any colour, Grapholscape will use the one defined in the default theme (GRAPHOLSCAPE).
+This can be useful if you just want to tweak the default theme.</p>
+</blockquote>
+<p>Example, use only a custom theme based on default theme in which we use <code>red</code> as accent color.</p>
+<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">ColourNames</span><span class="hl-0">, </span><span class="hl-2">GrapholscapeTheme</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&#39;grapholscape&#39;</span><br/><br/><span class="hl-8">// use enum for autocomplete help or just use plain strings like &#39;accent&#39;, &#39;accent_muted&#39; and so on.</span><br/><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">redThemeColours</span><span class="hl-0"> = {</span><br/><span class="hl-0">  </span><span class="hl-2">[ColourNames.accent]:</span><span class="hl-0"> </span><span class="hl-3">&#39;red&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">  </span><span class="hl-2">[ColourNames.accent_muted]:</span><span class="hl-0"> </span><span class="hl-3">&#39;brown&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">  </span><span class="hl-2">[ColourNames.accent_subtle]:</span><span class="hl-0"> </span><span class="hl-3">&#39;pink&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">}</span><br/><br/><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">configObject</span><span class="hl-0"> = { </span><br/><span class="hl-0">  </span><span class="hl-2">themes:</span><span class="hl-0"> [ </span><span class="hl-4">new</span><span class="hl-0"> </span><span class="hl-6">GrapholscapeTheme</span><span class="hl-0">(</span><span class="hl-3">&#39;red&#39;</span><span class="hl-0">, </span><span class="hl-2">redThemeColours</span><span class="hl-0">, </span><span class="hl-3">&#39;Red Passion&#39;</span><span class="hl-0">) ]</span><br/><span class="hl-0">}</span>
+</code></pre>
+
+<a href="#3-mix-up-the-previous-two-scenarios" id="3-mix-up-the-previous-two-scenarios" style="color: inherit; text-decoration: none;">
+  <h3>3. Mix up the previous two scenarios</h3>
+</a>
+<p>You can also use a custom theme <strong>in addition</strong> to predefined ones.</p>
+<pre><code class="language-ts"><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">configObject</span><span class="hl-0"> = { </span><br/><span class="hl-0">  </span><span class="hl-2">themes:</span><span class="hl-0"> [</span><br/><span class="hl-0">    </span><span class="hl-2">DefaultThemesEnum</span><span class="hl-0">.</span><span class="hl-5">GRAPHOLSCAPE</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-2">DefaultThemesEnum</span><span class="hl-0">.</span><span class="hl-5">GRAPHOL</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-2">DefaultThemesEnum</span><span class="hl-0">.</span><span class="hl-5">DARK</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-4">new</span><span class="hl-0"> </span><span class="hl-6">GrapholscapeTheme</span><span class="hl-0">(</span><span class="hl-3">&#39;red&#39;</span><span class="hl-0">, </span><span class="hl-2">redThemeColours</span><span class="hl-0">, </span><span class="hl-3">&#39;Red Passion&#39;</span><span class="hl-0">) </span><br/><span class="hl-0">  ]</span><br/><span class="hl-0">}</span>
+</code></pre>
+
+<a href="#selectedtheme" id="selectedtheme" style="color: inherit; text-decoration: none;">
+  <h2>selectedTheme</h2>
+</a>
+<p>In this option you can specify the starting theme to use, here you must specify the <code>id</code> of a theme, either a custom theme you specified (see <a href="#defining-one-or-more-totally-new-custom-themes">custom themes</a>) or a predefined one among those in the <a href="../enums/model.DefaultThemesEnum.html">DefaultThemesEnum</a>.</p>
+<p>Example: set the dark theme as starting theme</p>
+<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">DefaultThemesEnum</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&#39;grapholscape&#39;</span><br/><br/><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">configObject</span><span class="hl-0"> = {</span><br/><span class="hl-0">  </span><span class="hl-2">selectedTheme:</span><span class="hl-0"> </span><span class="hl-2">DefaultThemesEnum</span><span class="hl-0">.</span><span class="hl-5">DARK</span><br/><span class="hl-0">}</span>
+</code></pre>
+
+<a href="#widgets" id="widgets" style="color: inherit; text-decoration: none;">
+  <h2>widgets</h2>
+</a>
+<p>In this options you can enable or disable the widget. You must set it with an object of <strong>key-boolean</strong> pairs in which the keys are the widget IDs.
+You can find widgets&#39; IDs in the <a href="../enums/UI.WidgetEnum.html">WidgetsEnum</a></p>
+<p>Example, use grapholscape without <strong>owl visualizer</strong> and <strong>filters</strong>:</p>
+<pre><code class="language-ts"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">ui</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&#39;grapholscape&#39;</span><br/><br/><span class="hl-4">const</span><span class="hl-0"> </span><span class="hl-5">configObject</span><span class="hl-0"> = {</span><br/><span class="hl-0">  </span><span class="hl-2">widgets:</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-2">[ui.WidgetsEnum.</span><span class="hl-5">OWL_VISUALIZER</span><span class="hl-2">]:</span><span class="hl-0"> </span><span class="hl-4">false</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-2">[ui.WidgetsEnum.</span><span class="hl-5">FILTERS</span><span class="hl-2">]:</span><span class="hl-0"> </span><span class="hl-4">false</span><span class="hl-0">,</span><br/><span class="hl-0">  }</span><br/><span class="hl-0">}</span>
+</code></pre>
+</div></div>
+<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+<div class="tsd-navigation settings">
+<details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility">
+<h4 class="uppercase">Member Visibility</h4><form>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-private" name="private"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Private</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li></ul></form></div>
+<div class="tsd-theme-toggle">
+<h4 class="uppercase">Theme</h4><select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<nav class="tsd-navigation primary">
+<details class="tsd-index-accordion" open><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Modules</h3></summary>
+<div class="tsd-accordion-details">
+<ul>
+<li class="current"><a href="../modules.html">Grapholscape -<wbr/> v4.0.11</a>
+<ul>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="getting-started.html">Getting <wbr/>Started</a></li>
+<li class="current selected pages-entry pages-entry-page pages-entry-depth-1"><a href="configuration.html">Configuration</a></li>
+<li class="tsd-kind-module"><a href="../modules/UI.html">UI</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/UI.icons.html">icons</a></li></ul></li>
+<li class="tsd-kind-module"><a href="../modules/config.html">config</a></li>
+<li class="tsd-kind-module"><a href="../modules/core.html">core</a></li>
+<li class="tsd-kind-module"><a href="../modules/index.html">index</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/index.IncrementalUI.html">IncrementalUI</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/index.util.html">util</a></li></ul></li>
+<li class="tsd-kind-module"><a href="../modules/model.html">model</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/model.SwaggerModel.html">Swagger<wbr/>Model</a></li></ul></li></ul></li></ul></div></details></nav>
+<nav class="tsd-navigation secondary menu-sticky"></nav></div></div>
+<div class="overlay"></div><script src="../assets/main.js"></script><script src="../assets/versionsMenu.js" type="module"></script></body></html>

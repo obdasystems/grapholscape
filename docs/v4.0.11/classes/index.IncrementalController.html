@@ -1,0 +1,679 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>IncrementalController | Grapholscape - v4.0.11</title><meta name="description" content="Documentation for Grapholscape - v4.0.11"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script async src="../assets/search.js" id="search-script"></script><link rel="stylesheet" href="../assets/pages.css"/><link rel="icon" href="../icon.png" />
+</head><body><select id="plugin-versions-select" class="title" name="versions"></select><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container">
+<div class="table-cell" id="tsd-search" data-base="..">
+<div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
+<div class="field">
+<div id="tsd-toolbar-links"></div></div>
+<ul class="results">
+<li class="state loading">Preparing search index...</li>
+<li class="state failure">The search index is not available</li></ul><a href="../index.html" class="title">Grapholscape - v4.0.11</a></div>
+<div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
+<div class="container container-main">
+<div class="col-8 col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb">
+<li><a href="../modules.html">Grapholscape - v4.0.11</a></li>
+<li><a href="../modules/index.html">index</a></li>
+<li><a href="index.IncrementalController.html">IncrementalController</a></li></ul>
+<h1>Class IncrementalController</h1></div>
+<section class="tsd-panel tsd-hierarchy">
+<h4>Hierarchy</h4>
+<ul class="tsd-hierarchy">
+<li><a href="index.IncrementalBase.html" class="tsd-signature-type" data-tsd-kind="Class">IncrementalBase</a>
+<ul class="tsd-hierarchy">
+<li><span class="target">IncrementalController</span></li></ul></li></ul></section><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L14">src/incremental/controller.ts:14</a></li></ul></aside>
+<section class="tsd-panel-group tsd-index-group">
+<section class="tsd-panel tsd-index-panel">
+<details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
+<h5 class="tsd-index-heading uppercase" role="button" aria-expanded="false" tabIndex=0><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1.5 5.50969L8 11.6609L14.5 5.50969L12.5466 3.66086L8 7.96494L3.45341 3.66086L1.5 5.50969Z" fill="var(--color-text)"></path></svg> Index</h5></summary>
+<div class="tsd-accordion-details">
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Constructors</h3>
+<div class="tsd-index-list"><a href="index.IncrementalController.html#constructor" class="tsd-index-link tsd-kind-constructor tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#4D7FFF" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-512-path"></rect><path d="M11.898 16.1201C11.098 16.1201 10.466 15.8961 10.002 15.4481C9.53803 15.0001 9.30603 14.3841 9.30603 13.6001V9.64012C9.30603 8.85612 9.53803 8.24012 10.002 7.79212C10.466 7.34412 11.098 7.12012 11.898 7.12012C12.682 7.12012 13.306 7.34812 13.77 7.80412C14.234 8.25212 14.466 8.86412 14.466 9.64012H13.386C13.386 9.14412 13.254 8.76412 12.99 8.50012C12.734 8.22812 12.37 8.09212 11.898 8.09212C11.426 8.09212 11.054 8.22412 10.782 8.48812C10.518 8.75212 10.386 9.13212 10.386 9.62812V13.6001C10.386 14.0961 10.518 14.4801 10.782 14.7521C11.054 15.0161 11.426 15.1481 11.898 15.1481C12.37 15.1481 12.734 15.0161 12.99 14.7521C13.254 14.4801 13.386 14.0961 13.386 13.6001H14.466C14.466 14.3761 14.234 14.9921 13.77 15.4481C13.306 15.8961 12.682 16.1201 11.898 16.1201Z" fill="var(--color-text)" id="icon-512-text"></path></svg><span>constructor</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Properties</h3>
+<div class="tsd-index-list"><a href="index.IncrementalController.html#actionsWithBlockedGraph" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-1024-path"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)" id="icon-1024-text"></path></svg><span>actions<wbr/>With<wbr/>Blocked<wbr/>Graph</span></a>
+<a href="index.IncrementalController.html#classFilterMap" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>class<wbr/>Filter<wbr/>Map</span></a>
+<a href="index.IncrementalController.html#diagram" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>diagram</span></a>
+<a href="index.IncrementalController.html#diagramBuilder" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>diagram<wbr/>Builder</span></a>
+<a href="index.IncrementalController.html#grapholscape" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>grapholscape</span></a>
+<a href="index.IncrementalController.html#individualsButton" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>individuals<wbr/>Button</span></a>
+<a href="index.IncrementalController.html#lifecycle" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>lifecycle</span></a>
+<a href="index.IncrementalController.html#neighbourhoodFinder" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>neighbourhood<wbr/>Finder</span></a>
+<a href="index.IncrementalController.html#objectPropertyButton" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>object<wbr/>Property<wbr/>Button</span></a>
+<a href="index.IncrementalController.html#on" class="tsd-index-link tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg><span>on</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Accessors</h3>
+<div class="tsd-index-list"><a href="index.IncrementalController.html#incrementalRenderer" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-private tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF4D4D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-262144-path"></rect><path d="M8.85 16L11.13 7.24H12.582L14.85 16H13.758L13.182 13.672H10.53L9.954 16H8.85ZM10.746 12.76H12.954L12.282 10.06C12.154 9.548 12.054 9.12 11.982 8.776C11.91 8.432 11.866 8.208 11.85 8.104C11.834 8.208 11.79 8.432 11.718 8.776C11.646 9.12 11.546 9.544 11.418 10.048L10.746 12.76Z" fill="var(--color-text)" id="icon-262144-text"></path></svg><span>incremental<wbr/>Renderer</span></a>
+<a href="index.IncrementalController.html#numberOfElements" class="tsd-index-link tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg><span>number<wbr/>Of<wbr/>Elements</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading">Methods</h3>
+<div class="tsd-index-list"><a href="index.IncrementalController.html#addClass" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF4DB8" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-2048-path"></rect><path d="M9.162 16V7.24H10.578L11.514 10.072C11.602 10.328 11.674 10.584 11.73 10.84C11.794 11.088 11.842 11.28 11.874 11.416C11.906 11.28 11.954 11.088 12.018 10.84C12.082 10.584 12.154 10.324 12.234 10.06L13.122 7.24H14.538V16H13.482V12.82C13.482 12.468 13.49 12.068 13.506 11.62C13.53 11.172 13.558 10.716 13.59 10.252C13.622 9.78 13.654 9.332 13.686 8.908C13.726 8.476 13.762 8.1 13.794 7.78L12.366 12.16H11.334L9.894 7.78C9.934 8.092 9.97 8.456 10.002 8.872C10.042 9.28 10.078 9.716 10.11 10.18C10.142 10.636 10.166 11.092 10.182 11.548C10.206 12.004 10.218 12.428 10.218 12.82V16H9.162Z" fill="var(--color-text)" id="icon-2048-text"></path></svg><span>add<wbr/>Class</span></a>
+<a href="index.IncrementalController.html#addEdge" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>add<wbr/>Edge</span></a>
+<a href="index.IncrementalController.html#addIndividual" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>add<wbr/>Individual</span></a>
+<a href="index.IncrementalController.html#addIntensionalObjectProperty" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>add<wbr/>Intensional<wbr/>Object<wbr/>Property</span></a>
+<a href="index.IncrementalController.html#getAnnotations" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>get<wbr/>Annotations</span></a>
+<a href="index.IncrementalController.html#getContextMenuCommands" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>get<wbr/>Context<wbr/>Menu<wbr/>Commands</span></a>
+<a href="index.IncrementalController.html#getDataPropertiesHighlights" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>get<wbr/>Data<wbr/>Properties<wbr/>Highlights</span></a>
+<a href="index.IncrementalController.html#getHighlights" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>get<wbr/>Highlights</span></a>
+<a href="index.IncrementalController.html#getIDByIRI" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>getIDByIRI</span></a>
+<a href="index.IncrementalController.html#getNodeButtons" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>get<wbr/>Node<wbr/>Buttons</span></a>
+<a href="index.IncrementalController.html#getObjectPropertiesHighlights" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>get<wbr/>Object<wbr/>Properties<wbr/>Highlights</span></a>
+<a href="index.IncrementalController.html#getSubClasses" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>get<wbr/>Sub<wbr/>Classes</span></a>
+<a href="index.IncrementalController.html#getSuperClasses" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>get<wbr/>Super<wbr/>Classes</span></a>
+<a href="index.IncrementalController.html#init" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>init</span></a>
+<a href="index.IncrementalController.html#initNodeButtons" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-private"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>init<wbr/>Node<wbr/>Buttons</span></a>
+<a href="index.IncrementalController.html#isHierarchyNodeInDiagram" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>is<wbr/>Hierarchy<wbr/>Node<wbr/>In<wbr/>Diagram</span></a>
+<a href="index.IncrementalController.html#performActionWithBlockedGraph" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>perform<wbr/>Action<wbr/>With<wbr/>Blocked<wbr/>Graph</span></a>
+<a href="index.IncrementalController.html#postDiagramEdit" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>post<wbr/>Diagram<wbr/>Edit</span></a>
+<a href="index.IncrementalController.html#removeEntity" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>remove<wbr/>Entity</span></a>
+<a href="index.IncrementalController.html#removeHierarchy" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>remove<wbr/>Hierarchy</span></a>
+<a href="index.IncrementalController.html#reset" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>reset</span></a>
+<a href="index.IncrementalController.html#setIncrementalEventHandlers" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>set<wbr/>Incremental<wbr/>Event<wbr/>Handlers</span></a>
+<a href="index.IncrementalController.html#showClassesInIsa" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>show<wbr/>Classes<wbr/>In<wbr/>Isa</span></a>
+<a href="index.IncrementalController.html#showDiagram" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>show<wbr/>Diagram</span></a>
+<a href="index.IncrementalController.html#showOrHideHierarchies" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>show<wbr/>Or<wbr/>Hide<wbr/>Hierarchies</span></a>
+<a href="index.IncrementalController.html#showSubHierarchiesOf" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>show<wbr/>Sub<wbr/>Hierarchies<wbr/>Of</span></a>
+<a href="index.IncrementalController.html#showSuperHierarchiesOf" class="tsd-index-link tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>show<wbr/>Super<wbr/>Hierarchies<wbr/>Of</span></a>
+</div></section></div></details></section></section>
+<section class="tsd-panel-group tsd-member-group">
+<h2>Constructors</h2>
+<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class"><a id="constructor" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="constructor.new_IncrementalController">new <wbr/>Incremental<wbr/>Controller<span class="tsd-signature-symbol">(</span>grapholscape<span class="tsd-signature-symbol">: </span><a href="core.Grapholscape.html" class="tsd-signature-type" data-tsd-kind="Class">Grapholscape</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="index.IncrementalController.html" class="tsd-signature-type" data-tsd-kind="Class">IncrementalController</a><a href="#constructor.new_IncrementalController" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>grapholscape: <a href="core.Grapholscape.html" class="tsd-signature-type" data-tsd-kind="Class">Grapholscape</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="index.IncrementalController.html" class="tsd-signature-type" data-tsd-kind="Class">IncrementalController</a></h4><aside class="tsd-sources">
+<p>Overrides <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#constructor">constructor</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L20">src/incremental/controller.ts:20</a></li></ul></aside></li></ul></section></section>
+<section class="tsd-panel-group tsd-member-group">
+<h2>Properties</h2>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><a id="actionsWithBlockedGraph" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagProtected">Protected</code> <span>actions<wbr/>With<wbr/>Blocked<wbr/>Graph</span><a href="#actionsWithBlockedGraph" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">actions<wbr/>With<wbr/>Blocked<wbr/>Graph<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#actionsWithBlockedGraph">actionsWithBlockedGraph</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L52">src/incremental/i-incremental.ts:52</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a id="classFilterMap" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>class<wbr/>Filter<wbr/>Map</span><a href="#classFilterMap" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">class<wbr/>Filter<wbr/>Map<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="model.Filter.html" class="tsd-signature-type" data-tsd-kind="Class">Filter</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#classFilterMap">classFilterMap</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L55">src/incremental/i-incremental.ts:55</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a id="diagram" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>diagram</span><a href="#diagram" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">diagram<span class="tsd-signature-symbol">:</span> <a href="model.IncrementalDiagram.html" class="tsd-signature-type" data-tsd-kind="Class">IncrementalDiagram</a><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#diagram">diagram</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L56">src/incremental/i-incremental.ts:56</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a id="diagramBuilder" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>diagram<wbr/>Builder</span><a href="#diagramBuilder" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">diagram<wbr/>Builder<span class="tsd-signature-symbol">:</span> <a href="core.DiagramBuilder.html" class="tsd-signature-type" data-tsd-kind="Class">DiagramBuilder</a></div><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#diagramBuilder">diagramBuilder</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L53">src/incremental/i-incremental.ts:53</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a id="grapholscape" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>grapholscape</span><a href="#grapholscape" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">grapholscape<span class="tsd-signature-symbol">:</span> <a href="core.Grapholscape.html" class="tsd-signature-type" data-tsd-kind="Class">Grapholscape</a></div><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#grapholscape">grapholscape</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L57">src/incremental/i-incremental.ts:57</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="individualsButton" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>individuals<wbr/>Button</span><a href="#individualsButton" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">individuals<wbr/>Button<span class="tsd-signature-symbol">:</span> <a href="UI.NodeButton.html" class="tsd-signature-type" data-tsd-kind="Class">NodeButton</a></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L17">src/incremental/controller.ts:17</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a id="lifecycle" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>lifecycle</span><a href="#lifecycle" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">lifecycle<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">default</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#lifecycle">lifecycle</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L59">src/incremental/i-incremental.ts:59</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="neighbourhoodFinder" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>neighbourhood<wbr/>Finder</span><a href="#neighbourhoodFinder" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">neighbourhood<wbr/>Finder<span class="tsd-signature-symbol">:</span> <a href="index.NeighbourhoodFinder.html" class="tsd-signature-type" data-tsd-kind="Class">NeighbourhoodFinder</a></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L16">src/incremental/controller.ts:16</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private"><a id="objectPropertyButton" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>object<wbr/>Property<wbr/>Button</span><a href="#objectPropertyButton" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">object<wbr/>Property<wbr/>Button<span class="tsd-signature-symbol">:</span> <a href="UI.NodeButton.html" class="tsd-signature-type" data-tsd-kind="Class">NodeButton</a></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L18">src/incremental/controller.ts:18</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a id="on" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>on</span><a href="#on" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<div class="tsd-signature">on<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">IonIncrementalEvent</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#on">on</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L60">src/incremental/i-incremental.ts:60</a></li></ul></aside></section></section>
+<section class="tsd-panel-group tsd-member-group">
+<h2>Accessors</h2>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-private tsd-is-inherited"><a id="incrementalRenderer" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>incremental<wbr/>Renderer</span><a href="#incrementalRenderer" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-private tsd-is-inherited">
+<li class="tsd-signature" id="incrementalRenderer.incrementalRenderer-1"><span class="tsd-signature-symbol">get</span> incrementalRenderer<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="core.IncrementalRendererState.html" class="tsd-signature-type" data-tsd-kind="Class">IncrementalRendererState</a></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="core.IncrementalRendererState.html" class="tsd-signature-type" data-tsd-kind="Class">IncrementalRendererState</a></h4><aside class="tsd-sources">
+<p>Inherited from IncrementalBase.incrementalRenderer</p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L419">src/incremental/i-incremental.ts:419</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a id="numberOfElements" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>number<wbr/>Of<wbr/>Elements</span><a href="#numberOfElements" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature" id="numberOfElements.numberOfElements-1"><span class="tsd-signature-symbol">get</span> numberOfElements<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
+<p>Inherited from IncrementalBase.numberOfElements</p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L425">src/incremental/i-incremental.ts:425</a></li></ul></aside></li></ul></section></section>
+<section class="tsd-panel-group tsd-member-group">
+<h2>Methods</h2>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="addClass" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>add<wbr/>Class</span><a href="#addClass" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="addClass.addClass-1">add<wbr/>Class<span class="tsd-signature-symbol">(</span>iri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, centerOnIt<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span>, position<span class="tsd-signature-symbol">?: </span><a href="../interfaces/model.SwaggerModel.Position.html" class="tsd-signature-type" data-tsd-kind="Interface">Position</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="model.GrapholNode.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholNode</a><a href="#addClass.addClass-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>iri: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5>centerOnIt: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = true</span></h5></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> position: <a href="../interfaces/model.SwaggerModel.Position.html" class="tsd-signature-type" data-tsd-kind="Interface">Position</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="model.GrapholNode.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholNode</a></h4><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#addClass">addClass</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L102">src/incremental/i-incremental.ts:102</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="addEdge" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>add<wbr/>Edge</span><a href="#addEdge" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="addEdge.addEdge-1">add<wbr/>Edge<span class="tsd-signature-symbol">(</span>sourceId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, targetId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, edgeType<span class="tsd-signature-symbol">: </span><a href="../enums/model.SwaggerModel.TypesEnum.html#INCLUSION" class="tsd-signature-type" data-tsd-kind="Enumeration Member">INCLUSION</a><span class="tsd-signature-symbol"> | </span><a href="../enums/model.SwaggerModel.TypesEnum.html#EQUIVALENCE" class="tsd-signature-type" data-tsd-kind="Enumeration Member">EQUIVALENCE</a><span class="tsd-signature-symbol"> | </span><a href="../enums/model.SwaggerModel.TypesEnum.html#INSTANCE_OF" class="tsd-signature-type" data-tsd-kind="Enumeration Member">INSTANCE_OF</a><span class="tsd-signature-symbol"> | </span><a href="../enums/model.SwaggerModel.TypesEnum.html#INPUT" class="tsd-signature-type" data-tsd-kind="Enumeration Member">INPUT</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="model.GrapholElement.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholElement</a><a href="#addEdge.addEdge-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>sourceId: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5>targetId: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5>edgeType: <a href="../enums/model.SwaggerModel.TypesEnum.html#INCLUSION" class="tsd-signature-type" data-tsd-kind="Enumeration Member">INCLUSION</a><span class="tsd-signature-symbol"> | </span><a href="../enums/model.SwaggerModel.TypesEnum.html#EQUIVALENCE" class="tsd-signature-type" data-tsd-kind="Enumeration Member">EQUIVALENCE</a><span class="tsd-signature-symbol"> | </span><a href="../enums/model.SwaggerModel.TypesEnum.html#INSTANCE_OF" class="tsd-signature-type" data-tsd-kind="Enumeration Member">INSTANCE_OF</a><span class="tsd-signature-symbol"> | </span><a href="../enums/model.SwaggerModel.TypesEnum.html#INPUT" class="tsd-signature-type" data-tsd-kind="Enumeration Member">INPUT</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="model.GrapholElement.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholElement</a></h4><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#addEdge">addEdge</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L89">src/incremental/i-incremental.ts:89</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="addIndividual" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>add<wbr/>Individual</span><a href="#addIndividual" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="addIndividual.addIndividual-1">add<wbr/>Individual<span class="tsd-signature-symbol">(</span>individual<span class="tsd-signature-symbol">: </span><a href="model.GrapholEntity.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholEntity</a>, parentClassesIris<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span>, position<span class="tsd-signature-symbol">?: </span><a href="../interfaces/model.SwaggerModel.Position.html" class="tsd-signature-type" data-tsd-kind="Interface">Position</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="model.GrapholElement.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholElement</a><a href="#addIndividual.addIndividual-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>individual: <a href="model.GrapholEntity.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholEntity</a></h5></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> parentClassesIris: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> position: <a href="../interfaces/model.SwaggerModel.Position.html" class="tsd-signature-type" data-tsd-kind="Interface">Position</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="model.GrapholElement.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholElement</a></h4><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#addIndividual">addIndividual</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L132">src/incremental/i-incremental.ts:132</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="addIntensionalObjectProperty" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>add<wbr/>Intensional<wbr/>Object<wbr/>Property</span><a href="#addIntensionalObjectProperty" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="addIntensionalObjectProperty.addIntensionalObjectProperty-1">add<wbr/>Intensional<wbr/>Object<wbr/>Property<span class="tsd-signature-symbol">(</span>objectPropertyIri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, sourceClassIri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, targetClassIri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="model.GrapholEdge.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholEdge</a><a href="#addIntensionalObjectProperty.addIntensionalObjectProperty-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Add object property edge between two classes.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>objectPropertyIri: <span class="tsd-signature-type">string</span></h5>
+<div class="tsd-comment tsd-typography"><p>the object property iri to add</p>
+</div></li>
+<li>
+<h5>sourceClassIri: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5>targetClassIri: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="model.GrapholEdge.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholEdge</a></h4><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#addIntensionalObjectProperty">addIntensionalObjectProperty</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L160">src/incremental/i-incremental.ts:160</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getAnnotations" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>get<wbr/>Annotations</span><a href="#getAnnotations" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="getAnnotations.getAnnotations-1">get<wbr/>Annotations<span class="tsd-signature-symbol">(</span>iri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="model.Annotation.html" class="tsd-signature-type" data-tsd-kind="Class">Annotation</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#getAnnotations.getAnnotations-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>iri: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="model.Annotation.html" class="tsd-signature-type" data-tsd-kind="Class">Annotation</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Overrides <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#getAnnotations">getAnnotations</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L43">src/incremental/controller.ts:43</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getContextMenuCommands" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>get<wbr/>Context<wbr/>Menu<wbr/>Commands</span><a href="#getContextMenuCommands" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="getContextMenuCommands.getContextMenuCommands-1">get<wbr/>Context<wbr/>Menu<wbr/>Commands<span class="tsd-signature-symbol">(</span>grapholElement<span class="tsd-signature-symbol">: </span><a href="model.GrapholElement.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholElement</a>, cyElement<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">SingularElementReturnValue</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/UI.Command.html" class="tsd-signature-type" data-tsd-kind="Interface">Command</a><span class="tsd-signature-symbol">[]</span><a href="#getContextMenuCommands.getContextMenuCommands-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>grapholElement: <a href="model.GrapholElement.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholElement</a></h5></li>
+<li>
+<h5>cyElement: <span class="tsd-signature-type">SingularElementReturnValue</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/UI.Command.html" class="tsd-signature-type" data-tsd-kind="Interface">Command</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
+<p>Overrides <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#getContextMenuCommands">getContextMenuCommands</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L82">src/incremental/controller.ts:82</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getDataPropertiesHighlights" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>get<wbr/>Data<wbr/>Properties<wbr/>Highlights</span><a href="#getDataPropertiesHighlights" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="getDataPropertiesHighlights.getDataPropertiesHighlights-1">get<wbr/>Data<wbr/>Properties<wbr/>Highlights<span class="tsd-signature-symbol">(</span>iris<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span>, _isInstance<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="model.GrapholEntity.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholEntity</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#getDataPropertiesHighlights.getDataPropertiesHighlights-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>iris: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5></li>
+<li>
+<h5>_isInstance: <span class="tsd-signature-type">boolean</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="model.GrapholEntity.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholEntity</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Overrides <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#getDataPropertiesHighlights">getDataPropertiesHighlights</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L31">src/incremental/controller.ts:31</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getHighlights" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>get<wbr/>Highlights</span><a href="#getHighlights" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="getHighlights.getHighlights-1">get<wbr/>Highlights<span class="tsd-signature-symbol">(</span>iris<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span>, isInstance<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">IncrementalHighlights</span><span class="tsd-signature-symbol">&gt;</span><a href="#getHighlights.getHighlights-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>iris: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5></li>
+<li>
+<h5>isInstance: <span class="tsd-signature-type">boolean</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">IncrementalHighlights</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Overrides <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#getHighlights">getHighlights</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L27">src/incremental/controller.ts:27</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="getIDByIRI" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>getIDByIRI</span><a href="#getIDByIRI" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="getIDByIRI.getIDByIRI-1">getIDByIRI<span class="tsd-signature-symbol">(</span>iri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, type<span class="tsd-signature-symbol">: </span><a href="../enums/model.SwaggerModel.TypesEnum.html" class="tsd-signature-type" data-tsd-kind="Enumeration">TypesEnum</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><a href="#getIDByIRI.getIDByIRI-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>iri: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5>type: <a href="../enums/model.SwaggerModel.TypesEnum.html" class="tsd-signature-type" data-tsd-kind="Enumeration">TypesEnum</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#getIDByIRI">getIDByIRI</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L412">src/incremental/i-incremental.ts:412</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getNodeButtons" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>get<wbr/>Node<wbr/>Buttons</span><a href="#getNodeButtons" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="getNodeButtons.getNodeButtons-1">get<wbr/>Node<wbr/>Buttons<span class="tsd-signature-symbol">(</span>grapholElement<span class="tsd-signature-symbol">: </span><a href="model.GrapholElement.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholElement</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="UI.NodeButton.html" class="tsd-signature-type" data-tsd-kind="Class">NodeButton</a><span class="tsd-signature-symbol">[]</span><a href="#getNodeButtons.getNodeButtons-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>grapholElement: <a href="model.GrapholElement.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholElement</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="UI.NodeButton.html" class="tsd-signature-type" data-tsd-kind="Class">NodeButton</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
+<p>Overrides <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#getNodeButtons">getNodeButtons</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L230">src/incremental/controller.ts:230</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getObjectPropertiesHighlights" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>get<wbr/>Object<wbr/>Properties<wbr/>Highlights</span><a href="#getObjectPropertiesHighlights" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="getObjectPropertiesHighlights.getObjectPropertiesHighlights-1">get<wbr/>Object<wbr/>Properties<wbr/>Highlights<span class="tsd-signature-symbol">(</span>iris<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span>, isInstance<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><a href="model.GrapholEntity.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholEntity</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">ObjectPropertyConnectedClasses</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#getObjectPropertiesHighlights.getObjectPropertiesHighlights-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>iris: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5></li>
+<li>
+<h5>isInstance: <span class="tsd-signature-type">boolean</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><a href="model.GrapholEntity.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholEntity</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">ObjectPropertyConnectedClasses</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Overrides <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#getObjectPropertiesHighlights">getObjectPropertiesHighlights</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L37">src/incremental/controller.ts:37</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getSubClasses" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>get<wbr/>Sub<wbr/>Classes</span><a href="#getSubClasses" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="getSubClasses.getSubClasses-1">get<wbr/>Sub<wbr/>Classes<span class="tsd-signature-symbol">(</span>classIri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="model.GrapholEntity.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholEntity</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#getSubClasses.getSubClasses-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>classIri: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="model.GrapholEntity.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholEntity</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Overrides <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#getSubClasses">getSubClasses</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L68">src/incremental/controller.ts:68</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getSuperClasses" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>get<wbr/>Super<wbr/>Classes</span><a href="#getSuperClasses" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="getSuperClasses.getSuperClasses-1">get<wbr/>Super<wbr/>Classes<span class="tsd-signature-symbol">(</span>classIri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="model.GrapholEntity.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholEntity</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#getSuperClasses.getSuperClasses-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>classIri: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="model.GrapholEntity.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholEntity</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Overrides <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#getSuperClasses">getSuperClasses</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L54">src/incremental/controller.ts:54</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="init" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>init</span><a href="#init" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="init.init-1">init<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#init.init-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Overrides <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#init">init</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L216">src/incremental/controller.ts:216</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private"><a id="initNodeButtons" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>init<wbr/>Node<wbr/>Buttons</span><a href="#initNodeButtons" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+<li class="tsd-signature tsd-anchor-link" id="initNodeButtons.initNodeButtons-1">init<wbr/>Node<wbr/>Buttons<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#initNodeButtons.initNodeButtons-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L222">src/incremental/controller.ts:222</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><a id="isHierarchyNodeInDiagram" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagProtected">Protected</code> <span>is<wbr/>Hierarchy<wbr/>Node<wbr/>In<wbr/>Diagram</span><a href="#isHierarchyNodeInDiagram" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-protected tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="isHierarchyNodeInDiagram.isHierarchyNodeInDiagram-1">is<wbr/>Hierarchy<wbr/>Node<wbr/>In<wbr/>Diagram<span class="tsd-signature-symbol">(</span>hierarchy<span class="tsd-signature-symbol">: </span><a href="model.Hierarchy.html" class="tsd-signature-type" data-tsd-kind="Class">Hierarchy</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">boolean</span><a href="#isHierarchyNodeInDiagram.isHierarchyNodeInDiagram-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>hierarchy: <a href="model.Hierarchy.html" class="tsd-signature-type" data-tsd-kind="Class">Hierarchy</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#isHierarchyNodeInDiagram">isHierarchyNodeInDiagram</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L408">src/incremental/i-incremental.ts:408</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="performActionWithBlockedGraph" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>perform<wbr/>Action<wbr/>With<wbr/>Blocked<wbr/>Graph</span><a href="#performActionWithBlockedGraph" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="performActionWithBlockedGraph.performActionWithBlockedGraph-1">perform<wbr/>Action<wbr/>With<wbr/>Blocked<wbr/>Graph<span class="tsd-signature-symbol">(</span>action<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span>, customLayoutOptions<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#performActionWithBlockedGraph.performActionWithBlockedGraph-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>action: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span></h5>
+<ul class="tsd-parameters">
+<li class="tsd-parameter-signature">
+<ul class="tsd-signatures tsd-kind-type-literal">
+<li class="tsd-signature"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></li></ul></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> customLayoutOptions: <span class="tsd-signature-type">any</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#performActionWithBlockedGraph">performActionWithBlockedGraph</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L80">src/incremental/i-incremental.ts:80</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="postDiagramEdit" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>post<wbr/>Diagram<wbr/>Edit</span><a href="#postDiagramEdit" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="postDiagramEdit.postDiagramEdit-1">post<wbr/>Diagram<wbr/>Edit<span class="tsd-signature-symbol">(</span>oldElemsNumber<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, customLayoutOptions<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#postDiagramEdit.postDiagramEdit-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>oldElemsNumber: <span class="tsd-signature-type">number</span></h5></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> customLayoutOptions: <span class="tsd-signature-type">any</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#postDiagramEdit">postDiagramEdit</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L395">src/incremental/i-incremental.ts:395</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="removeEntity" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>remove<wbr/>Entity</span><a href="#removeEntity" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="removeEntity.removeEntity-1">remove<wbr/>Entity<span class="tsd-signature-symbol">(</span>entity<span class="tsd-signature-symbol">: </span><a href="model.GrapholEntity.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholEntity</a>, entitiesIrisToKeep<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#removeEntity.removeEntity-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Remove a class, an instance or a data property node from the diagram.
+Entities left with no other connections are recurisvely removed too.
+Called when the user click on the remove button on a entity node</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>entity: <a href="model.GrapholEntity.html" class="tsd-signature-type" data-tsd-kind="Class">GrapholEntity</a></h5></li>
+<li>
+<h5>entitiesIrisToKeep: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = []</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#removeEntity">removeEntity</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L331">src/incremental/i-incremental.ts:331</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="removeHierarchy" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>remove<wbr/>Hierarchy</span><a href="#removeHierarchy" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="removeHierarchy.removeHierarchy-1">remove<wbr/>Hierarchy<span class="tsd-signature-symbol">(</span>hierarchy<span class="tsd-signature-symbol">: </span><a href="model.Hierarchy.html" class="tsd-signature-type" data-tsd-kind="Class">Hierarchy</a>, entitiesTokeep<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#removeHierarchy.removeHierarchy-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>hierarchy: <a href="model.Hierarchy.html" class="tsd-signature-type" data-tsd-kind="Class">Hierarchy</a></h5></li>
+<li>
+<h5>entitiesTokeep: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = []</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#removeHierarchy">removeHierarchy</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L296">src/incremental/i-incremental.ts:296</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="reset" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>reset</span><a href="#reset" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="reset.reset-1">reset<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#reset.reset-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Overrides <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#reset">reset</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L256">src/incremental/controller.ts:256</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="setIncrementalEventHandlers" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>set<wbr/>Incremental<wbr/>Event<wbr/>Handlers</span><a href="#setIncrementalEventHandlers" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="setIncrementalEventHandlers.setIncrementalEventHandlers-1">set<wbr/>Incremental<wbr/>Event<wbr/>Handlers<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#setIncrementalEventHandlers.setIncrementalEventHandlers-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Overrides <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#setIncrementalEventHandlers">setIncrementalEventHandlers</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/controller.ts#L238">src/incremental/controller.ts:238</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="showClassesInIsa" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>show<wbr/>Classes<wbr/>In<wbr/>Isa</span><a href="#showClassesInIsa" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="showClassesInIsa.showClassesInIsa-1">show<wbr/>Classes<wbr/>In<wbr/>Isa<span class="tsd-signature-symbol">(</span>sourceIri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, targetsIris<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span>, isaType<span class="tsd-signature-symbol">: </span><a href="../enums/model.SwaggerModel.TypesEnum.html#INCLUSION" class="tsd-signature-type" data-tsd-kind="Enumeration Member">INCLUSION</a><span class="tsd-signature-symbol"> | </span><a href="../enums/model.SwaggerModel.TypesEnum.html#EQUIVALENCE" class="tsd-signature-type" data-tsd-kind="Enumeration Member">EQUIVALENCE</a>, subOrSuper<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">&quot;sub&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;super&quot;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#showClassesInIsa.showClassesInIsa-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>sourceIri: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5>targetsIris: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5></li>
+<li>
+<h5>isaType: <a href="../enums/model.SwaggerModel.TypesEnum.html#INCLUSION" class="tsd-signature-type" data-tsd-kind="Enumeration Member">INCLUSION</a><span class="tsd-signature-symbol"> | </span><a href="../enums/model.SwaggerModel.TypesEnum.html#EQUIVALENCE" class="tsd-signature-type" data-tsd-kind="Enumeration Member">EQUIVALENCE</a></h5></li>
+<li>
+<h5>subOrSuper: <span class="tsd-signature-type">&quot;sub&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;super&quot;</span><span class="tsd-signature-symbol"> = &#39;sub&#39;</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#showClassesInIsa">showClassesInIsa</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L194">src/incremental/i-incremental.ts:194</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="showDiagram" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>show<wbr/>Diagram</span><a href="#showDiagram" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="showDiagram.showDiagram-1">show<wbr/>Diagram<span class="tsd-signature-symbol">(</span>viewportState<span class="tsd-signature-symbol">?: </span><a href="../interfaces/model.SwaggerModel.Viewport.html" class="tsd-signature-type" data-tsd-kind="Interface">Viewport</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#showDiagram.showDiagram-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> viewportState: <a href="../interfaces/model.SwaggerModel.Viewport.html" class="tsd-signature-type" data-tsd-kind="Interface">Viewport</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#showDiagram">showDiagram</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L93">src/incremental/i-incremental.ts:93</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><a id="showOrHideHierarchies" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagProtected">Protected</code> <span>show<wbr/>Or<wbr/>Hide<wbr/>Hierarchies</span><a href="#showOrHideHierarchies" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-protected tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="showOrHideHierarchies.showOrHideHierarchies-1">show<wbr/>Or<wbr/>Hide<wbr/>Hierarchies<span class="tsd-signature-symbol">(</span>classIri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, hierarchyType<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;sub&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;any&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;super&quot;</span>, showORHide<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;hide&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;show&quot;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#showOrHideHierarchies.showOrHideHierarchies-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>classIri: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5>hierarchyType: <span class="tsd-signature-type">&quot;sub&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;any&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;super&quot;</span></h5></li>
+<li>
+<h5>showORHide: <span class="tsd-signature-type">&quot;hide&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;show&quot;</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#showOrHideHierarchies">showOrHideHierarchies</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L253">src/incremental/i-incremental.ts:253</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="showSubHierarchiesOf" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>show<wbr/>Sub<wbr/>Hierarchies<wbr/>Of</span><a href="#showSubHierarchiesOf" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="showSubHierarchiesOf.showSubHierarchiesOf-1">show<wbr/>Sub<wbr/>Hierarchies<wbr/>Of<span class="tsd-signature-symbol">(</span>classIri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#showSubHierarchiesOf.showSubHierarchiesOf-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Show hierarchies for which the specified class is a superclass.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>classIri: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#showSubHierarchiesOf">showSubHierarchiesOf</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L249">src/incremental/i-incremental.ts:249</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="showSuperHierarchiesOf" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>show<wbr/>Super<wbr/>Hierarchies<wbr/>Of</span><a href="#showSuperHierarchiesOf" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="showSuperHierarchiesOf.showSuperHierarchiesOf-1">show<wbr/>Super<wbr/>Hierarchies<wbr/>Of<span class="tsd-signature-symbol">(</span>classIri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#showSuperHierarchiesOf.showSuperHierarchiesOf-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Show hierarchies for which the specified class is a subclass.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>classIri: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<p>Inherited from <a href="index.IncrementalBase.html">IncrementalBase</a>.<a href="index.IncrementalBase.html#showSuperHierarchiesOf">showSuperHierarchiesOf</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/obdasystems/grapholscape/blob/b4edbb1/src/incremental/i-incremental.ts#L241">src/incremental/i-incremental.ts:241</a></li></ul></aside></li></ul></section></section></div>
+<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+<div class="tsd-navigation settings">
+<details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility">
+<h4 class="uppercase">Member Visibility</h4><form>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-private" name="private"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Private</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li></ul></form></div>
+<div class="tsd-theme-toggle">
+<h4 class="uppercase">Theme</h4><select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<nav class="tsd-navigation primary">
+<details class="tsd-index-accordion" open><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Modules</h3></summary>
+<div class="tsd-accordion-details">
+<ul>
+<li class="current"><a href="../modules.html">Grapholscape -<wbr/> v4.0.11</a>
+<ul>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="../pages/getting-started.html">Getting <wbr/>Started</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-1"><a href="../pages/configuration.html">Configuration</a></li>
+<li class="tsd-kind-module"><a href="../modules/UI.html">UI</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/UI.icons.html">icons</a></li></ul></li>
+<li class="tsd-kind-module"><a href="../modules/config.html">config</a></li>
+<li class="tsd-kind-module"><a href="../modules/core.html">core</a></li>
+<li class="current tsd-kind-module"><a href="../modules/index.html">index</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/index.IncrementalUI.html">IncrementalUI</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/index.util.html">util</a></li></ul></li>
+<li class="tsd-kind-module"><a href="../modules/model.html">model</a>
+<ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/model.SwaggerModel.html">Swagger<wbr/>Model</a></li></ul></li></ul></li></ul></div></details></nav>
+<nav class="tsd-navigation secondary menu-sticky">
+<ul>
+<li class="current tsd-kind-class tsd-parent-kind-module"><a href="index.IncrementalController.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-class)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-128-path"></rect><path d="M11.898 16.1201C11.098 16.1201 10.466 15.8961 10.002 15.4481C9.53803 15.0001 9.30603 14.3841 9.30603 13.6001V9.64012C9.30603 8.85612 9.53803 8.24012 10.002 7.79212C10.466 7.34412 11.098 7.12012 11.898 7.12012C12.682 7.12012 13.306 7.34812 13.77 7.80412C14.234 8.25212 14.466 8.86412 14.466 9.64012H13.386C13.386 9.14412 13.254 8.76412 12.99 8.50012C12.734 8.22812 12.37 8.09212 11.898 8.09212C11.426 8.09212 11.054 8.22412 10.782 8.48812C10.518 8.75212 10.386 9.13212 10.386 9.62812V13.6001C10.386 14.0961 10.518 14.4801 10.782 14.7521C11.054 15.0161 11.426 15.1481 11.898 15.1481C12.37 15.1481 12.734 15.0161 12.99 14.7521C13.254 14.4801 13.386 14.0961 13.386 13.6001H14.466C14.466 14.3761 14.234 14.9921 13.77 15.4481C13.306 15.8961 12.682 16.1201 11.898 16.1201Z" fill="var(--color-text)" id="icon-128-text"></path></svg><span>Incremental<wbr/>Controller</span></a>
+<ul>
+<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="index.IncrementalController.html#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-512-path"></use><use href="#icon-512-text"></use></svg>constructor</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><a href="index.IncrementalController.html#actionsWithBlockedGraph" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>actions<wbr/>With<wbr/>Blocked<wbr/>Graph</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#classFilterMap" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>class<wbr/>Filter<wbr/>Map</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#diagram" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>diagram</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#diagramBuilder" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>diagram<wbr/>Builder</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#grapholscape" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>grapholscape</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="index.IncrementalController.html#individualsButton" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>individuals<wbr/>Button</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#lifecycle" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>lifecycle</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="index.IncrementalController.html#neighbourhoodFinder" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>neighbourhood<wbr/>Finder</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><a href="index.IncrementalController.html#objectPropertyButton" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>object<wbr/>Property<wbr/>Button</a></li>
+<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#on" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>on</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private tsd-is-inherited"><a href="index.IncrementalController.html#incrementalRenderer" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>incremental<wbr/>Renderer</a></li>
+<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#numberOfElements" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-262144-path"></use><use href="#icon-262144-text"></use></svg>number<wbr/>Of<wbr/>Elements</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#addClass" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>add<wbr/>Class</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#addEdge" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>add<wbr/>Edge</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#addIndividual" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>add<wbr/>Individual</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#addIntensionalObjectProperty" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>add<wbr/>Intensional<wbr/>Object<wbr/>Property</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="index.IncrementalController.html#getAnnotations" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>get<wbr/>Annotations</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="index.IncrementalController.html#getContextMenuCommands" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>get<wbr/>Context<wbr/>Menu<wbr/>Commands</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="index.IncrementalController.html#getDataPropertiesHighlights" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>get<wbr/>Data<wbr/>Properties<wbr/>Highlights</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="index.IncrementalController.html#getHighlights" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>get<wbr/>Highlights</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#getIDByIRI" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>getIDByIRI</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="index.IncrementalController.html#getNodeButtons" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>get<wbr/>Node<wbr/>Buttons</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="index.IncrementalController.html#getObjectPropertiesHighlights" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>get<wbr/>Object<wbr/>Properties<wbr/>Highlights</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="index.IncrementalController.html#getSubClasses" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>get<wbr/>Sub<wbr/>Classes</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="index.IncrementalController.html#getSuperClasses" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>get<wbr/>Super<wbr/>Classes</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="index.IncrementalController.html#init" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>init</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="index.IncrementalController.html#initNodeButtons" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>init<wbr/>Node<wbr/>Buttons</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><a href="index.IncrementalController.html#isHierarchyNodeInDiagram" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>is<wbr/>Hierarchy<wbr/>Node<wbr/>In<wbr/>Diagram</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#performActionWithBlockedGraph" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>perform<wbr/>Action<wbr/>With<wbr/>Blocked<wbr/>Graph</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#postDiagramEdit" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>post<wbr/>Diagram<wbr/>Edit</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#removeEntity" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>remove<wbr/>Entity</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#removeHierarchy" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>remove<wbr/>Hierarchy</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="index.IncrementalController.html#reset" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>reset</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="index.IncrementalController.html#setIncrementalEventHandlers" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>set<wbr/>Incremental<wbr/>Event<wbr/>Handlers</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#showClassesInIsa" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>show<wbr/>Classes<wbr/>In<wbr/>Isa</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#showDiagram" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>show<wbr/>Diagram</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected tsd-is-inherited"><a href="index.IncrementalController.html#showOrHideHierarchies" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>show<wbr/>Or<wbr/>Hide<wbr/>Hierarchies</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#showSubHierarchiesOf" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>show<wbr/>Sub<wbr/>Hierarchies<wbr/>Of</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="index.IncrementalController.html#showSuperHierarchiesOf" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>show<wbr/>Super<wbr/>Hierarchies<wbr/>Of</a></li></ul></li></ul></nav></div></div>
+<div class="overlay"></div><script src="../assets/main.js"></script><script src="../assets/versionsMenu.js" type="module"></script></body></html>
