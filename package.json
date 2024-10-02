@@ -26,7 +26,7 @@
     "clean:types": "rimraf ./temp",
     "doc": "run-s doc:*",
     "doc:typedoc": "typedoc",
-    "doc:copy-demo-in-doc": "cross-env cpy . ../docs/demo --cwd=demo",
+    "doc:copy-demo-in-doc": "cross-env cpy . ../docs/public --cwd=demo",
     "test": "jest",
     "gen-types": "run-s clean:types gen-types:tsc",
     "gen-types:tsc": "tsc --declaration --outDir ./temp/types --emitDeclarationOnly",

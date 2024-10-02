@@ -12,7 +12,7 @@
 </h4>
 
 <p align="center">
-  <a href="https://obdasystems.github.io/grapholscape/demo/"><strong>Demo</strong></a> •
+  <a href="https://obdasystems.github.io/grapholscape/public/"><strong>Web App</strong></a> •
   <a href="#features">Features</a> •
   <a href="#what-is-graphol">What is Graphol?</a> •
   <a href="https://obdasystems.github.io/grapholscape/"><strong>Documentation</strong></a> •
@@ -24,7 +24,7 @@
 <pre style="margin:0"><code><img style="position: relative; top: 2px; float: left;" height="21px" src="https://avatars.githubusercontent.com/u/6078720?s=200&v=4" />npm install grapholscape</code></pre>
 </h3>
 
-<a align="center" href="https://obdasystems.github.io/grapholscape/demo/">
+<a align="center" href="https://obdasystems.github.io/grapholscape/public/">
   <img src="media/img/demo.gif?raw=true" />
 </a>
 
@@ -45,8 +45,8 @@ Grapholscape provides advanced and interactive tools to visually inspect all com
 GRAPHOL is a visual language for developing ontologies and offers a completely graphical representation of ontologies to users, in order to be easy understood by people who are not skilled in logic. [Read more](https://github.com/obdasystems/eddy/wiki/Introduction#graphol)\
 For building ontologies in Graphol please check our visual editor: [Eddy](https://github.com/obdasystems/eddy).
 
-## [Demo](https://obdasystems.github.io/grapholscape/demo/)
-You can try it [here](https://obdasystems.github.io/grapholscape/demo/) or [build it locally](#build-it-locally), then select an example or drop your custom `.graphol` file in the box on the right side.
+## [WebApp](https://obdasystems.github.io/grapholscape/public/)
+You can try it [here](https://obdasystems.github.io/grapholscape/public/) or [build it locally](#build-it-locally), then select an example or drop your custom `.graphol` file in the box on the right side.
 
 ## Quick Start
 For a more detailed explanation please check the [documentation](https://obdasystems.github.io/grapholscape/) and the [getting started guide](https://obdasystems.github.io/grapholscape/stable/pages/getting-started.html).
