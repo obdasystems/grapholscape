@@ -3673,7 +3673,7 @@ declare class Renderer {
     setTheme(theme: GrapholscapeTheme): void;
     applyTheme(): void;
     updateElement(grapholElement: GrapholElement): void;
-    get isThemeApplied(): cytoscape__default.ElementStylesheetStyle | cytoscape__default.ElementStylesheetCSS | undefined;
+    get isThemeApplied(): cytoscape__default.Style | undefined;
     get grapholElements(): Map<string, GrapholElement> | undefined;
     get selectedElement(): GrapholElement | undefined;
     get viewportState(): {
