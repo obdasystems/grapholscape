@@ -269,7 +269,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
    * Get the diagram with the given id
    */
   getDiagram(diagramId: number): Diagram | undefined {
-    return this.diagrams[diagramId]
+    return this.diagrams.find(d => d.id === diagramId)
   }
 
   getDiagramByName(name: string): Diagram | undefined {

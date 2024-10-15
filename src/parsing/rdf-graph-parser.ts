@@ -192,7 +192,11 @@ export function getDiagrams(rdfGraph: RDFGraph, rendererState = RendererStatesEn
       }
     }
 
-    diagrams[diagram.id] = diagram
+    if (diagram.id < 0) { 
+      diagrams[diagram.id] = diagram
+    } else {
+      diagrams.push(diagram)
+    }
   })
 
   return diagrams
