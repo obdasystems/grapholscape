@@ -66,6 +66,12 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
     }
   }
 
+  public removeAllOccurrences(representationKind: RendererStatesEnum) {
+    if (this.occurrences.get(representationKind)) {
+      this._occurrences.set(representationKind, [])
+    }
+  }
+
   /**
    * Get all occurrences of the entity in a given diagram
    * @param diagramId the diagram in which the entity must occurr
