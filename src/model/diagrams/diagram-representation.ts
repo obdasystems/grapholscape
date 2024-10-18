@@ -196,6 +196,10 @@ export default class DiagramRepresentation {
     return newId + count
   }
 
+  isEmpty() {
+    return this.cy.elements().empty()
+  }
+
   get grapholElements() {
     return this._grapholElements
   }

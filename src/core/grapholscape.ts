@@ -441,7 +441,7 @@ export default abstract class Grapholscape {
     // Stop layout, use positions from rdfGraph, for floaty/incremental
     this.renderer.stopRendering()
     if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
-      if (rdfGraph.selectedDiagramId !== undefined) {
+      if (rdfGraph.selectedDiagramId !== undefined && rdfGraph.selectedDiagramId !== null) {
         const diagram = this.ontology.getDiagram(rdfGraph.selectedDiagramId)
         if (diagram) {
           /**

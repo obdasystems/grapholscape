@@ -9,17 +9,10 @@ import GscapeDiagramSelector from './diagram-selector'
 export default function (diagramSelectorComponent: GscapeDiagramSelector, grapholscape: Grapholscape) {
   // const diagramsViewData = grapholscape.ontology.diagrams
   const updateDiagrams = (renderer: RendererStatesEnum) => {
-    diagramSelectorComponent.diagrams = grapholscape.ontology.diagrams
-    if (renderer === RendererStatesEnum.FLOATY && 
-      grapholscape.ontology.annotationsDiagram?.isEmpty()
-    ) {
-      const index = diagramSelectorComponent.diagrams.indexOf(grapholscape.ontology.annotationsDiagram)
-      if (index >= 0) {
-        diagramSelectorComponent.diagrams.splice(index, 1)
-      }
-    }
+    diagramSelectorComponent.diagrams = grapholscape.ontology.diagramsMap
+    diagramSelectorComponent.ignoreAnnotationsDiagram = renderer !== RendererStatesEnum.FLOATY
   }
-  diagramSelectorComponent.diagrams = grapholscape.ontology.diagrams
+  diagramSelectorComponent.diagrams = grapholscape.ontology.diagramsMap
   if (grapholscape.renderState)
     updateDiagrams(grapholscape.renderState)
 
@@ -32,7 +25,7 @@ export default function (diagramSelectorComponent: GscapeDiagramSelector, grapho
   diagramSelectorComponent.onDiagramSelection = (diagram) => grapholscape.showDiagram(diagram)
 
   grapholscape.on(LifecycleEvent.DiagramChange, diagram => {
-    if (diagramSelectorComponent.diagrams[diagram.id]) {
+    if (diagramSelectorComponent.diagrams.has(diagram.id.toString())) {
       diagramSelectorComponent.currentDiagramId = diagram.id
       diagramSelectorComponent.currentDiagramName = diagram.name
     }

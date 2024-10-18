@@ -24,7 +24,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   version: string
   namespaces: Namespace[] = []
   annProperties: AnnotationProperty[] = []
-  diagrams: (Diagram | AnnotationsDiagram)[] = []
+  private _diagrams: Map<string, Diagram> = new Map()
   ontologyEntity: GrapholEntity
   languages: string[] = []
   defaultLanguage?: string
@@ -38,7 +38,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     this.version = version
     this.namespaces = namespaces
     this.annProperties = annProperties
-    this.diagrams = diagrams
+    diagrams.forEach(d => this.addDiagram(d))
     this.iri = iri
     if (this.iri) {
       this.ontologyEntity = new GrapholEntity(new Iri(this.iri, this.namespaces))
@@ -259,21 +259,26 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     return this.annProperties
   }
 
-
-  /** @param {Diagram} diagram */
   addDiagram(diagram: Diagram) {
-    this.diagrams[diagram.id] = diagram
+    if (this._diagrams.get(diagram.id.toString())) {
+      console.warn(`Diagram with id = ${diagram.id} already existing, has been overridden.`)
+    }
+    this._diagrams.set(diagram.id.toString(), diagram)
+  }
+
+  removeDiagram(diagramId: string | number) {
+    this._diagrams.delete(diagramId.toString())
   }
 
   /**
    * Get the diagram with the given id
    */
-  getDiagram(diagramId: number): Diagram | undefined {
-    return this.diagrams.find(d => d.id === diagramId)
+  getDiagram(diagramId: string | number): Diagram | undefined {
+    return this._diagrams.get(diagramId.toString())
   }
 
   getDiagramByName(name: string): Diagram | undefined {
-    return this.diagrams.find(d => d.name.toLowerCase() === name?.toLowerCase())
+    return Array.from(this._diagrams.values()).find(d => d.name.toLowerCase() === name?.toLowerCase())
   }
 
   addEntity(entity: GrapholEntity) {
@@ -306,7 +311,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     if (diagramId || diagramId === 0)
       return this.getDiagram(diagramId)?.representations.get(renderState)?.grapholElements.get(elementId)
 
-    for (let diagram of this.diagrams) {
+    for (let diagram of this._diagrams.values()) {
       const elem = diagram.representations.get(renderState)?.grapholElements.get(elementId)
       if (elem) return elem
     }
@@ -407,7 +412,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     }
 
     if (!this.annotationsDiagram) {
-      this.diagrams[-1] = new AnnotationsDiagram()
+      this._diagrams.set("-1", new AnnotationsDiagram())
     }
 
     if (!this.ontologyEntity) {
@@ -436,7 +441,20 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   }
 
   get annotationsDiagram(): AnnotationsDiagram | undefined {
-    return this.diagrams[-1] as AnnotationsDiagram | undefined
+    return this.getDiagram(-1) as AnnotationsDiagram | undefined
+  }
+
+  get diagrams() {
+    return Array.from(this._diagrams.values())
+  }
+
+  set diagrams(diagram: Diagram[]) {
+    this._diagrams = new Map()
+    diagram.forEach(d => this.addDiagram(d))
+  }
+
+  get diagramsMap() {
+    return this._diagrams
   }
 }
 

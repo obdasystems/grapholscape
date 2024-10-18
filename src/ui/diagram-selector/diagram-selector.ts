@@ -8,15 +8,17 @@ import getIconSlot from '../util/get-icon-slot'
 
 export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Diagram Selector'
-  diagrams: Diagram[]
+  diagrams: Map<string, Diagram>
   currentDiagramId: number
   currentDiagramName: string
+  ignoreAnnotationsDiagram: boolean
   onDiagramSelection: (diagramId: number) => void = () => {}
 
   static properties: PropertyDeclarations = {
     currentDiagramId: { type: Number },
     currentDiagramName: {type : String},
-    diagrams: {type: Array}
+    diagrams: { type: Object },
+    ignoreAnnotationsDiagram: { type: Boolean }
   }
 
   static styles?: CSSResultGroup = [
@@ -38,7 +40,7 @@ export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitE
       </gscape-button>
 
       <div class="gscape-panel drop-down hide" id="drop-panel">
-        ${(this.diagrams.length === 1 && this.currentDiagramId === 0 && !this.diagrams[-1]) || this.diagrams.length === 0
+        ${(this.diagrams.size === 1 && !this.diagrams.get("-1")) || this.diagrams.size === 0
           ? html`
             <div class="blank-slate">
               ${blankSlateDiagrams}
@@ -47,7 +49,7 @@ export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitE
             </div>
           `
           : html`
-            ${this.diagrams
+            ${Array.from(this.diagrams.values())
               .sort(function (a, b) {
                 var x = a.name.toLowerCase()
                 var y = b.name.toLowerCase()
@@ -55,29 +57,20 @@ export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitE
                 if (x > y) { return 1; }
                 return 0
               })
-              .map(diagram => html`
-                <gscape-action-list-item
-                  @click="${this.diagramSelectionHandler}"
-                  label="${diagram.name}"
-                  diagram-id="${diagram.id}"
-                  ?selected = "${this.currentDiagramId === diagram.id}"
-                ></gscape-action-list-item>
-              `)
-            }
-            ${this.diagrams[-1] !== undefined
-              ? html`
-                <gscape-action-list-item
-                  @click="${this.diagramSelectionHandler}"
-                  label="${this.diagrams[-1].name}"
-                  diagram-id="${this.diagrams[-1].id}"
-                  ?selected = "${this.currentDiagramId === this.diagrams[-1].id}"
-                ></gscape-action-list-item>
-              `
-              : null
+              .map(diagram => {
+                return diagram.id === -1 && (this.ignoreAnnotationsDiagram || diagram.isEmpty())
+                  ? undefined
+                  : html`
+                    <gscape-action-list-item
+                      @click="${this.diagramSelectionHandler}"
+                      label="${diagram.name}"
+                      diagram-id="${diagram.id}"
+                      ?selected = "${this.currentDiagramId === diagram.id}"
+                    ></gscape-action-list-item>
+                  `})
             }
           `
         }
-        
       </div>
     `
   }
@@ -88,7 +81,8 @@ export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitE
   }
 
   private get currentDiagram() {
-    return this.diagrams[this.currentDiagramId]
+    if (this.currentDiagramId !== undefined)
+      return this.diagrams.get(this.currentDiagramId.toString())
   }
 }
 

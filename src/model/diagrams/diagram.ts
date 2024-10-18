@@ -52,6 +52,10 @@ class Diagram implements IDiagram {
   containsEntity(iriOrGrapholEntity: Iri | GrapholEntity, rendererState: RendererStatesEnum) {
     return this.representations.get(rendererState)?.containsEntity(iriOrGrapholEntity)
   }
+
+  isEmpty() {
+    return !(Array.from(this.representations.values()).some(r => !r.isEmpty()))
+  }
 }
 
 export default Diagram
