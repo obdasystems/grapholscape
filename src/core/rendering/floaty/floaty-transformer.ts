@@ -192,7 +192,8 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
       if (this.result.cy.$(`[type = "${TypesEnum.DATA_PROPERTY}"][iri = "${dp.data().iri}"]`).empty()) {
         originalElem = grapholRepresentation.grapholElements.get(dp.id())
         if (originalElem) {
-          this.result.addElement(originalElem)
+          this.result.cy.add(dp.clone())
+          this.result.grapholElements.set(dp.id(), originalElem)
           if (!owlThingClass) {
             owlThingClass = this.addOWlThing()
           }
@@ -215,7 +216,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
           objectPropertyEdge = new GrapholEdge(this.result.getNewId('edge'), TypesEnum.OBJECT_PROPERTY)
           objectPropertyEdge.iri = originalElem!.iri
           objectPropertyEdge.displayedName = originalElem!.displayedName
-          if (this.diagramId)
+          if (this.diagramId !== undefined)
             objectPropertyEdge.diagramId = this.diagramId
           objectPropertyEdge.sourceId = owlThingClass.id
           objectPropertyEdge.targetId = owlThingClass.id
@@ -286,7 +287,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
             const newObjectPropertyEdge = new GrapholEdge(this.result.getNewId('edge'), TypesEnum.OBJECT_PROPERTY)
             newObjectPropertyEdge.iri = objectPropertyNode.iri
             newObjectPropertyEdge.displayedName = objectPropertyNode.displayedName
-            if (this.diagramId)
+            if (this.diagramId !== undefined)
               newObjectPropertyEdge.diagramId = this.diagramId
             // newObjectPropertyEdge.originalId = objectPropertyNode.id
             newObjectPropertyEdge.sourceId = sourceId!
@@ -320,7 +321,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
       const owlThingClass = new GrapholNode(this.result.getNewId('node'), TypesEnum.CLASS)
       owlThingClass.iri = thingIri
       owlThingClass.displayedName = 'Thing'
-      if (this.diagramId)
+      if (this.diagramId !== undefined)
         owlThingClass.diagramId = this.diagramId
       this.result.addElement(owlThingClass)
       return owlThingClass

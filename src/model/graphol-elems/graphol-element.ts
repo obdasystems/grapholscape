@@ -54,8 +54,9 @@ export default class GrapholElement implements Element {
    */
   isEntity(): boolean {
     switch (this.type) {
-      case TypesEnum.CLASS:
       case TypesEnum.DATA_PROPERTY:
+        return this.isNode()
+      case TypesEnum.CLASS:
       case TypesEnum.OBJECT_PROPERTY:
       case TypesEnum.ANNOTATION_PROPERTY:
       case TypesEnum.INDIVIDUAL:

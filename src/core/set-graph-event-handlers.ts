@@ -13,18 +13,18 @@ export default function setGraphEventHandlers(diagram: Diagram, lifecycle: Lifec
       if (grapholElement) {
         if (grapholElement.isEntity()) {
           const grapholEntity = ontology.getEntity(e.target.data().iri) || (
-            ontology.ontologyEntity.iri.equals(e.target.data().iri) && ontology.ontologyEntity
+            ontology.ontologyEntity?.iri.equals(e.target.data().iri) && ontology.ontologyEntity
           )
           if (grapholEntity) {
             lifecycle.trigger(LifecycleEvent.EntitySelection, grapholEntity, grapholElement)
           }
         }
         
-        if (isGrapholNode(grapholElement)) {
+        if (grapholElement.isNode()) {
           lifecycle.trigger(LifecycleEvent.NodeSelection, grapholElement)
         }
 
-        if (isGrapholEdge(grapholElement)) {
+        if (grapholElement.isEdge()) {
           lifecycle.trigger(LifecycleEvent.EdgeSelection, grapholElement)
         }
       }
