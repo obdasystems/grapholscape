@@ -25,7 +25,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   namespaces: Namespace[] = []
   annProperties: AnnotationProperty[] = []
   private _diagrams: Map<string, Diagram> = new Map()
-  ontologyEntity: GrapholEntity
+  ontologyEntity?: GrapholEntity
   languages: string[] = []
   defaultLanguage?: string
   iri?: string

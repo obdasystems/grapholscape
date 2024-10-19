@@ -7,14 +7,13 @@ export function getOntologyInfo(xmlDocument: XMLDocument) {
   let ontology_languages = getTag(xmlDocument, 'languages')?.children
   let iri = getTag(xmlDocument, 'ontology')?.getAttribute('iri')
 
-  const ontology = new Ontology(project?.getAttribute('name') || '', project?.getAttribute('version') || '')
+  const ontology = new Ontology(project?.getAttribute('name') || '', project?.getAttribute('version') || '', iri || undefined)
 
   if (ontology_languages)
     ontology.languages = [...ontology_languages].map(lang => lang.textContent).filter(l => l !== null) as string[] || []
 
   ontology.defaultLanguage = getTag(xmlDocument, 'ontology')?.getAttribute('lang') || ontology.languages[0]
   if (iri) {
-    ontology.iri = iri
     ontology.annotations = getIriAnnotations(iri, xmlDocument, getNamespaces(xmlDocument))
   }
   return ontology
