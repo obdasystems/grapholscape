@@ -76,7 +76,19 @@ export default class FloatyRendererState extends BaseRenderer {
     if (!floatyRepresentation.hasEverBeenRendered) {
       // this.floatyLayoutOptions.fit = true
       this.renderer.fit()
+      const areAllNodesOnCenter = this.renderer.diagram.representations.get(RendererStatesEnum.GRAPHOL)?.isEmpty()
+      const previousLayoutOptions = this.floatyLayoutOptions
+      if (areAllNodesOnCenter) {
+        this.floatyLayoutOptions = {
+          ...this.floatyLayoutOptions,
+          centerGraph: true,
+          randomize: true,
+        }
+      }
       this.runLayout()
+      if (areAllNodesOnCenter) {
+        this.floatyLayoutOptions = previousLayoutOptions
+      }
       this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'))
       this.setDragAndPinEventHandlers();
 
