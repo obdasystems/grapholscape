@@ -122,7 +122,7 @@ export default class IncrementalController extends IncrementalBase {
         )
       }
 
-      const subClasses = this.neighbourhoodFinder.getSubclassesIris(grapholElement.id)
+      const subClasses = this.neighbourhoodFinder.getSubclassesIris(grapholElement.iri)
       if (subClasses.length > 0) {
         const areAllSubclassesVisible = subClasses.every(subclass => this.diagram.containsEntity(subclass))
         commands.push(
@@ -143,7 +143,7 @@ export default class IncrementalController extends IncrementalBase {
         )
       }
 
-      const superClasses = this.neighbourhoodFinder.getSuperclassesIris(grapholElement.id)
+      const superClasses = this.neighbourhoodFinder.getSuperclassesIris(grapholElement.iri)
       if (superClasses.length > 0) {
         const areAllSuperclassesVisible = superClasses.every(superClasses => this.diagram.containsEntity(superClasses))
         commands.push(
@@ -162,7 +162,7 @@ export default class IncrementalController extends IncrementalBase {
         )
       }
 
-      const equivalentClasses = this.neighbourhoodFinder.getEquivalentClassesIris(grapholElement.id)
+      const equivalentClasses = this.neighbourhoodFinder.getEquivalentClassesIris(grapholElement.iri)
       if (equivalentClasses.length > 0) {
         const areAllEquivalentClassesVisible = equivalentClasses.every(ec => this.diagram.containsEntity(ec))
         commands.push(
