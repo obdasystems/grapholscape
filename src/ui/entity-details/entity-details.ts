@@ -277,6 +277,23 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
       this.language = allComments[0].language
     }
   }
+
+  /**
+   * When panel is closed remove the overflow from
+   * the host elem, otherwise the button to open up
+   * again the panel won't be visible.
+   * Restore overflow when panel is visible so it is
+   * resizable.
+   */
+  closePanel(): void {
+    super.closePanel()
+    this.style.overflow = 'unset'
+  }
+
+  openPanel(): void {
+    super.openPanel()
+    this.style.overflow = 'auto'
+  }
 }
 
 customElements.define('gscape-entity-details', GscapeEntityDetails)
