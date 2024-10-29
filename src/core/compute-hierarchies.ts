@@ -39,26 +39,13 @@ export default function computeHierarchies(ontology: Ontology) {
         ontology.addHierarchy(hierarchy)
       })
 
-      // let subclassNodes: NodeCollection, subclassEntity: GrapholEntity | undefined, subclassesSet: Set<GrapholEntity> | undefined
-      // representation.cy.$(`[type = "${TypesEnum.CLASS}"]`).forEach(classNode => {
-      //   subclassNodes = classNode.incomers(`[type = "${TypesEnum.INCLUSION}"]`).targets()
-
-      //   subclassNodes.forEach(subclassNode => {
-      //     if (subclassNode.data().iri) {
-      //       subclassEntity = ontology.getEntity(subclassNode.data().iri)
-      //       if (subclassEntity) {
-      //         subclassesSet = ontology.subclasses.get(classNode.data().iri)
-      //         if (!subclassesSet) {
-      //           ontology.subclasses.set(classNode.data().iri, new Set())
-      //           subclassesSet = ontology.subclasses.get(classNode.data().iri)
-      //         }
-
-      //         subclassesSet?.add(subclassEntity)
-      //       }
-      //     }
-          
-      //   })
-      // })
+      representation.cy.edges(`[type = "${TypesEnum.INCLUSION}"]`).forEach(inclusionEdge => {
+        const source = inclusionEdge.source()
+        const target = inclusionEdge.target()
+        if (source.data().iri && target.data().iri && source.data().type === TypesEnum.CLASS && target.data().type === TypesEnum.CLASS) {
+          ontology.addSubclassOf(source.data().iri, target.data().iri)
+        }
+      })
     }
    
   }
