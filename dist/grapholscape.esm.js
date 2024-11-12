@@ -3445,6 +3445,11 @@ class GrapholEntity extends AnnotatedElement {
             occurrences === null || occurrences === void 0 ? void 0 : occurrences.splice(occurrenceToRemoveIndex, 1);
         }
     }
+    removeAllOccurrences(representationKind) {
+        if (this.occurrences.get(representationKind)) {
+            this._occurrences.set(representationKind, []);
+        }
+    }
     /**
      * Get all occurrences of the entity in a given diagram
      * @param diagramId the diagram in which the entity must occurr
@@ -3651,8 +3656,9 @@ class GrapholElement {
      */
     isEntity() {
         switch (this.type) {
-            case TypesEnum.CLASS:
             case TypesEnum.DATA_PROPERTY:
+                return this.isNode();
+            case TypesEnum.CLASS:
             case TypesEnum.OBJECT_PROPERTY:
             case TypesEnum.ANNOTATION_PROPERTY:
             case TypesEnum.INDIVIDUAL:
@@ -4217,6 +4223,9 @@ class DiagramRepresentation {
         }
         return newId + count;
     }
+    isEmpty() {
+        return this.cy.elements().empty();
+    }
     get grapholElements() {
         return this._grapholElements;
     }
@@ -4281,6 +4290,9 @@ class Diagram {
         var _a;
         return (_a = this.representations.get(rendererState)) === null || _a === void 0 ? void 0 : _a.containsEntity(iriOrGrapholEntity);
     }
+    isEmpty() {
+        return !(Array.from(this.representations.values()).some(r => !r.isEmpty()));
+    }
 }
 
 class AnnotationsDiagram extends Diagram {
@@ -4319,9 +4331,6 @@ class AnnotationsDiagram extends Diagram {
         this.representation.addElement(annotationPropertyEdge, annotationPropertyEntity);
         annotationPropertyEntity.addOccurrence(annotationPropertyEdge, RendererStatesEnum.FLOATY);
     }
-    isEmpty() {
-        return this.representation.cy.elements().empty();
-    }
 }
 
 /**
@@ -4333,7 +4342,7 @@ class Ontology extends AnnotatedElement {
         super();
         this.namespaces = [];
         this.annProperties = [];
-        this.diagrams = [];
+        this._diagrams = new Map();
         this.languages = [];
         this.usedColorScales = [];
         this._entities = new Map();
@@ -4346,7 +4355,7 @@ class Ontology extends AnnotatedElement {
         this.version = version;
         this.namespaces = namespaces;
         this.annProperties = annProperties;
-        this.diagrams = diagrams;
+        diagrams.forEach(d => this.addDiagram(d));
         this.iri = iri;
         if (this.iri) {
             this.ontologyEntity = new GrapholEntity(new Iri(this.iri, this.namespaces));
@@ -4514,18 +4523,23 @@ class Ontology extends AnnotatedElement {
     getAnnotationProperties() {
         return this.annProperties;
     }
-    /** @param {Diagram} diagram */
     addDiagram(diagram) {
-        this.diagrams[diagram.id] = diagram;
+        if (this._diagrams.get(diagram.id.toString())) {
+            console.warn(`Diagram with id = ${diagram.id} already existing, has been overridden.`);
+        }
+        this._diagrams.set(diagram.id.toString(), diagram);
+    }
+    removeDiagram(diagramId) {
+        this._diagrams.delete(diagramId.toString());
     }
     /**
      * Get the diagram with the given id
      */
     getDiagram(diagramId) {
-        return this.diagrams[diagramId];
+        return this._diagrams.get(diagramId.toString());
     }
     getDiagramByName(name) {
-        return this.diagrams.find(d => d.name.toLowerCase() === (name === null || name === void 0 ? void 0 : name.toLowerCase()));
+        return Array.from(this._diagrams.values()).find(d => d.name.toLowerCase() === (name === null || name === void 0 ? void 0 : name.toLowerCase()));
     }
     addEntity(entity) {
         this.entities.set(entity.iri.fullIri, entity);
@@ -4552,7 +4566,7 @@ class Ontology extends AnnotatedElement {
         var _a, _b, _c;
         if (diagramId || diagramId === 0)
             return (_b = (_a = this.getDiagram(diagramId)) === null || _a === void 0 ? void 0 : _a.representations.get(renderState)) === null || _b === void 0 ? void 0 : _b.grapholElements.get(elementId);
-        for (let diagram of this.diagrams) {
+        for (let diagram of this._diagrams.values()) {
             const elem = (_c = diagram.representations.get(renderState)) === null || _c === void 0 ? void 0 : _c.grapholElements.get(elementId);
             if (elem)
                 return elem;
@@ -4640,7 +4654,7 @@ class Ontology extends AnnotatedElement {
             return;
         }
         if (!this.annotationsDiagram) {
-            this.diagrams[-1] = new AnnotationsDiagram();
+            this._diagrams.set("-1", new AnnotationsDiagram());
         }
         if (!this.ontologyEntity) {
             this.ontologyEntity = new GrapholEntity(new Iri(this.iri, this.namespaces));
@@ -4656,7 +4670,17 @@ class Ontology extends AnnotatedElement {
         this._entities = newEntities;
     }
     get annotationsDiagram() {
-        return this.diagrams[-1];
+        return this.getDiagram(-1);
+    }
+    get diagrams() {
+        return Array.from(this._diagrams.values());
+    }
+    set diagrams(diagram) {
+        this._diagrams = new Map();
+        diagram.forEach(d => this.addDiagram(d));
+    }
+    get diagramsMap() {
+        return this._diagrams;
     }
 }
 
@@ -6549,7 +6573,8 @@ class FloatyTransformer extends BaseGrapholTransformer {
             if (this.result.cy.$(`[type = "${TypesEnum.DATA_PROPERTY}"][iri = "${dp.data().iri}"]`).empty()) {
                 originalElem = grapholRepresentation.grapholElements.get(dp.id());
                 if (originalElem) {
-                    this.result.addElement(originalElem);
+                    this.result.cy.add(dp.clone());
+                    this.result.grapholElements.set(dp.id(), originalElem);
                     if (!owlThingClass) {
                         owlThingClass = this.addOWlThing();
                     }
@@ -6571,7 +6596,7 @@ class FloatyTransformer extends BaseGrapholTransformer {
                     objectPropertyEdge = new GrapholEdge(this.result.getNewId('edge'), TypesEnum.OBJECT_PROPERTY);
                     objectPropertyEdge.iri = originalElem.iri;
                     objectPropertyEdge.displayedName = originalElem.displayedName;
-                    if (this.diagramId)
+                    if (this.diagramId !== undefined)
                         objectPropertyEdge.diagramId = this.diagramId;
                     objectPropertyEdge.sourceId = owlThingClass.id;
                     objectPropertyEdge.targetId = owlThingClass.id;
@@ -6622,7 +6647,7 @@ class FloatyTransformer extends BaseGrapholTransformer {
                         const newObjectPropertyEdge = new GrapholEdge(this.result.getNewId('edge'), TypesEnum.OBJECT_PROPERTY);
                         newObjectPropertyEdge.iri = objectPropertyNode.iri;
                         newObjectPropertyEdge.displayedName = objectPropertyNode.displayedName;
-                        if (this.diagramId)
+                        if (this.diagramId !== undefined)
                             newObjectPropertyEdge.diagramId = this.diagramId;
                         // newObjectPropertyEdge.originalId = objectPropertyNode.id
                         newObjectPropertyEdge.sourceId = sourceId;
@@ -6649,7 +6674,7 @@ class FloatyTransformer extends BaseGrapholTransformer {
             const owlThingClass = new GrapholNode(this.result.getNewId('node'), TypesEnum.CLASS);
             owlThingClass.iri = thingIri;
             owlThingClass.displayedName = 'Thing';
-            if (this.diagramId)
+            if (this.diagramId !== undefined)
                 owlThingClass.diagramId = this.diagramId;
             this.result.addElement(owlThingClass);
             return owlThingClass;
@@ -8144,23 +8169,13 @@ function computeHierarchies(ontology) {
                 });
                 ontology.addHierarchy(hierarchy);
             });
-            // let subclassNodes: NodeCollection, subclassEntity: GrapholEntity | undefined, subclassesSet: Set<GrapholEntity> | undefined
-            // representation.cy.$(`[type = "${TypesEnum.CLASS}"]`).forEach(classNode => {
-            //   subclassNodes = classNode.incomers(`[type = "${TypesEnum.INCLUSION}"]`).targets()
-            //   subclassNodes.forEach(subclassNode => {
-            //     if (subclassNode.data().iri) {
-            //       subclassEntity = ontology.getEntity(subclassNode.data().iri)
-            //       if (subclassEntity) {
-            //         subclassesSet = ontology.subclasses.get(classNode.data().iri)
-            //         if (!subclassesSet) {
-            //           ontology.subclasses.set(classNode.data().iri, new Set())
-            //           subclassesSet = ontology.subclasses.get(classNode.data().iri)
-            //         }
-            //         subclassesSet?.add(subclassEntity)
-            //       }
-            //     }
-            //   })
-            // })
+            representation.cy.edges(`[type = "${TypesEnum.INCLUSION}"]`).forEach(inclusionEdge => {
+                const source = inclusionEdge.source();
+                const target = inclusionEdge.target();
+                if (source.data().iri && target.data().iri && source.data().type === TypesEnum.CLASS && target.data().type === TypesEnum.CLASS) {
+                    ontology.addSubclassOf(source.data().iri, target.data().iri);
+                }
+            });
         }
     }
 }
@@ -8229,7 +8244,7 @@ class FloatyRendererState extends BaseRenderer {
         this.layoutRunning = true;
     }
     render() {
-        var _a, _b;
+        var _a, _b, _c;
         if (!this.renderer.diagram)
             return;
         let floatyRepresentation = this.renderer.diagram.representations.get(this.id);
@@ -8244,16 +8259,24 @@ class FloatyRendererState extends BaseRenderer {
         if (!floatyRepresentation.hasEverBeenRendered) {
             // this.floatyLayoutOptions.fit = true
             this.renderer.fit();
+            const areAllNodesOnCenter = (_a = this.renderer.diagram.representations.get(RendererStatesEnum.GRAPHOL)) === null || _a === void 0 ? void 0 : _a.isEmpty();
+            const previousLayoutOptions = this.floatyLayoutOptions;
+            if (areAllNodesOnCenter) {
+                this.floatyLayoutOptions = Object.assign(Object.assign({}, this.floatyLayoutOptions), { centerGraph: true, randomize: true });
+            }
             this.runLayout();
+            if (areAllNodesOnCenter) {
+                this.floatyLayoutOptions = previousLayoutOptions;
+            }
             this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'));
             this.setDragAndPinEventHandlers();
             this.renderer.cy.automove(this.automoveOptions);
         }
         if (floatyRepresentation.lastViewportState) {
-            (_a = this.renderer.cy) === null || _a === void 0 ? void 0 : _a.viewport(floatyRepresentation.lastViewportState);
+            (_b = this.renderer.cy) === null || _b === void 0 ? void 0 : _b.viewport(floatyRepresentation.lastViewportState);
         }
         if (this.popperContainer)
-            (_b = this.renderer.cy.container()) === null || _b === void 0 ? void 0 : _b.appendChild(this.popperContainer);
+            (_c = this.renderer.cy.container()) === null || _c === void 0 ? void 0 : _c.appendChild(this.popperContainer);
         if (!this.dragAndPin)
             this.unpinAll();
         if (this.isLayoutInfinite) {
@@ -8828,18 +8851,19 @@ function setGraphEventHandlers(diagram, lifecycle, ontology) {
         if (cy.scratch('_gscape-graph-handlers-set'))
             return;
         cy.on('select', e => {
+            var _a;
             const grapholElement = diagramRepresentation.grapholElements.get(e.target.id());
             if (grapholElement) {
                 if (grapholElement.isEntity()) {
-                    const grapholEntity = ontology.getEntity(e.target.data().iri) || (ontology.ontologyEntity.iri.equals(e.target.data().iri) && ontology.ontologyEntity);
+                    const grapholEntity = ontology.getEntity(e.target.data().iri) || (((_a = ontology.ontologyEntity) === null || _a === void 0 ? void 0 : _a.iri.equals(e.target.data().iri)) && ontology.ontologyEntity);
                     if (grapholEntity) {
                         lifecycle.trigger(LifecycleEvent.EntitySelection, grapholEntity, grapholElement);
                     }
                 }
-                if (isGrapholNode(grapholElement)) {
+                if (grapholElement.isNode()) {
                     lifecycle.trigger(LifecycleEvent.NodeSelection, grapholElement);
                 }
-                if (isGrapholEdge(grapholElement)) {
+                if (grapholElement.isEdge()) {
                     lifecycle.trigger(LifecycleEvent.EdgeSelection, grapholElement);
                 }
             }
@@ -9106,7 +9130,7 @@ function getDiagrams(rdfGraph, rendererState = RendererStatesEnum.GRAPHOL, entit
                 diagramRepr.lastViewportState = d.lastViewportState;
             }
         }
-        diagrams[diagram.id] = diagram;
+        diagrams.push(diagram);
     });
     return diagrams;
 }
@@ -9506,7 +9530,7 @@ class Grapholscape {
         // Stop layout, use positions from rdfGraph, for floaty/incremental
         this.renderer.stopRendering();
         if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
-            if (rdfGraph.selectedDiagramId !== undefined) {
+            if (rdfGraph.selectedDiagramId !== undefined && rdfGraph.selectedDiagramId !== null) {
                 const diagram = this.ontology.getDiagram(rdfGraph.selectedDiagramId);
                 if (diagram) {
                     /**
@@ -13425,7 +13449,7 @@ class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(s)) {
       </gscape-button>
 
       <div class="gscape-panel drop-down hide" id="drop-panel">
-        ${(this.diagrams.length === 1 && this.currentDiagramId === 0 && !this.diagrams[-1]) || this.diagrams.length === 0
+        ${(this.diagrams.size === 1 && !this.diagrams.get("-1")) || this.diagrams.size === 0
             ? x `
             <div class="blank-slate">
               ${blankSlateDiagrams}
@@ -13434,7 +13458,7 @@ class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(s)) {
             </div>
           `
             : x `
-            ${this.diagrams
+            ${Array.from(this.diagrams.values())
                 .sort(function (a, b) {
                 var x = a.name.toLowerCase();
                 var y = b.name.toLowerCase();
@@ -13446,26 +13470,19 @@ class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(s)) {
                 }
                 return 0;
             })
-                .map(diagram => x `
-                <gscape-action-list-item
-                  @click="${this.diagramSelectionHandler}"
-                  label="${diagram.name}"
-                  diagram-id="${diagram.id}"
-                  ?selected = "${this.currentDiagramId === diagram.id}"
-                ></gscape-action-list-item>
-              `)}
-            ${this.diagrams[-1] !== undefined
-                ? x `
-                <gscape-action-list-item
-                  @click="${this.diagramSelectionHandler}"
-                  label="${this.diagrams[-1].name}"
-                  diagram-id="${this.diagrams[-1].id}"
-                  ?selected = "${this.currentDiagramId === this.diagrams[-1].id}"
-                ></gscape-action-list-item>
-              `
-                : null}
+                .map(diagram => {
+                return diagram.id === -1 && (this.ignoreAnnotationsDiagram || diagram.isEmpty())
+                    ? undefined
+                    : x `
+                    <gscape-action-list-item
+                      @click="${this.diagramSelectionHandler}"
+                      label="${diagram.name}"
+                      diagram-id="${diagram.id}"
+                      ?selected = "${this.currentDiagramId === diagram.id}"
+                    ></gscape-action-list-item>
+                  `;
+            })}
           `}
-        
       </div>
     `;
     }
@@ -13474,13 +13491,15 @@ class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(s)) {
         this.onDiagramSelection(selectedDiagramId);
     }
     get currentDiagram() {
-        return this.diagrams[this.currentDiagramId];
+        if (this.currentDiagramId !== undefined)
+            return this.diagrams.get(this.currentDiagramId.toString());
     }
 }
 GscapeDiagramSelector.properties = {
     currentDiagramId: { type: Number },
     currentDiagramName: { type: String },
-    diagrams: { type: Array }
+    diagrams: { type: Object },
+    ignoreAnnotationsDiagram: { type: Boolean }
 };
 GscapeDiagramSelector.styles = [
     baseStyle,
@@ -13502,17 +13521,10 @@ customElements.define('gscape-diagram-selector', GscapeDiagramSelector);
 function init$7 (diagramSelectorComponent, grapholscape) {
     // const diagramsViewData = grapholscape.ontology.diagrams
     const updateDiagrams = (renderer) => {
-        var _a;
-        diagramSelectorComponent.diagrams = grapholscape.ontology.diagrams;
-        if (renderer === RendererStatesEnum.FLOATY &&
-            ((_a = grapholscape.ontology.annotationsDiagram) === null || _a === void 0 ? void 0 : _a.isEmpty())) {
-            const index = diagramSelectorComponent.diagrams.indexOf(grapholscape.ontology.annotationsDiagram);
-            if (index >= 0) {
-                diagramSelectorComponent.diagrams.splice(index, 1);
-            }
-        }
+        diagramSelectorComponent.diagrams = grapholscape.ontology.diagramsMap;
+        diagramSelectorComponent.ignoreAnnotationsDiagram = renderer !== RendererStatesEnum.FLOATY;
     };
-    diagramSelectorComponent.diagrams = grapholscape.ontology.diagrams;
+    diagramSelectorComponent.diagrams = grapholscape.ontology.diagramsMap;
     if (grapholscape.renderState)
         updateDiagrams(grapholscape.renderState);
     if (grapholscape.diagramId || grapholscape.diagramId === 0) {
@@ -13523,7 +13535,7 @@ function init$7 (diagramSelectorComponent, grapholscape) {
     }
     diagramSelectorComponent.onDiagramSelection = (diagram) => grapholscape.showDiagram(diagram);
     grapholscape.on(LifecycleEvent.DiagramChange, diagram => {
-        if (diagramSelectorComponent.diagrams[diagram.id]) {
+        if (diagramSelectorComponent.diagrams.has(diagram.id.toString())) {
             diagramSelectorComponent.currentDiagramId = diagram.id;
             diagramSelectorComponent.currentDiagramName = diagram.name;
         }
@@ -13936,6 +13948,21 @@ class GscapeEntityDetails extends DropPanelMixin(BaseMixin(s)) {
         if (commentsInCurrentLanguage.length === 0) {
             this.language = allComments[0].language;
         }
+    }
+    /**
+     * When panel is closed remove the overflow from
+     * the host elem, otherwise the button to open up
+     * again the panel won't be visible.
+     * Restore overflow when panel is visible so it is
+     * resizable.
+     */
+    closePanel() {
+        super.closePanel();
+        this.style.overflow = 'unset';
+    }
+    openPanel() {
+        super.openPanel();
+        this.style.overflow = 'auto';
     }
 }
 GscapeEntityDetails.styles = [
@@ -15729,7 +15756,7 @@ class GscapeSettings extends DropPanelMixin(BaseMixin(s)) {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.0.11"}</span>
+            <span>${"4.0.12"}</span>
           </div>
         </div>
       </div>
@@ -17923,7 +17950,7 @@ class IncrementalController extends IncrementalBase {
                         });
                 }));
             }
-            const subClasses = this.neighbourhoodFinder.getSubclassesIris(grapholElement.id);
+            const subClasses = this.neighbourhoodFinder.getSubclassesIris(grapholElement.iri);
             if (subClasses.length > 0) {
                 const areAllSubclassesVisible = subClasses.every(subclass => this.diagram.containsEntity(subclass));
                 commands.push(showHideSubClasses(areAllSubclassesVisible, () => {
@@ -17939,7 +17966,7 @@ class IncrementalController extends IncrementalBase {
                     }
                 }));
             }
-            const superClasses = this.neighbourhoodFinder.getSuperclassesIris(grapholElement.id);
+            const superClasses = this.neighbourhoodFinder.getSuperclassesIris(grapholElement.iri);
             if (superClasses.length > 0) {
                 const areAllSuperclassesVisible = superClasses.every(superClasses => this.diagram.containsEntity(superClasses));
                 commands.push(showHideSuperClasses(areAllSuperclassesVisible, () => {
@@ -17952,7 +17979,7 @@ class IncrementalController extends IncrementalBase {
                         : this.showClassesInIsa(grapholElement.iri, superClasses, TypesEnum.INCLUSION, 'super');
                 }));
             }
-            const equivalentClasses = this.neighbourhoodFinder.getEquivalentClassesIris(grapholElement.id);
+            const equivalentClasses = this.neighbourhoodFinder.getEquivalentClassesIris(grapholElement.iri);
             if (equivalentClasses.length > 0) {
                 const areAllEquivalentClassesVisible = equivalentClasses.every(ec => this.diagram.containsEntity(ec));
                 commands.push(showHideEquivalentClasses(areAllEquivalentClassesVisible, () => {
@@ -18298,12 +18325,11 @@ function getOntologyInfo(xmlDocument) {
     let project = getTag(xmlDocument, 'project');
     let ontology_languages = (_a = getTag(xmlDocument, 'languages')) === null || _a === void 0 ? void 0 : _a.children;
     let iri = (_b = getTag(xmlDocument, 'ontology')) === null || _b === void 0 ? void 0 : _b.getAttribute('iri');
-    const ontology = new Ontology((project === null || project === void 0 ? void 0 : project.getAttribute('name')) || '', (project === null || project === void 0 ? void 0 : project.getAttribute('version')) || '');
+    const ontology = new Ontology((project === null || project === void 0 ? void 0 : project.getAttribute('name')) || '', (project === null || project === void 0 ? void 0 : project.getAttribute('version')) || '', iri || undefined);
     if (ontology_languages)
         ontology.languages = [...ontology_languages].map(lang => lang.textContent).filter(l => l !== null) || [];
     ontology.defaultLanguage = ((_c = getTag(xmlDocument, 'ontology')) === null || _c === void 0 ? void 0 : _c.getAttribute('lang')) || ontology.languages[0];
     if (iri) {
-        ontology.iri = iri;
         ontology.annotations = getIriAnnotations(iri, xmlDocument, getNamespaces(xmlDocument));
     }
     return ontology;

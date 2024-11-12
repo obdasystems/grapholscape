@@ -4624,9 +4624,10 @@ type TabProps = {
 declare const GscapeDiagramSelector_base: (new (...args: any[]) => IDropPanelMixin) & (new (...args: any[]) => IBaseMixin) & typeof LitElement;
 declare class GscapeDiagramSelector extends GscapeDiagramSelector_base {
     title: string;
-    diagrams: Diagram[];
+    diagrams: Map<string, Diagram>;
     currentDiagramId: number;
     currentDiagramName: string;
+    ignoreAnnotationsDiagram: boolean;
     onDiagramSelection: (diagramId: number) => void;
     static properties: PropertyDeclarations;
     static styles?: CSSResultGroup;
@@ -5466,6 +5467,7 @@ declare class GrapholEntity extends AnnotatedElement implements Entity {
     constructor(iri: Iri);
     addOccurrence(newGrapholElement: GrapholElement, representationKind?: RendererStatesEnum): void;
     removeOccurrence(grapholElement: GrapholElement, representationKind: RendererStatesEnum): void;
+    removeAllOccurrences(representationKind: RendererStatesEnum): void;
     /**
      * Get all occurrences of the entity in a given diagram
      * @param diagramId the diagram in which the entity must occurr
@@ -5527,6 +5529,7 @@ declare class DiagramRepresentation {
     filter(elementId: string, filterTag: string): void;
     unfilter(elementId: string, filterTag: string): void;
     getNewId(nodeOrEdge: 'node' | 'edge'): string;
+    isEmpty(): boolean;
     get grapholElements(): Map<string, GrapholElement>;
     set grapholElements(newElementMap: Map<string, GrapholElement>);
     /**
@@ -5568,6 +5571,7 @@ declare class Diagram implements Diagram$1 {
     clear(rendererState?: RendererStatesEnum): void;
     removeElement(elementId: string, rendererState: RendererStatesEnum): void;
     containsEntity(iriOrGrapholEntity: Iri | GrapholEntity, rendererState: RendererStatesEnum): boolean | undefined;
+    isEmpty(): boolean;
 }
 
 declare class Hierarchy implements Hierarchy$1 {
@@ -5607,7 +5611,6 @@ declare class AnnotationsDiagram extends Diagram {
     private representation;
     constructor();
     addIRIValueAnnotation(sourceEntity: GrapholEntity, annotationPropertyEntity: GrapholEntity, targetIri: Iri, entityNameType: RDFGraphConfigEntityNameTypeEnum, language: Language, targetEntity?: GrapholEntity): void;
-    isEmpty(): boolean;
 }
 
 /**
@@ -5619,8 +5622,8 @@ declare class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     version: string;
     namespaces: Namespace[];
     annProperties: AnnotationProperty[];
-    diagrams: (Diagram | AnnotationsDiagram)[];
-    ontologyEntity: GrapholEntity;
+    private _diagrams;
+    ontologyEntity?: GrapholEntity;
     languages: string[];
     defaultLanguage?: string;
     iri?: string;
@@ -5677,12 +5680,12 @@ declare class Ontology extends AnnotatedElement implements RDFGraphMetadata {
      */
     getAnnotationProperty(iriValue: string): AnnotationProperty | undefined;
     getAnnotationProperties(): AnnotationProperty[];
-    /** @param {Diagram} diagram */
     addDiagram(diagram: Diagram): void;
+    removeDiagram(diagramId: string | number): void;
     /**
      * Get the diagram with the given id
      */
-    getDiagram(diagramId: number): Diagram | undefined;
+    getDiagram(diagramId: string | number): Diagram | undefined;
     getDiagramByName(name: string): Diagram | undefined;
     addEntity(entity: GrapholEntity): void;
     getEntity(iri: string | Iri): GrapholEntity | undefined;
@@ -5711,6 +5714,9 @@ declare class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     get entities(): Map<string, GrapholEntity>;
     set entities(newEntities: Map<string, GrapholEntity>);
     get annotationsDiagram(): AnnotationsDiagram | undefined;
+    get diagrams(): Diagram[];
+    set diagrams(diagram: Diagram[]);
+    get diagramsMap(): Map<string, Diagram>;
 }
 
 declare class IncrementalDiagram extends Diagram {
