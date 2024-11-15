@@ -469,7 +469,7 @@ export default abstract class Grapholscape {
         RendererStatesEnum.INCREMENTAL,
         allEntities,
         this.ontology.namespaces
-      )[IncrementalDiagram.ID].representations.get(RendererStatesEnum.INCREMENTAL)
+      )[0].representations.get(RendererStatesEnum.INCREMENTAL)
       if (diagramRepr) {
         // this.incremental.diagram = new IncrementalDiagram()
         if (diagramRepr.lastViewportState) {
