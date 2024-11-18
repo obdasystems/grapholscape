@@ -17,7 +17,7 @@ export default class GscapeEntityListItem extends LitElement {
   actionable: boolean = false
   asAccordion: boolean = false
   disabled: boolean = false
-  private isAccordionOpen = false
+  isAccordionOpen = false
 
   static properties: PropertyDeclarations = {
     types: { type: Array, reflect: true },
@@ -25,7 +25,7 @@ export default class GscapeEntityListItem extends LitElement {
     actionable: { type: Boolean },
     asAccordion: { type: Boolean },
     disabled: { type: Boolean },
-    isAccordionOpen: { type: Boolean, attribute: false },
+    isAccordionOpen: { type: Boolean },
     iri: { type: String, reflect: true },
     color: { type: String, reflect: true },
   }
