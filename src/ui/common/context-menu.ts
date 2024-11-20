@@ -2,8 +2,10 @@ import { css, CSSResultArray, html, LitElement, PropertyDeclarations, SVGTemplat
 import baseStyle from "../style"
 import { BaseMixin } from "./mixins"
 import { ContextualWidgetMixin } from "./mixins/contextual-widget-mixin"
-import { arrow_right } from "../assets"
+import { arrow_right, bubbles } from "../assets"
 import { contentSpinnerStyle, getContentSpinner } from "./spinners"
+import emptySearchBlankState from "../util/empty-search-blank-state"
+import { icons } from ".."
 
 /**
  * A command for the context menu
@@ -15,16 +17,21 @@ export interface Command {
   icon?: SVGTemplateResult,
   /** callback to execute on selection */
   select?: (...args: any[]) => void,
-  subCommands?: Promise<Command[]>,
+  subCommands?: Promise<CommandList>,
   description?: string,
   disabled?: boolean,
+  hidden?: boolean,
 }
+
+export type CommandList = Command[] | { searchable: boolean, commands: Command[] }
 
 export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(LitElement)) {
   commands: Command[] = []
   customElements: (LitElement | HTMLElement | TemplateResult)[] = []
   showFirst: 'commands' | 'elements' = 'elements'
   loading = false
+  searchable = false
+  shownCommandsIds: string[] = []
   private subMenus: Map<string, GscapeContextMenu> = new Map()
 
   onCommandRun = () => { }
@@ -34,6 +41,8 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
     customElements: { type: Object },
     showFirst: { type: String },
     loading: { type: Boolean },
+    searchable: { type: Boolean },
+    shownCommandsIds: { type: Array }
   }
 
   static styles: CSSResultArray = [
@@ -66,6 +75,10 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
         flex-grow: 2;
       }
 
+      .command-icon {
+        flex-shrink: 0;
+      }
+
       .gscape-panel, .custom-elements {
         display: flex;
         flex-direction: column;
@@ -86,6 +99,11 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
     `
   ]
 
+  constructor() {
+    super()
+    this.addEventListener('subcommandclick', () => this.hide())
+  }
+
   render() {
     return html`
     <div class="gscape-panel">
@@ -98,6 +116,15 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
           ${this.showFirst === 'elements' && this.customElements.length > 0 && this.commands.length > 0
             ? html`<div class="hr"></div>` : null}
 
+          ${this.searchable
+            ? html`
+              <gscape-entity-search
+                placeholder='Search...'
+                @onsearch=${(e: CustomEvent<{ searchText: string }>) => this.handleCommandSearch(e)}
+              ></gscape-entity-search>
+            `
+            : null
+          }
           ${this.commandsTemplate}
 
           ${this.showFirst === 'commands' && this.customElements.length > 0 && this.commands.length > 0
@@ -111,9 +138,21 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
   }
 
   // Attach context menu to a given html element
-  attachTo(element: HTMLElement, commands?: Command[], elements?: (LitElement | HTMLElement | TemplateResult)[]) {
+  attachTo(element: HTMLElement, commands?: CommandList, elements?: (LitElement | HTMLElement | TemplateResult)[]) {
     super.attachTo(element)
-    this.commands = commands || []
+    let searchable = false
+    let _commands: Command[] = []
+    if (commands) {
+      if (GscapeContextMenu.isCommandListSearchable(commands)) {
+        searchable = commands.searchable
+        _commands = commands.commands
+      } else {
+        _commands = commands
+      }
+    }
+    this.searchable = searchable
+    this.commands = _commands
+    this.shownCommandsIds = this.commands.map((c, i) => i.toString())
     this.customElements = elements || []
   }
 
@@ -121,16 +160,28 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
   attachToPosition(
     position: { x: number; y: number; },
     container: Element,
-    commands?: Command[],
+    commands?: CommandList,
     elements?: (LitElement | HTMLElement | TemplateResult)[]
   ): void {
     const dummyDiv = document.createElement('div')
     dummyDiv.style.position = 'absolute'
     dummyDiv.style.top = position.y + "px"
     dummyDiv.style.left = position.x + "px"
+    let searchable = false
+    let _commands: Command[] = []
+    if (commands) {
+      if (GscapeContextMenu.isCommandListSearchable(commands)) {
+        searchable = commands.searchable
+        _commands = commands.commands
+      } else {
+        _commands = commands
+      }
+    }
     container.appendChild(dummyDiv)
     super.attachTo(dummyDiv)
-    this.commands = commands || []
+    this.searchable = searchable
+    this.commands = _commands
+    this.shownCommandsIds = this.commands.map((c, i) => i.toString())
     this.customElements = elements || []
 
     const oldOnHide = this.cxtWidgetProps.onHide
@@ -148,23 +199,47 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
     }
   }
 
-  private handleCommandClick(e: any) {
+  private async handleCommandClick(e: any) {
     const command = this.commands[e.currentTarget.getAttribute('command-id')]
     if (command.select && !command.disabled) {
       command.select()
+
+      await this.updateComplete
+      this.dispatchEvent(new CustomEvent('subcommandclick', {
+        bubbles: true,
+        composed: true,
+        cancelable: false,
+        detail: 'ciao'
+      }))
+      
       this.onCommandRun()
       this.hide()
     }
   }
 
+  private handleCommandSearch(e: CustomEvent<{searchText: string}>) {
+    if (e.detail.searchText.length > 2) {
+      this.shownCommandsIds = this.commands.filter((c, i) => {
+        return c.content.toLowerCase().includes(e.detail.searchText.toLowerCase())
+      }).map((c) => this.commands.indexOf(c).toString())
+    } else {
+      this.shownCommandsIds = this.commands.map((c, i) => i.toString())
+    }
+  }
+
   private get commandsTemplate() {
-    if (this.commands.length > 0) {
+    const commandsToShow = this.commands.filter((c, id) => !c.hidden && this.shownCommandsIds.includes(id.toString()))
+    if (commandsToShow.length > 0) {
       return html`
         <div class="commands">
-          ${this.commands.map((command, id) => {
+          ${this.commands.map((command, id) => { // cannot use commandsToShow because the ID is the index in the array
+            if (command.hidden || !this.shownCommandsIds.includes(id.toString())){
+              return null
+            }
+
             return html`
               <div
-                class="command-entry ${!command.disabled ? 'actionable' : null} ${this.subMenus.get(id.toString())?.isConnected ? 'submenu-visible' : null}"
+                class="command-entry ellipsed ${!command.disabled ? 'actionable' : null} ${this.subMenus.get(id.toString())?.isConnected ? 'submenu-visible' : null}"
                 command-id="${id}"
                 @click=${this.handleCommandClick}
                 @mouseover=${() => this.showSubMenu(command, id.toString())}
@@ -185,18 +260,32 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
           })}
         </div>
       `
+    } else {
+      return this.commands.length === 0 && this.customElements.length === 0
+        ? html`
+          <div class="blank-slate">
+            ${icons.blankSlateDiagrams}
+            <div class="header">No options available</div>
+            <div class="description"></div>
+          </div>
+        `
+      : this.commands.length > 0 && this.searchable ? emptySearchBlankState('result') : null
     }
   }
 
   private showSubMenu(command: Command, commandID: string) {
     if (command.subCommands && !command.disabled) {
-      const subMenu = this.subMenus.get(commandID) || new GscapeContextMenu()
+      let subMenu = this.subMenus.get(commandID)
+      if (!subMenu) {
+        subMenu = new GscapeContextMenu()
+        subMenu.cxtWidgetProps.appendTo = this.shadowRoot as unknown as Element || 'parent'
+      }
       if (!subMenu.isConnected) {
         this.subMenus.set(commandID, subMenu)
         subMenu.cxtWidgetProps.placement = 'right'
         subMenu.cxtWidgetProps.offset = [0, 12]
         subMenu.cxtWidgetProps.onHide = () => {
-          subMenu.remove()
+          subMenu!.remove()
           this.subMenus.delete(commandID)
         }
         subMenu.loading = true
@@ -204,7 +293,7 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
         if (target !== null && target !== undefined) {
           subMenu.attachTo(target as HTMLElement)
           command.subCommands.then(subCommands => {
-            if (this.isConnected) {
+            if (this.isConnected && subMenu) {
               subMenu.attachTo(target as HTMLElement, subCommands)
               subMenu.loading = false
             }
@@ -235,6 +324,10 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
           ${this.customElements.map(c => html`<div class="custom-element-wrapper">${c}</div>`)}
         </div>    
       `
+  }
+
+  private static isCommandListSearchable(commandList: CommandList): commandList is { searchable: boolean, commands: Command[] } {
+    return (commandList as any).commands !== undefined
   }
 }
 

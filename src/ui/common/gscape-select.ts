@@ -1,11 +1,11 @@
 import { css, html, LitElement, PropertyDeclarations, SVGTemplateResult } from "lit"
-import { blankSlateDiagrams, cross, triangle_down } from "../assets/icons"
+import { blankSlateDiagrams, triangle_down } from "../assets/icons"
 import baseStyle from '../style'
 import a11yClick from "../util/a11y-click"
 import getIconSlot from "../util/get-icon-slot"
 import { GscapeButtonStyle, SizeEnum } from "./button"
 import { GscapeActionListItem } from "./list-item"
-import { BaseMixin, DropPanelMixin, TippyDropPanelMixin } from "./mixins"
+import { BaseMixin, TippyDropPanelMixin } from "./mixins"
 
 export type SelectOption = {
   id: string,
@@ -19,11 +19,13 @@ export default class GscapeSelect extends TippyDropPanelMixin(BaseMixin(LitEleme
   private readonly PLACEHOLDER_ID = '!PLACEHOLDER!'
   defaultIcon: SVGTemplateResult
   defaultOptionId?: string
-  options: SelectOption[] = []
+  private _options: SelectOption[] = []
   size: SizeEnum = SizeEnum.S
   clearable: boolean = false
   multipleSelection: boolean = false
+  searchable: boolean | 'auto' = 'auto'
 
+  private shownOptionsIds: string[] = []
   private _placeholder: SelectOption = {
     id: this.PLACEHOLDER_ID,
     text: 'Select'
@@ -40,6 +42,8 @@ export default class GscapeSelect extends TippyDropPanelMixin(BaseMixin(LitEleme
     size: { type: String },
     clearable: { type: Boolean },
     multipleSelection: { type: Boolean, attribute: 'multiple-selection' },
+    shownOptionsIds: { type: Array },
+    searchable: { type: Boolean }
   }
 
   static styles = [
@@ -67,6 +71,7 @@ export default class GscapeSelect extends TippyDropPanelMixin(BaseMixin(LitEleme
   ]
 
   render() {
+    const optionsToShow = this.options.filter(o => this.shownOptionsIds.includes(o.id))
     return html`
       ${this.getButton()}
 
@@ -74,8 +79,18 @@ export default class GscapeSelect extends TippyDropPanelMixin(BaseMixin(LitEleme
 
         <slot name="custom-element"></slot>
 
-        ${this.options.length > 0
-          ? this.options.map(option => {
+        ${this.shouldAddSearchBar
+          ? html`
+            <gscape-entity-search
+              placeholder='Search...'
+              @onsearch=${(e: CustomEvent<{ searchText: string }>) => this.handleOptionSearch(e)}
+            ></gscape-entity-search>
+          `
+          : null
+        }
+
+        ${optionsToShow.length > 0
+          ? optionsToShow.map(option => {
             const selected = this.isIdSelected(option.id)
             return html`
               <div class="option-wrapper">
@@ -128,6 +143,17 @@ export default class GscapeSelect extends TippyDropPanelMixin(BaseMixin(LitEleme
       }
     }
   }
+
+  private handleOptionSearch(e: CustomEvent<{ searchText: string }>)  {
+    if (e.detail.searchText.length > 2) {
+      this.shownOptionsIds = this.options.filter(c => {
+        return c.text.toLowerCase().includes(e.detail.searchText.toLowerCase())
+      }).map(o => o.id)
+    } else {
+      this.shownOptionsIds = this.options.map(o => o.id)
+    }
+  }
+
   private getButton() {
     const options = this.selectedOptions.length > 0 ? this.selectedOptions : [this.defaultOption]
     const icon = options.find(o => o.leadingIcon !== undefined)?.leadingIcon!
@@ -157,6 +183,13 @@ export default class GscapeSelect extends TippyDropPanelMixin(BaseMixin(LitEleme
     return this._selectedOptionsId.has(id)
   }
 
+  set options(newOptions: SelectOption[]) {
+    this._options = newOptions
+    this.shownOptionsIds = newOptions.map(o => o.id)
+  }
+
+  get options() { return this._options }
+
   get selectedOptions() {
     const result = this.options.filter(o => this.isIdSelected(o.id))
     if (result.length === 0 && this.defaultOption) {
@@ -185,6 +218,8 @@ export default class GscapeSelect extends TippyDropPanelMixin(BaseMixin(LitEleme
     this.requestUpdate()
     // this._placeholder.id = this.PLACEHOLDER_ID
   }
+
+  private get shouldAddSearchBar() { return this.searchable === true || (this.searchable === 'auto' && this.options.length > 5) }
 }
 
 customElements.define('gscape-select', GscapeSelect)

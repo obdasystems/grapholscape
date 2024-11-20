@@ -14,6 +14,8 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
   [TypesEnum.OBJECT_PROPERTY]?: number
   [TypesEnum.INDIVIDUAL]?: number
 
+  placeholder: string = 'Search IRI, labels...'
+  
   private isSearchTextEmpty: boolean = true
   private searchTimeout: NodeJS.Timeout
 
@@ -23,6 +25,7 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
     [TypesEnum.OBJECT_PROPERTY]: { type: Number, reflect: true },
     [TypesEnum.INDIVIDUAL]: { type: Number, reflect: true },
     isSearchTextEmpty: { type: Boolean, state: true },
+    placeholder: { type: String },
   }
 
   static styles?: CSSResultGroup = [
@@ -38,6 +41,7 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
         display: flex;
         align-items: stretch;
         gap: 8px;
+        min-height: 32px;
       }
 
       #input-wrapper > .slotted-icon {
@@ -70,7 +74,7 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
       <div class="search-box">
         <div id="input-wrapper" style="position:relative">
           <span class="slotted-icon muted-text">${search}</span>
-          <input @keyup=${this.handleKeyPress} type="text" placeholder="Search IRI, labels...">
+          <input @keyup=${this.handleKeyPress} type="text" placeholder=${this.placeholder}>
           ${!this.isSearchTextEmpty
             ? html`
               <gscape-button id="clear-btn" size="s" type="subtle" title="Clear search" @click=${this.clearSearch}>
