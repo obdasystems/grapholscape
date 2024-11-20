@@ -5,6 +5,7 @@ export default css`
     display: flex;
     gap: 8px;
     width: 100%;
+    align-items: center;
   }
 
   .list-item.selected-item::before {
@@ -12,7 +13,7 @@ export default css`
   }
 
   .list-item-label {
-    align-self: center;
+    white-space: nowrap;
   }
 
   .list-item.actionable {

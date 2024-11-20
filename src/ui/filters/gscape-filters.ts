@@ -1,13 +1,13 @@
 import { css, html, LitElement } from 'lit'
 import { DefaultFilterKeyEnum, Filter } from '../../model'
 import { filter as filterIcon } from '../assets/icons'
-import { BaseMixin, DropPanelMixin } from '../common/mixins'
+import { BaseMixin, DropPanelMixin, TippyDropPanelMixin } from '../common/mixins'
 import '../common/toggle/gscape-toggle'
 import GscapeToggle from '../common/toggle/gscape-toggle'
 import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import getIconSlot from '../util/get-icon-slot'
 
-export default class GscapeFilters extends DropPanelMixin(BaseMixin(LitElement)) {
+export default class GscapeFilters extends TippyDropPanelMixin(BaseMixin(LitElement), 'left') {
   title = "Filters"
   filters: Map<string, Filter>
   filterAll: Filter = new Filter('all', () => false)

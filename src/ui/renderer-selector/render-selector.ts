@@ -1,11 +1,11 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from 'lit'
 import { RendererStatesEnum } from '../../model'
 import { refresh } from '../assets'
-import { BaseMixin, DropPanelMixin } from '../common/mixins'
+import { BaseMixin, TippyDropPanelMixin } from '../common/mixins'
 import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import { UiOption } from './view-model'
 
-export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitElement)) {
+export default class GscapeRenderSelector extends TippyDropPanelMixin(BaseMixin(LitElement), 'left') {
   title = 'Renderer Selector'
   rendererStates: (UiOption | undefined)[]
   currentRendererStateKey: RendererStatesEnum
@@ -49,7 +49,7 @@ export default class GscapeRenderSelector extends DropPanelMixin(BaseMixin(LitEl
         <span slot="icon">${this.currentRendererState?.icon || html`<div style="padding: 1.5px 6.5px;" class="bold-text">?</div>`}</span>
       </gscape-button>
 
-      <div class="gscape-panel gscape-panel-in-tray hanging hide" id="drop-panel">
+      <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
         <div class="header">${this.title}</div>
         <div class="content-wrapper">
           ${this.rendererStates.map(rendererState => {

@@ -1,7 +1,7 @@
 import { html, css, LitElement, PropertyDeclarations } from 'lit'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
 import { info_outline } from '../assets/icons'
-import { BaseMixin, DropPanelMixin } from '../common/mixins'
+import { BaseMixin, TippyDropPanelMixin } from '../common/mixins'
 import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import { Annotation, Namespace, Ontology, TypesEnum } from '../../model'
 import { capitalizeFirstChar } from '../../util'
@@ -21,7 +21,7 @@ export type EntityCounters = {
   [TypesEnum.INDIVIDUAL]: number,
 }
 
-export default class GscapeOntologyInfo extends DropPanelMixin(BaseMixin(LitElement)) {
+export default class GscapeOntologyInfo extends TippyDropPanelMixin(BaseMixin(LitElement), 'left') {
   title = "Ontology Info"
   ontology?: Ontology
   entityCounters: EntityCounters = {

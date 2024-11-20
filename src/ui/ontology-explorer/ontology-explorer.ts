@@ -1,6 +1,6 @@
 import { css, html, LitElement } from 'lit'
 import { blankSlateDiagrams, explore } from '../assets/icons'
-import { BaseMixin, DropPanelMixin } from '../common/mixins'
+import { BaseMixin, TippyDropPanelMixin } from '../common/mixins'
 import { GscapeEntitySearch } from '../common/text-search'
 import { SearchEvent } from '../common/text-search/entity-text-search'
 import BaseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
@@ -13,7 +13,7 @@ import { contentSpinnerStyle, getContentSpinner } from '../common/spinners'
 
 LitVirtualizer
 
-export default class GscapeExplorer extends DropPanelMixin(BaseMixin(LitElement)) {
+export default class GscapeExplorer extends TippyDropPanelMixin(BaseMixin(LitElement), 'left') {
   title = 'Entity Explorer'
   private _entities: EntityViewData[] = []
   private shownEntities: EntityViewData[] = []

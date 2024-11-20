@@ -5,7 +5,7 @@ import a11yClick from "../util/a11y-click"
 import getIconSlot from "../util/get-icon-slot"
 import { GscapeButtonStyle, SizeEnum } from "./button"
 import { GscapeActionListItem } from "./list-item"
-import { BaseMixin, DropPanelMixin } from "./mixins"
+import { BaseMixin, DropPanelMixin, TippyDropPanelMixin } from "./mixins"
 
 export type SelectOption = {
   id: string,
@@ -15,7 +15,7 @@ export type SelectOption = {
   disabled?: boolean,
 }
 
-export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) {
+export default class GscapeSelect extends TippyDropPanelMixin(BaseMixin(LitElement), 'bottom') {
   private readonly PLACEHOLDER_ID = '!PLACEHOLDER!'
   defaultIcon: SVGTemplateResult
   defaultOptionId?: string
@@ -47,7 +47,7 @@ export default class GscapeSelect extends DropPanelMixin(BaseMixin(LitElement)) 
     GscapeButtonStyle,
     css`
       :host {
-        position: relative;
+        width: 100%;
       }
 
       gscape-button {

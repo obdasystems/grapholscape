@@ -4,7 +4,7 @@ import capitalizeFirstChar from '../../util/capitalize-first-char'
 import { grapholscapeLogo } from '../assets'
 import { save, settings_icon } from '../assets/icons'
 import { GscapeButtonStyle } from '../common/button'
-import { BaseMixin, DropPanelMixin } from '../common/mixins'
+import { BaseMixin, TippyDropPanelMixin } from '../common/mixins'
 import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 import settingsStyle from './settings-style'
 
@@ -13,7 +13,7 @@ type OptionEntry = {
   label: string,
 }
 
-export default class GscapeSettings extends DropPanelMixin(BaseMixin(LitElement)) {
+export default class GscapeSettings extends TippyDropPanelMixin(BaseMixin(LitElement), 'left') {
   title = 'Settings'
   languages: string[]
   selectedLanguage: string

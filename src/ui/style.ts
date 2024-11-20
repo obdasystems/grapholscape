@@ -28,7 +28,6 @@ export default css`
   box-shadow: 0 2px 10px 0 var(--gscape-color-shadow);
   border-radius: var(--gscape-border-radius);
   border: solid 1px var(--gscape-color-border-subtle);
-  width: fit-content;
   min-width: 130px;
   max-width: 50vw;
   max-height: 50vh;
@@ -53,11 +52,8 @@ export default css`
 }
 
 .gscape-panel-in-tray {
-  position: absolute;
   display: flex;
   flex-direction: column;
-  right: 100%;
-  bottom: 0;
   margin-right: 4px;
   white-space: nowrap;
   animation-name: drop-left;
@@ -66,11 +62,6 @@ export default css`
   text-overflow: ellipsis;
   padding-right: 0;
   padding-left: 0;
-}
-
-.gscape-panel-in-tray.hanging {
-  bottom: initial;
-  transform: translate(0, calc(-50% - 17px));
 }
 
 .gscape-panel-in-tray > .content-wrapper {
@@ -120,17 +111,14 @@ export default css`
 }
 
 .drop-down {
-  position:absolute;
-  margin-top: 4px;
-  top: 100%;
+  margin-top: 5px;
   animation-name: drop-down;
   animation-duration: ${animationDuration};
-  z-index: 999;
 }
 
 @keyframes drop-down {
-  from {opacity: 0; top: -20%;}
-  to {opacity: 1; top: 100%;}
+  from {opacity: 0; top: -40px; z-index: 0}
+  to {opacity: 1; top: 0; z-index: 999}
 }
 
 .drop-left {
@@ -139,8 +127,8 @@ export default css`
 }
 
 @keyframes drop-left {
-  from {opacity: 0; position: absolute; right: -10px;}
-  to {opacity: 1; right: 100%;}
+  from {opacity: 0; position: relative; right: -20px}
+  to {opacity: 1; right: 0}
 }
 
 .drop-right {

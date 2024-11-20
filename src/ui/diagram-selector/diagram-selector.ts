@@ -1,12 +1,12 @@
 import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from 'lit'
 import { Diagram } from '../../model'
 import { arrowDown, blankSlateDiagrams, diagrams as diagramsIcon } from '../assets/icons'
-import { BaseMixin, DropPanelMixin } from '../common/mixins'
+import { BaseMixin, DropPanelMixin, TippyDropPanelMixin } from '../common/mixins'
 import '../common/list-item/action-list-item'
 import baseStyle from '../style'
 import getIconSlot from '../util/get-icon-slot'
 
-export default class GscapeDiagramSelector extends DropPanelMixin(BaseMixin(LitElement)) {
+export default class GscapeDiagramSelector extends TippyDropPanelMixin(BaseMixin(LitElement), 'bottom-start') {
   title = 'Diagram Selector'
   diagrams: Map<string, Diagram>
   currentDiagramId: number
