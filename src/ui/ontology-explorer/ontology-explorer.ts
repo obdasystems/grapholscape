@@ -110,7 +110,7 @@ export default class GscapeExplorer extends TippyDropPanelMixin(BaseMixin(LitEle
         ${this.loading 
           ? html`<div style="margin: 16px auto; display: table;">${getContentSpinner()}</div>`
           : this.shownEntities.length === 0
-            ? emptySearchBlankState
+            ? emptySearchBlankState()
             : !this.isPanelClosed()
               ? html`
                 <div style="padding: 0 8px; height: inherit">

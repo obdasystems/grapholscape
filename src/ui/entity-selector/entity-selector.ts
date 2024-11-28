@@ -197,7 +197,7 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
               </lit-virtualizer>
 
               ${this.entityList.length === 0
-                ? emptySearchBlankState
+                ? emptySearchBlankState()
                 : null
               } 
             `
