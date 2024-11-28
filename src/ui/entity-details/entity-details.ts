@@ -21,6 +21,8 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   incrementalSection?: HTMLElement
 
   protected isDefaultClosed: boolean = false
+  private lastHeight: string = 'unset'
+  private lastWidth: string = 'unset'
 
   static get properties() {
     return {
@@ -44,7 +46,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
         top:10px;
         right:62px;
         height: fit-content;
-        max-height: calc(100vh - 40px);
+        max-height: calc(100% - 20px);
         width: 30%;
         display: flex;
         flex-direction: column;
@@ -288,11 +290,17 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   closePanel(): void {
     super.closePanel()
     this.style.overflow = 'unset'
+    this.lastHeight = this.style.height
+    this.lastWidth = this.style.width
+    this.style.height = '0'
+    this.style.width = '0'
   }
 
   openPanel(): void {
     super.openPanel()
     this.style.overflow = 'auto'
+    this.style.height = this.lastHeight
+    this.style.width = this.lastWidth
   }
 }
 
