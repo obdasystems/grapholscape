@@ -146,60 +146,59 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
           ? html`<div style="margin: 16px auto; display: table;">${getContentSpinner()}</div>`
           : !this.isPanelClosed()
             ? html`
-              <lit-virtualizer
-                scroller
-                class="background-propagation"
-                style="min-height: 100%;"
-                .items=${this.entityList}
-                .renderItem=${(entityItem: EntityViewData) => html`
-                  <gscape-entity-list-item
-                    style="width:100%"
-                    .types=${entityItem.value.types}
-                    displayedName=${entityItem.displayedName}
-                    title=${entityItem.displayedName}
-                    iri=${entityItem.value.iri.fullIri}
-                    ?disabled=${entityItem.disabled}
-                    tabindex="0"
-                    @keypress=${this.handleKeyPressOnEntry.bind(this)}
-                  >
-                    <div slot="trailing-element" class="hover-btn">
-                      ${this.classActions?.map(action => html`
-                        <gscape-button
-                          size="s"
-                          type="subtle"
-                          title=${action.content}
-                          @click=${() => {
-                            if (action.select)
-                              action.select(entityItem.value.iri.fullIri)
-                          }}
-                        >
-                          ${action.icon ? getIconSlot('icon', action.icon) : null}
-                        </gscape-button>
-                      `)}
-
-                      ${!this.classActions || this.classActions.length === 0
-                        ? html`
+              ${this.entityList.length === 0
+                ? emptySearchBlankState()
+                : html`
+                  <lit-virtualizer
+                  scroller
+                  class="background-propagation"
+                  style="min-height: 100%;"
+                  .items=${this.entityList}
+                  .renderItem=${(entityItem: EntityViewData) => html`
+                    <gscape-entity-list-item
+                      style="width:100%"
+                      .types=${entityItem.value.types}
+                      displayedName=${entityItem.displayedName}
+                      title=${entityItem.displayedName}
+                      iri=${entityItem.value.iri.fullIri}
+                      ?disabled=${entityItem.disabled}
+                      tabindex="0"
+                      @keypress=${this.handleKeyPressOnEntry.bind(this)}
+                    >
+                      <div slot="trailing-element" class="hover-btn">
+                        ${this.classActions?.map(action => html`
                           <gscape-button
                             size="s"
                             type="subtle"
-                            title="Insert in graph"
-                            @click=${this.handleEntitySelection.bind(this)}
+                            title=${action.content}
+                            @click=${() => {
+                              if (action.select)
+                                action.select(entityItem.value.iri.fullIri)
+                            }}
                           >
-                            ${getIconSlot('icon', insertInGraph)}
+                            ${action.icon ? getIconSlot('icon', action.icon) : null}
                           </gscape-button>
-                        `
-                        : null
-                      }
-                    </div>
-                  </gscape-entity-list-item>
-                `}
-              >
-              </lit-virtualizer>
+                        `)}
 
-              ${this.entityList.length === 0
-                ? emptySearchBlankState()
-                : null
-              } 
+                        ${!this.classActions || this.classActions.length === 0
+                          ? html`
+                            <gscape-button
+                              size="s"
+                              type="subtle"
+                              title="Insert in graph"
+                              @click=${this.handleEntitySelection.bind(this)}
+                            >
+                              ${getIconSlot('icon', insertInGraph)}
+                            </gscape-button>
+                          `
+                          : null
+                        }
+                      </div>
+                    </gscape-entity-list-item>
+                  `}
+                >
+                </lit-virtualizer>
+              `} 
             `
             : null
         }
