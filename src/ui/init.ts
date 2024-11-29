@@ -92,6 +92,7 @@ export default function (grapholscape: Grapholscape) {
 
   grapholscape.container.style.color = `var(${CSS_PROPERTY_NAMESPACE}-fg-default)`
   grapholscape.container.style.fontSize = `var(--gscape-font-size)`
+  grapholscape.container.style.overflow = 'hidden' // prevent anything overflowing
 
   grapholscape.on(LifecycleEvent.BackgroundClick, blurAll)
 
