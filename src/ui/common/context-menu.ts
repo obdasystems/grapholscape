@@ -33,6 +33,7 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
   searchable = false
   shownCommandsIds: string[] = []
   private subMenus: Map<string, GscapeContextMenu> = new Map()
+  private loadingCommandsIds: string[] = []
 
   onCommandRun = () => { }
 
@@ -42,7 +43,8 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
     showFirst: { type: String },
     loading: { type: Boolean },
     searchable: { type: Boolean },
-    shownCommandsIds: { type: Array }
+    shownCommandsIds: { type: Array },
+    loadingCommandsIds: { type: Array },
   }
 
   static styles: CSSResultArray = [
@@ -225,6 +227,7 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
     } else {
       this.shownCommandsIds = this.commands.map((c, i) => i.toString())
     }
+    this.tippyWidget.popperInstance?.update()
   }
 
   private get commandsTemplate() {
@@ -251,7 +254,14 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
 
                 <span style="min-width: 20px">
                   ${command.subCommands
-                    ? html`<span class="command-icon slotted-icon">${arrow_right}</span>`
+                    ? html`
+                      <span class="command-icon slotted-icon">
+                        ${this.loadingCommandsIds.includes(id.toString())
+                          ? getContentSpinner()
+                          : arrow_right
+                        }
+                      </span>
+                    `
                     : null
                   }
                 </span>
@@ -288,14 +298,13 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
           subMenu!.remove()
           this.subMenus.delete(commandID)
         }
-        subMenu.loading = true
+        this.loadingCommandsIds = [...this.loadingCommandsIds, commandID]
         const target = this.shadowRoot?.querySelector(`[command-id = "${commandID}"]`)
         if (target !== null && target !== undefined) {
-          subMenu.attachTo(target as HTMLElement)
           command.subCommands.then(subCommands => {
             if (this.isConnected && subMenu) {
+              this.loadingCommandsIds = this.loadingCommandsIds.filter(commandId => commandId !== commandID)
               subMenu.attachTo(target as HTMLElement, subCommands)
-              subMenu.loading = false
             }
           })
         }
