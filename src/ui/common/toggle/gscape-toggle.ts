@@ -1,4 +1,4 @@
-import {html, css, LitElement} from 'lit'
+import { html, css, LitElement } from 'lit'
 import baseStyle from '../../style'
 
 export enum ToggleLabelPosition {
@@ -10,18 +10,18 @@ export default class GscapeToggle extends LitElement {
   key: string
   checked: boolean
   disabled: boolean
-  label: string
+  label?: string
   labelPosition = ToggleLabelPosition.RIGHT
 
   static ToggleLabelPosition = ToggleLabelPosition
 
   static get properties() {
     return {
-      disabled: {type: Boolean, reflect: true },
-      label: {type: String, reflect: true },
+      disabled: { type: Boolean, reflect: true },
+      label: { type: String, reflect: true },
       labelPosition: { type: String, reflect: true, attribute: 'label-position' },
-      key : {type: String, reflect: true },
-      checked : {type: Boolean, reflect: true },
+      key: { type: String, reflect: true },
+      checked: { type: Boolean, reflect: true },
     }
   }
 
@@ -112,7 +112,10 @@ export default class GscapeToggle extends LitElement {
   render() {
     return html`
     <label class="toggle-container">
-      <span class="toggle-label">${this.label}</span>
+      ${this.label !== undefined
+        ? html`<span class="toggle-label">${this.label}</span>`
+        : null
+      }
       <span class="toggle-wrap">
         <input id="${this.key}" type="checkbox"
           ?checked="${this.checked}"
