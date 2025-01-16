@@ -245,18 +245,22 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
         fathersDomainRestrictions = fathersDomainRestrictions.union(newDomains)
     })
 
-    const inverseOPs = objectProperty.incomers(`edge`).filter(edge => 
-      this.getGrapholElement(edge.id()).is(TypesEnum.ROLE_INVERSE)
-    ).sources()
-    let inverseDomains = this.newCy.collection()
-    inverseOPs.forEach(inverseOP => {
-      const newDomains = this.getRangesOfObjectProperty(inverseOP)
-      if (newDomains) {
-        inverseDomains = inverseDomains.union(newDomains)
-      }
-    })
+    if (domainRestrictions.empty() && fathersDomainRestrictions.empty()) {
+      const inverseOPs = objectProperty.incomers(`edge`).filter(edge =>
+        this.getGrapholElement(edge.id()).is(TypesEnum.ROLE_INVERSE)
+      ).sources()
+      let inverseDomains = this.newCy.collection()
+      inverseOPs.forEach(inverseOP => {
+        const newDomains = this.getRangesOfObjectProperty(inverseOP)
+        if (newDomains) {
+          inverseDomains = inverseDomains.union(newDomains)
+        }
+      })
 
-    return domainRestrictions.union(fathersDomainRestrictions.union(inverseDomains))
+      return inverseDomains
+    }
+
+    return domainRestrictions.union(fathersDomainRestrictions)
   }
 
   private getRangesOfObjectProperty(objectProperty: NodeSingular) {
@@ -275,18 +279,22 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
         fatherRangeRestrictions = fatherRangeRestrictions.union(newRanges)
     })
 
-    const inverseOPs = objectProperty.incomers(`edge`).filter(edge => 
-      this.getGrapholElement(edge.id()).is(TypesEnum.ROLE_INVERSE)
-    ).sources()
-    let inverseRanges = this.newCy.collection()
-    inverseOPs.forEach(inverseOP => {
-      const newRanges = this.getDomainsOfObjectProperty(inverseOP)
-      if (newRanges) {
-        inverseRanges = inverseRanges.union(newRanges)
-      }
-    })
+    if (rangeRestrictions.empty() && fatherRangeRestrictions.empty()) {
+      const inverseOPs = objectProperty.incomers(`edge`).filter(edge =>
+        this.getGrapholElement(edge.id()).is(TypesEnum.ROLE_INVERSE)
+      ).sources()
+      let inverseRanges = this.newCy.collection()
+      inverseOPs.forEach(inverseOP => {
+        const newRanges = this.getDomainsOfObjectProperty(inverseOP)
+        if (newRanges) {
+          inverseRanges = inverseRanges.union(newRanges)
+        }
+      })
 
-    return rangeRestrictions.union(fatherRangeRestrictions.union(inverseRanges))
+      return inverseRanges
+    }
+
+    return rangeRestrictions.union(fatherRangeRestrictions)
   }
 
   private addPropertyAssertionsEdge() {
