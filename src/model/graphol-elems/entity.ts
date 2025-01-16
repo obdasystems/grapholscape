@@ -40,6 +40,8 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
   // in all other cases types are derived from occurrences in graphs.
   protected _manualTypes?: Set<TypesEnum>
 
+  private _inverseObjectProperties?: Set<string>
+
   constructor(iri: Iri) {
     super()
     this.iri = iri
@@ -55,7 +57,6 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
       occurrences?.push(newGrapholElement)
     }
   }
-
 
   public removeOccurrence(grapholElement: GrapholElement, representationKind: RendererStatesEnum) {
     const occurrences = this.occurrences.get(representationKind)
@@ -169,6 +170,18 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
 
   public get color() { return this._color }
   public set color(color) { this._color = color }
+
+  public addInverseObjectProperty(iri: string) {
+    if (!this._inverseObjectProperties) {
+      this._inverseObjectProperties = new Set()
+    }
+
+    this._inverseObjectProperties.add(iri)
+  }
+
+  public getInverseObjectProperties() {
+    return this._inverseObjectProperties ? Array.from(this._inverseObjectProperties) : undefined
+  }
 
   public getOccurrenceByType(type: TypesEnum, rendererState: RendererStatesEnum) {
     return this.occurrences.get(rendererState)?.find(o => o.type === type)

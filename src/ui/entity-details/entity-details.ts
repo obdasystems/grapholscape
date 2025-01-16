@@ -1,6 +1,6 @@
 import { css, html, LitElement } from 'lit'
-import { GrapholElement, GrapholEntity, TypesEnum } from '../../model'
-import { blankSlateDiagrams, commentIcon, domain, infoFilled, minus, plus, range } from '../assets/icons'
+import { EntityNameType, GrapholElement, GrapholEntity, TypesEnum } from '../../model'
+import { blankSlateDiagrams, commentIcon, domain, infoFilled, minus, plus, range, swapHorizontal } from '../assets/icons'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
 import { GscapeButtonStyle } from '../common/button'
 import { BaseMixin, DropPanelMixin } from '../common/mixins'
@@ -14,8 +14,11 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   currentOccurrence?: GrapholElement
   occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>
   showOccurrences: boolean = true
-  language?: string
+  language: string = 'en'
+  entityNameType: EntityNameType = EntityNameType.LABEL
+  inverseObjectPropertyEntities?: GrapholEntity[]
   onNodeNavigation: (elmentId: string, diagramId: number) => void = () => { }
+  onInverseObjectPropertyNavigation: (iri: string) => void = () => { }
   onWikiLinkClick: (iri: string) => void
 
   incrementalSection?: HTMLElement
@@ -188,6 +191,34 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
             : null
           }
 
+          ${this.inverseObjectPropertyEntities
+            ? html`
+              <div class="section">
+                <div class="section-header">
+                  <span class="slotted-icon">${swapHorizontal}</span>
+                  <span class="bold-text">
+                    Inverse Of
+                  </span>
+                </div>
+                <div>
+                  ${this.inverseObjectPropertyEntities?.map(inverseOPentity => {
+                    return html`
+                      <gscape-entity-list-item
+                        displayedName=${inverseOPentity.getDisplayedName(this.entityNameType, this.language)}
+                        .types=${inverseOPentity.types}
+                        iri=${inverseOPentity.iri.fullIri}
+                        ?actionable=${true}
+                        @click=${() => this.onInverseObjectPropertyNavigation(inverseOPentity.iri.fullIri)}
+                      >
+                      </gscape-entity-list-item>
+                    `
+                  })}
+                </div>
+              </div>
+            `
+            : null
+          }
+
           ${this.incrementalSection}
 
           ${annotationsTemplate(this.grapholEntity.getAnnotations())}
@@ -276,7 +307,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
     const commentsInCurrentLanguage = this.grapholEntity.getComments(this.language)
     // if current language is not available, select the first available
     if (commentsInCurrentLanguage.length === 0) {
-      this.language = allComments[0].language
+      this.language = allComments[0].language || 'en'
     }
   }
 

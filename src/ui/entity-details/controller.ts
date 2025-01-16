@@ -9,7 +9,12 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
     grapholscape.centerOnElement(elementId, diagramId, 1.2)
     grapholscape.selectElement(elementId)
   }
+
+  entityDetailsComponent.onInverseObjectPropertyNavigation = (iri) => {
+    grapholscape.centerOnEntity(iri, undefined, 1.2)
+  }
   entityDetailsComponent.language = grapholscape.language
+  entityDetailsComponent.entityNameType = grapholscape.entityNameType
 
   entityDetailsComponent.setGrapholEntity = setGrapholEntity
 
@@ -32,6 +37,10 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
     entityDetailsComponent.language = language
   })
 
+  grapholscape.on(LifecycleEvent.EntityNameTypeChange, entityNameType => {
+    entityDetailsComponent.entityNameType = entityNameType
+  })
+
   grapholscape.on(LifecycleEvent.RendererChange, _ => {
     if (entityDetailsComponent.grapholEntity && grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
       entityDetailsComponent.occurrences = getEntityViewOccurrences(entityDetailsComponent.grapholEntity, grapholscape)
@@ -45,6 +54,8 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
     entityDetailsComponent.currentOccurrence = instance
     entityDetailsComponent.occurrences = getEntityViewOccurrences(entity, grapholscape)
     entityDetailsComponent.language = grapholscape.language
+    entityDetailsComponent.inverseObjectPropertyEntities = entity.getInverseObjectProperties()
+      ?.map(inverseOPIri => grapholscape.ontology.getEntity(inverseOPIri)!)
     entityDetailsComponent.show()
 
     if (grapholscape.lifecycle.entityWikiLinkClick.length > 0 && !entityDetailsComponent.onWikiLinkClick) {

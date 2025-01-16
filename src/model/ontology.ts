@@ -1,4 +1,4 @@
-import { CollectionReturnValue } from 'cytoscape'
+import { CollectionReturnValue, NodeSingular } from 'cytoscape'
 import AnnotatedElement from './annotated-element'
 import Diagram from './diagrams/diagram'
 import DiagramRepresentation from './diagrams/diagram-representation'
@@ -79,7 +79,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   removeHierarchy(hiearchyId: string): void
   removeHierarchy(hiearchyId: Hierarchy): void
   removeHierarchy(hierarchyOrId: Hierarchy | string) {
-    let hierarchy: Hierarchy | undefined 
+    let hierarchy: Hierarchy | undefined
     if (typeof hierarchyOrId === 'string') {
       hierarchy = this.getHierarchy(hierarchyOrId)
     }
@@ -237,7 +237,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     return this.namespaces.find(ns => ns.hasPrefix(prefix))
   }
 
-  getNamespaces(){
+  getNamespaces() {
     return this.namespaces
   }
 
@@ -402,6 +402,34 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     })
   }
 
+  computeInverseObjectProperties(): void {
+    let grapholRepr: DiagramRepresentation | undefined
+    let baseObjectPropertyNode: NodeSingular | undefined
+    let baseObjectPropertyEntity: GrapholEntity | undefined
+    let inverseObjectPropertyEntity: GrapholEntity | undefined
+    for (let diagram of this.diagrams) {
+      grapholRepr = diagram.representations.get(RendererStatesEnum.GRAPHOL)
+      if (grapholRepr) {
+        const roleInverseNodes = grapholRepr.cy.$(`node[type = "${TypesEnum.ROLE_INVERSE}"]`)
+        roleInverseNodes.forEach(roleInverseNode => {
+          baseObjectPropertyNode = roleInverseNode.connectedEdges(`[type = "${TypesEnum.INPUT}"]`).sources().first()
+          if (baseObjectPropertyNode.nonempty()) {
+            baseObjectPropertyEntity = this.getEntity(baseObjectPropertyNode.data().iri)
+            if (baseObjectPropertyEntity) {
+              roleInverseNode.connectedEdges(`[type != "${TypesEnum.INPUT}"]`).connectedNodes("[iri]").forEach(objectPropertyNode => {
+                inverseObjectPropertyEntity = this.getEntity(objectPropertyNode.data().iri)
+                if (inverseObjectPropertyEntity?.is(TypesEnum.OBJECT_PROPERTY)) {
+                  baseObjectPropertyEntity!.addInverseObjectProperty(inverseObjectPropertyEntity.iri.fullIri)
+                  inverseObjectPropertyEntity.addInverseObjectProperty(baseObjectPropertyEntity!.iri.fullIri)
+                }
+              })
+            }
+          }
+        })
+      }
+    }
+  }
+
   /** @override */
   public addAnnotation(newAnnotation: Annotation): void {
     super.addAnnotation(newAnnotation)
@@ -418,7 +446,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     if (!this.ontologyEntity) {
       this.ontologyEntity = new GrapholEntity(new Iri(this.iri, this.namespaces))
     }
-    
+
     const annotationPropertyEntity = this.getEntity(newAnnotation.propertyIri)
 
     if (annotationPropertyEntity && newAnnotation.rangeIri) {

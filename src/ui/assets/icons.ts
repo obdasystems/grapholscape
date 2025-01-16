@@ -164,6 +164,8 @@ export const keep = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/s
 
 export const keepOff = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M666-808v67h-48v305l-67-67v-238H409v96l-81.5-81.5-13.5-28h-20V-808h372ZM480-64l-33.5-34v-221H248v-67l94-93v-45.462L101.5-763.5 149-811l658 659-46.5 47.5L547-319h-33.5v221L480-64ZM343-386h136.5L408-457.5l1 6.5-66 65Zm136-183Zm-71 111.5Z"/></svg>`
 
+export const swapHorizontal = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#051e36"><path d="M292-178 106-364.5l185.5-186 48 47L234-398h288v67H234l106 106-48 47Zm376-231.5-48-47 106-106H438v-67h288L620.5-735l48-47L854-596 668-409.5Z"/></svg>`
+
 export const entityIcons: { [x in TypesEnum.CLASS |
   TypesEnum.OBJECT_PROPERTY |
   TypesEnum.DATA_PROPERTY |
