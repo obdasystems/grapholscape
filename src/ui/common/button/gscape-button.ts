@@ -1,7 +1,8 @@
-import { LitElement, html } from 'lit'
+import { LitElement, css, html } from 'lit'
 import mainStyle from '../../style'
 import { BaseMixin } from '../mixins'
 import buttonStyle from './style'
+import { contentSpinnerStyle, getContentSpinner } from '../spinners'
 
 export enum SizeEnum {
   S = 's',
@@ -17,6 +18,7 @@ export default class GscapeButton extends BaseMixin(LitElement) {
   size: SizeEnum = SizeEnum.M
   type: string
   fullWidth: string
+  loading : boolean
   private toggled = false
 
   static properties = {
@@ -28,10 +30,20 @@ export default class GscapeButton extends BaseMixin(LitElement) {
     size: { type: String, reflect: true },
     type: { type: String, reflect: true },
     fullWidth: { type: String, attribute: 'full-width', reflect: true },
-    toggled: {type: Boolean, state: true }
+    toggled: {type: Boolean, state: true },
+    loading: { type: Boolean },
   }
 
-  static styles = [mainStyle, buttonStyle]
+  static styles = [
+    mainStyle, 
+    buttonStyle, 
+    contentSpinnerStyle,
+    css`
+      .lds-ring, .lds-ring div {
+        border-top-color: currentColor;
+      }
+    `,
+  ]
   // static get styles() {
   //   let super_styles = super.styles
   //   let colors = super_styles[1]
@@ -96,6 +108,10 @@ export default class GscapeButton extends BaseMixin(LitElement) {
         ?active = "${this.active}"
         @click = "${this.clickHandler}"
       >
+      ${this.loading
+        ? getContentSpinner()
+        : null
+      }
 
       ${this.toggled && this.altIcon
         ? html`<slot name="alt-icon" class="slotted-icon"></slot>`

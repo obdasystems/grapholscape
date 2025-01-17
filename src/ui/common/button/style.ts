@@ -45,7 +45,7 @@ export default css`
 
 .btn[disabled] {
   opacity: 50%;
-  cursor: initial;
+  cursor: inherit;
   pointer-events: none;
 }
 

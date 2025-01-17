@@ -24,6 +24,8 @@ export default class GscapeSelect extends TippyDropPanelMixin(BaseMixin(LitEleme
   clearable: boolean = false
   multipleSelection: boolean = false
   searchable: boolean | 'auto' = 'auto'
+  disabled = false
+  loading = false
 
   private shownOptionsIds: string[] = []
   private _placeholder: SelectOption = {
@@ -43,7 +45,9 @@ export default class GscapeSelect extends TippyDropPanelMixin(BaseMixin(LitEleme
     clearable: { type: Boolean },
     multipleSelection: { type: Boolean, attribute: 'multiple-selection' },
     shownOptionsIds: { type: Array },
-    searchable: { type: Boolean }
+    searchable: { type: Boolean },
+    disabled: { type: Boolean },
+    loading: { type: Boolean },
   }
 
   static styles = [
@@ -160,7 +164,18 @@ export default class GscapeSelect extends TippyDropPanelMixin(BaseMixin(LitEleme
     const label = options.map(o => o.text).join(' - ')
 
     return html`
-      <gscape-button id="select-btn" @click="${this.togglePanel}" label=${label} title=${label} size="${this.size}">
+      <gscape-button 
+        id="select-btn"
+        @click="${() => {
+          if (!this.loading) {
+            this.togglePanel()
+          }
+        }}"
+        label=${label} title=${label}
+        size="${this.size}"
+        ?disabled=${this.disabled}
+        ?loading=${this.loading}
+      >
         <!-- Only set icons if selected options have all the same icon -->
         ${icon && options.every(o => !o.leadingIcon || o.leadingIcon === icon) ? getIconSlot('icon', icon) : null}
         ${getIconSlot('trailing-icon', triangle_down)}
