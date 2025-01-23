@@ -116,6 +116,22 @@ export default function (theme: GrapholscapeTheme) {
       }
     },
 
+    {
+      selector: "node.localized",
+      style: {
+        width: (n) => n.data('width') * 0.4,
+        height: (n) => n.data('height') * 0.4,
+      }
+    },
+
+    {
+      selector: 'edge.localized',
+      style: {
+        "width": 2,
+      }
+    }
+
+
   ] as Stylesheet[]
 
   return baseStyle.concat(incrementalStyle)
