@@ -63,9 +63,11 @@ export default class Renderer {
   }
 
   mount() {
-    this.applyTheme()
+    if (!this.cy?.style())
+      this.applyTheme()
 
     this.cy?.mount(this.container)
+    this.cy?.style().update()
   }
 
   addElement(element: ElementDefinition) {
