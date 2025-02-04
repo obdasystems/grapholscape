@@ -149,13 +149,27 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
 
         // if it's an object property on owl thing then leave domain/range info as default (only typed)
         if (domain !== owlThingCyNode) {
-          newGrapholEdge.domainMandatory = domain.data().domainMandatory
-          newGrapholEdge.domainTyped = domain.data().domainTyped
+          if (domain.data().type === TypesEnum.DOMAIN_RESTRICTION) {
+            newGrapholEdge.domainMandatory = domain.data().domainMandatory
+            newGrapholEdge.domainTyped = domain.data().domainTyped
+          } else if (domain.data().type === TypesEnum.RANGE_RESTRICTION) {
+            // this is possible when creating an edge inferring domains/ranges from an inverse OP
+            // see issue https://github.com/obdasystems/grapholscape/issues/131
+            newGrapholEdge.domainMandatory = domain.data().rangeMandatory
+            newGrapholEdge.domainTyped = domain.data().rangeTyped
+          }
         }
 
         if (range !== owlThingCyNode) {
-          newGrapholEdge.rangeMandatory = range.data().rangeMandatory
-          newGrapholEdge.rangeTyped = range.data().rangeTyped
+          if (range.data().type === TypesEnum.RANGE_RESTRICTION) {
+            newGrapholEdge.rangeMandatory = range.data().rangeMandatory
+            newGrapholEdge.rangeTyped = range.data().rangeTyped
+          } else if (range.data().type === TypesEnum.DOMAIN_RESTRICTION) {
+            // this is possible when creating an edge inferring domains/ranges from an inverse OP
+            // see issue https://github.com/obdasystems/grapholscape/issues/131
+            newGrapholEdge.rangeMandatory = range.data().domainMandatory
+            newGrapholEdge.rangeTyped = range.data().domainTyped
+          }
         }
 
         Object.entries(objectProperty.data()).forEach(([key, value]) => {
