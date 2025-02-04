@@ -33,6 +33,7 @@ export default class GscapeActionListItem extends LitElement {
           <slot name="icon" class="slotted-icon" ></slot>
           <span class="list-item-label" title=${this.label}>${this.label}</span>
           <slot name="trailing-icon" class="slotted-icon" ></slot>
+          <slot name="trailing-elements"></slot>
 
           ${this.expanded
             ? html`<slot name="hidden-content" class="slotted-icon" ></slot>`

@@ -14,6 +14,7 @@ export default css`
 
   .list-item-label {
     white-space: nowrap;
+    flex-grow: 2;
   }
 
   .list-item.actionable {
