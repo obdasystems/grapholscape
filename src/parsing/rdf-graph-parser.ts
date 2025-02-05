@@ -73,6 +73,15 @@ export function getOntology(rdfGraph: RDFGraph) {
     ontology.annProperties = rdfGraph.metadata.annotationProperties.map(annProp => new AnnotationProperty(annProp, ontology.namespaces))
   }
 
+  if (rdfGraph.constraints) {
+    rdfGraph.constraints.forEach(c => {
+      if (!ontology.shaclConstraints.get(c.targetClass)) {
+        ontology.shaclConstraints.set(c.targetClass, [])
+      }
+      ontology.shaclConstraints.get(c.targetClass)?.push(c)
+    })
+  }
+
   return ontology
 }
 

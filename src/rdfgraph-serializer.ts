@@ -53,7 +53,8 @@ export default function (grapholscape: IGscape, modelType = RDFGraphModelTypeEnu
         }
       }),
       annotationProperties: ontology.annProperties.map(ap => ap.fullIri)
-    }
+    },
+    constraints: Array.from(ontology.shaclConstraints.values()).flat()
   }
 
   let diagrams: Diagram[] = []

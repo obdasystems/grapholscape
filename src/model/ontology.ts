@@ -8,7 +8,7 @@ import GrapholElement from './graphol-elems/graphol-element'
 import GrapholNode from './graphol-elems/node'
 import Iri from './iri'
 import Namespace from './namespace'
-import { RDFGraphConfigEntityNameTypeEnum, RDFGraphMetadata, TypesEnum } from './rdf-graph/swagger'
+import { RDFGraphConfigEntityNameTypeEnum, RDFGraphMetadata, SHACLShape, TypesEnum } from './rdf-graph/swagger'
 import { RendererStatesEnum } from './renderers/i-render-state'
 import AnnotationProperty from './annotation-property'
 import Annotation from './annotation'
@@ -30,6 +30,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   defaultLanguage?: string
   iri?: string
   usedColorScales: string[] = []
+  shaclConstraints: Map<string, SHACLShape[]> = new Map()
 
   constructor(name: string, version: string, iri?: string, namespaces: Namespace[] = [], annProperties: AnnotationProperty[] = [], diagrams: Diagram[] = []) {
     super()

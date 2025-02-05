@@ -20,6 +20,13 @@ import { exists, mapValues } from '../runtime';
  */
 export interface Annotation {
     /**
+     * Has been renamed to `value`, kept for back-compatibility.
+     * @type {string}
+     * @memberof Annotation
+     * @deprecated
+     */
+    lexicalForm?: string;
+    /**
      * 
      * @type {string}
      * @memberof Annotation
@@ -72,6 +79,7 @@ export function AnnotationFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     }
     return {
         
+        'lexicalForm': !exists(json, 'lexicalForm') ? undefined : json['lexicalForm'],
         'value': json['value'],
         'hasIriValue': !exists(json, 'hasIriValue') ? undefined : json['hasIriValue'],
         'property': json['property'],
@@ -89,6 +97,7 @@ export function AnnotationToJSON(value?: Annotation | null): any {
     }
     return {
         
+        'lexicalForm': value.lexicalForm,
         'value': value.value,
         'hasIriValue': value.hasIriValue,
         'property': value.property,

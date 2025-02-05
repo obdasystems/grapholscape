@@ -49,6 +49,12 @@ import {
     RDFGraphMetadataFromJSONTyped,
     RDFGraphMetadataToJSON,
 } from './RDFGraphMetadata';
+import type { SHACLShape } from './SHACLShape';
+import {
+    SHACLShapeFromJSON,
+    SHACLShapeFromJSONTyped,
+    SHACLShapeToJSON,
+} from './SHACLShape';
 
 /**
  * 
@@ -110,6 +116,12 @@ export interface RDFGraph {
      * @memberof RDFGraph
      */
     creator?: string;
+    /**
+     * 
+     * @type {Array<SHACLShape>}
+     * @memberof RDFGraph
+     */
+    constraints?: Array<SHACLShape>;
 }
 
 /**
@@ -155,6 +167,7 @@ export function RDFGraphFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'modelType': json['modelType'],
         'actions': !exists(json, 'actions') ? undefined : ((json['actions'] as Array<any>).map(ActionFromJSON)),
         'creator': !exists(json, 'creator') ? undefined : json['creator'],
+        'constraints': !exists(json, 'constraints') ? undefined : ((json['constraints'] as Array<any>).map(SHACLShapeFromJSON)),
     };
 }
 
@@ -176,6 +189,7 @@ export function RDFGraphToJSON(value?: RDFGraph | null): any {
         'modelType': value.modelType,
         'actions': value.actions === undefined ? undefined : ((value.actions as Array<any>).map(ActionToJSON)),
         'creator': value.creator,
+        'constraints': value.constraints === undefined ? undefined : ((value.constraints as Array<any>).map(SHACLShapeToJSON)),
     };
 }
 
