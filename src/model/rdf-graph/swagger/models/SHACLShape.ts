@@ -45,10 +45,10 @@ export interface SHACLShape {
     property?: string;
     /**
      * 
-     * @type {string}
+     * @type {Array<string>}
      * @memberof SHACLShape
      */
-    constraintValue?: string;
+    constraintValue?: Array<string>;
 }
 
 /**
@@ -65,7 +65,13 @@ export enum SHACLShapeTypeEnum {
     MIN_LENGTH = 'MinLength',
     MAX_LENGTH = 'MaxLength',
     PATTERN = 'Pattern',
-    IN = 'In'
+    IN = 'In',
+    EQUALS = 'Equals',
+    DISJOINT = 'Disjoint',
+    LESS_THAN = 'LessThan',
+    LESS_THAN_OR_EQUALS = 'LessThanOrEquals',
+    GREATER_THAN = 'GreaterThan',
+    GREATER_THAN_OR_EQUALS = 'GreaterThanOrEquals'
 }
 
 

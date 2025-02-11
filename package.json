@@ -1,6 +1,6 @@
 {
   "name": "grapholscape",
-  "version": "4.0.12",
+  "version": "4.0.13-snap.10",
   "description": "ontology visualization",
   "module": "dist/grapholscape.esm.js",
   "main": "dist/grapholscape.esm.js",
