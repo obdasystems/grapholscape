@@ -10,7 +10,7 @@ import { Grapholscape } from "../../core"
 export default abstract class BaseRenderer implements RenderState {
   protected _renderer: Renderer
   abstract id: RendererStatesEnum
-  abstract filterManager: FilterManager
+  abstract filterManager?: FilterManager
   abstract layout: cytoscape.Layouts
   abstract render(): void
   abstract stopRendering(): void
@@ -53,7 +53,8 @@ export default abstract class BaseRenderer implements RenderState {
 
   set renderer(newRenderer: Renderer) {
     this._renderer = newRenderer
-    this.filterManager.filters = newRenderer.filters
+    if (this.filterManager)
+      this.filterManager.filters = newRenderer.filters
   }
 
   get renderer() {

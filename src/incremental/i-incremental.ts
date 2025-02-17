@@ -1,4 +1,4 @@
-import { EdgeSingular, SingularElementReturnValue } from "cytoscape";
+import { Collection, EdgeSingular, SingularElementReturnValue } from "cytoscape";
 import { DiagramBuilder, Grapholscape, IncrementalRendererState, OntologyColorManager } from "../core";
 import { Annotation, Filter, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, IncrementalDiagram, Position, RendererStatesEnum, TypesEnum, Viewport } from "../model";
 import { Command, NodeButton } from "../ui";
@@ -77,13 +77,14 @@ export default abstract class IncrementalBase implements IIncremental {
   abstract reset(...args: any[]): void
   abstract setIncrementalEventHandlers(...args: any[]): void
 
-  async performActionWithBlockedGraph(action: () => void | Promise<void>, customLayoutOptions?: any) {
+  async performActionWithBlockedGraph(action: () => void | Promise<void>, customLayoutOptions?: any, collection?: Collection) {
     this.actionsWithBlockedGraph += 1
     const oldElemNumbers = this.numberOfElements
-    this.incrementalRenderer?.freezeGraph()
+    if (!collection) // freeze graph only if the whole graph is involved in the action
+      this.incrementalRenderer?.freezeGraph()
     await action()
     this.actionsWithBlockedGraph -= 1
-    this.postDiagramEdit(oldElemNumbers, customLayoutOptions)
+    this.postDiagramEdit(oldElemNumbers, customLayoutOptions, collection)
   }
 
   addEdge = (sourceId: string, targetId: string, edgeType: TypesEnum.INCLUSION | TypesEnum.INPUT | TypesEnum.EQUIVALENCE | TypesEnum.INSTANCE_OF) => {
@@ -392,11 +393,11 @@ export default abstract class IncrementalBase implements IIncremental {
     })
   }
 
-  postDiagramEdit(oldElemsNumber: number, customLayoutOptions?: any) {
+  postDiagramEdit(oldElemsNumber: number, customLayoutOptions?: any, collection?: Collection) {
     if (this.numberOfElements !== oldElemsNumber) {
       if (this.actionsWithBlockedGraph === 0) {
         customLayoutOptions
-          ? this.incrementalRenderer?.runCustomLayout(customLayoutOptions)
+          ? this.incrementalRenderer?.runCustomLayout(customLayoutOptions, collection)
           : this.incrementalRenderer?.runLayout()
       }
       this.lifecycle.trigger(IncrementalEvent.DiagramUpdated)

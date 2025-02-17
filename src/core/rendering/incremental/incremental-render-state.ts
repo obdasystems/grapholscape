@@ -1,4 +1,4 @@
-import { EdgeSingular, Stylesheet } from "cytoscape"
+import cytoscape, { EdgeSingular, Stylesheet } from "cytoscape"
 import { Diagram, Filter, GrapholscapeTheme, iFilterManager, Ontology, RendererStatesEnum, TypesEnum } from "../../../model"
 import IncrementalDiagram from "../../../model/diagrams/incremental-diagram"
 import FloatyRendererState from "../floaty/floaty-renderer-state"
@@ -18,7 +18,7 @@ import incrementalStyle from "./incremental-style"
  * You can decide what to show/hide outside, based on lifecycle and/or other custom developed widgets.
  */
 export default class IncrementalRendererState extends FloatyRendererState {
-  readonly id = RendererStatesEnum.INCREMENTAL
+  readonly id: RendererStatesEnum = RendererStatesEnum.INCREMENTAL
   filterManager: iFilterManager = new IncrementalFilterManager()
 
   private previousDiagram: Diagram
@@ -68,13 +68,23 @@ export default class IncrementalRendererState extends FloatyRendererState {
     }
   }
 
-  runCustomLayout(cyLayoutOptions: any) {
-    if (!this.layoutRunning) {
-      Object.assign(this.floatyLayoutOptions, cyLayoutOptions)
-    }
+  runCustomLayout(cyLayoutOptions: any, collection?: cytoscape.Collection) {
+    if (!collection) {
 
-    this.runLayout()
-    this.floatyLayoutOptions = this.defaultLayoutOptions
+      if (!this.layoutRunning) {
+        Object.assign(this.floatyLayoutOptions, cyLayoutOptions)
+      }
+      
+      this.runLayout()
+      this.floatyLayoutOptions = this.defaultLayoutOptions
+    } else {
+      const customLayoutOptions = {
+        ...this.floatyLayoutOptions,
+        ...cyLayoutOptions,
+      }
+      
+      collection.layout(customLayoutOptions).run()
+    }
   }
 
   /** lock all nodes */
@@ -90,7 +100,8 @@ export default class IncrementalRendererState extends FloatyRendererState {
 
   stopRendering(): void {
     super.stopRendering()
-    this.renderer.diagram = this.previousDiagram
+    if (this.previousDiagram)
+      this.renderer.diagram = this.previousDiagram
   }
 
   transformOntology(ontology: Ontology): void {

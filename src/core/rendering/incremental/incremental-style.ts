@@ -119,8 +119,8 @@ export default function (theme: GrapholscapeTheme) {
     {
       selector: "node.localized",
       style: {
-        width: (n) => n.data('width') * 0.4,
-        height: (n) => n.data('height') * 0.4,
+        "border-color": theme.getColour(ColoursNames.danger_muted),
+        "border-width": 4,
       }
     },
 

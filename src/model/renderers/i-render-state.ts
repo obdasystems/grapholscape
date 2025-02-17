@@ -16,7 +16,7 @@ export enum RendererStatesEnum {
 export default interface RenderState {
   id: RendererStatesEnum
   renderer: Renderer
-  filterManager: FilterManager
+  filterManager?: FilterManager
   layout: cytoscape.Layouts
   layoutRunning: boolean
   render(): void

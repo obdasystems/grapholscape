@@ -29,7 +29,7 @@ export default function (theme: GrapholscapeTheme) {
       selector: '[displayedName]',
       style: {
         'label': 'data(displayedName)',
-        'min-zoomed-font-size': '5px',
+        'min-zoomed-font-size': '12px',
       }
     },
 

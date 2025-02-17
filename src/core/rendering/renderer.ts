@@ -87,7 +87,7 @@ export default class Renderer {
 
     if (!_filter) return
 
-    if (this._lifecycle.trigger(LifecycleEvent.FilterRequest, _filter) && this._renderState?.filterManager.filterActivation(_filter)) {
+    if (this._lifecycle.trigger(LifecycleEvent.FilterRequest, _filter) && this._renderState?.filterManager?.filterActivation(_filter)) {
       this.performFilter(_filter)
       this._lifecycle.trigger(LifecycleEvent.Filter, _filter)
     }
@@ -120,7 +120,7 @@ export default class Renderer {
     const _filter = this.getFilter(filter)
     if (!_filter) return
 
-    if (this._lifecycle.trigger(LifecycleEvent.UnfilterRequest, _filter) && this._renderState?.filterManager.filterDeactivation(_filter)) {
+    if (this._lifecycle.trigger(LifecycleEvent.UnfilterRequest, _filter) && this._renderState?.filterManager?.filterDeactivation(_filter)) {
       this.performFilter(_filter, false)
       this.applyActiveFilters()
       this._lifecycle.trigger(LifecycleEvent.Unfilter, _filter)
