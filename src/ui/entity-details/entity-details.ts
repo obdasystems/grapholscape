@@ -1,12 +1,14 @@
 import { css, html, LitElement } from 'lit'
 import { EntityNameType, GrapholElement, GrapholEntity, TypesEnum } from '../../model'
-import { blankSlateDiagrams, commentIcon, domain, infoFilled, minus, plus, range, swapHorizontal } from '../assets/icons'
+import { blankSlateDiagrams, commentIcon, domain, infoFilled, minus, plus, range, shieldCheck, swapHorizontal } from '../assets/icons'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
 import { GscapeButtonStyle } from '../common/button'
 import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import baseStyle from '../style'
 import { DiagramViewData, getEntityOccurrencesTemplate, OccurrenceIdViewData } from '../util/get-entity-view-occurrences'
 import commentsTemplate from '../common/comments-template'
+import { SHACLShapeTypeEnum } from '../../model/rdf-graph/swagger'
+import { SHACLShapeViewData } from '../view-model'
 
 export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Entity Details'
@@ -18,10 +20,13 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   entityNameType: EntityNameType = EntityNameType.LABEL
   inverseObjectPropertyEntities?: GrapholEntity[]
   onNodeNavigation: (elmentId: string, diagramId: number) => void = () => { }
-  onInverseObjectPropertyNavigation: (iri: string) => void = () => { }
+  onEntityNavigation: (iri: string) => void = () => { }
   onWikiLinkClick: (iri: string) => void
 
   incrementalSection?: HTMLElement
+  constraints: SHACLShapeViewData[] = []
+  domainConstraints: SHACLShapeViewData[] = []
+  rangeConstraints: SHACLShapeViewData[] = []
 
   protected isDefaultClosed: boolean = false
   private lastHeight: string = 'unset'
@@ -34,7 +39,8 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
       showOccurrences: { type: Boolean },
       language: { type: String, attribute: false },
       _isPanelClosed: { type: Boolean, attribute: false },
-      incrementalSection: {type: Object, attribute: false }
+      incrementalSection: {type: Object, attribute: false },
+      constraints: { type: Array },
     }
   }
 
@@ -120,6 +126,12 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
       .chips-wrapper > .chip {
         flex-shrink: 0;
       }
+
+      .constraint {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
     `
   ]
 
@@ -163,24 +175,25 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
             ? html`
               <div class="section">
                 <div class="section-header">
-                  ${this.currentOccurrence.domainTyped !== undefined && this.currentOccurrence.domainMandatory !== undefined
+                  ${(this.currentOccurrence.domainTyped !== undefined && this.currentOccurrence.domainMandatory !== undefined) || this.domainConstraints.length > 0
                     ? html`
                       <span class="slotted-icon">${domain}</span>
                       <span class="bold-text">Domain</span>
                       ${this.currentOccurrence.domainTyped ? html`<span class="chip-neutral">Typed</span>` : undefined }
                       ${this.currentOccurrence.domainMandatory ? html`<span class="chip-neutral">Mandatory</span>` : undefined }
+                      ${this.domainConstraints.map(constraint => this.constraintTemplate(constraint))}
                     `
                     : undefined
                   }
-                  
                 </div>
                 <div class="section-header">
-                  ${this.currentOccurrence.rangeTyped !== undefined && this.currentOccurrence.rangeMandatory !== undefined
+                  ${(this.currentOccurrence.rangeTyped !== undefined && this.currentOccurrence.rangeMandatory !== undefined) || this.rangeConstraints.length > 0
                     ? html`
                       <span class="slotted-icon">${range}</span>
                       <span class="bold-text">Range</span>
                       ${this.currentOccurrence.rangeTyped ? html`<span class="chip-neutral">Typed</span>` : undefined }
                       ${this.currentOccurrence.rangeMandatory ? html`<span class="chip-neutral">Mandatory</span>` : undefined }
+                      ${this.rangeConstraints.map(constraint => this.constraintTemplate(constraint))}
                     `
                     : undefined
                   }
@@ -208,13 +221,28 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
                         .types=${inverseOPentity.types}
                         iri=${inverseOPentity.iri.fullIri}
                         ?actionable=${true}
-                        @click=${() => this.onInverseObjectPropertyNavigation(inverseOPentity.iri.fullIri)}
+                        @click=${() => this.onEntityNavigation(inverseOPentity.iri.fullIri)}
                       >
                       </gscape-entity-list-item>
                     `
                   })}
                 </div>
               </div>
+            `
+            : null
+          }
+
+          ${this.constraints.length > 0
+            ? html`
+            <div class="section">
+              <div class="bold-text section-header">
+                <span class="slotted-icon">${shieldCheck}</span>  
+                <span>Constraints</span>
+              </div>
+              <div class="section-body">
+                ${this.constraints.map(constraint => this.constraintTemplate(constraint))}
+              </div>
+            </div>
             `
             : null
           }
@@ -272,6 +300,37 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
         </div>
       </div>
     `
+  }
+
+  private constraintTemplate(constraint: SHACLShapeViewData) {
+    const viewInfo = viewSHACLShapeInfo[constraint.type]
+    return html`<div class="constraint">
+      <span>
+        ${viewInfo.label}
+      </span>
+      ${viewInfo.operator ? html`<span style="display: inline" class="chip chip-neutral">${viewInfo.operator}</span>` : null}
+      ${constraint.constraintValue
+        ? html`
+          <div>
+            ${constraint.constraintValue.map(c => html`<span class="chip">${c}</span>`)}
+          </div>
+        `
+        : null
+      }
+      ${constraint.property
+        ? html`
+          <gscape-entity-list-item
+            displayedName=${constraint.property.getDisplayedName(this.entityNameType, this.language)}
+            .types=${constraint.property.types}
+            iri=${constraint.property.iri.fullIri}
+            ?actionable=${true}
+            @click=${() => this.onEntityNavigation(constraint.property!.iri.fullIri)}
+          >
+          </gscape-entity-list-item>
+        `
+        : null
+      }
+    </div>`
   }
 
   // override blur to avoid collapsing when clicking on cytoscape's canvas
@@ -333,6 +392,25 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
     this.style.height = this.lastHeight
     this.style.width = this.lastWidth
   }
+}
+
+const viewSHACLShapeInfo: {[x in SHACLShapeTypeEnum]: { label: string, operator?: string }} = {
+  [SHACLShapeTypeEnum.MIN_COUNT]: { label: 'Min. Cardinality:' },
+  [SHACLShapeTypeEnum.MAX_COUNT]: { label: 'Max. Cardinality:'},
+  [SHACLShapeTypeEnum.MIN_EXCLUSIVE]: { label:'Values must be', operator: '>=' },
+  [SHACLShapeTypeEnum.MIN_INCLUSIVE]: { label:'Values must be', operator: '>' },
+  [SHACLShapeTypeEnum.MAX_EXCLUSIVE]: { label:'Values must be', operator: '<=' },
+  [SHACLShapeTypeEnum.MAX_INCLUSIVE]: { label:'Values must be', operator: '<' },
+  [SHACLShapeTypeEnum.MIN_LENGTH]: { label:'Min. Length:' },
+  [SHACLShapeTypeEnum.MAX_LENGTH]: { label:'Max. Length:' },
+  [SHACLShapeTypeEnum.PATTERN]: { label:'Regular Expression:' },
+  [SHACLShapeTypeEnum.IN]: { label:'Admitted Values:' },
+  [SHACLShapeTypeEnum.EQUALS]: { label:'Values must be', operator: '=' },
+  [SHACLShapeTypeEnum.DISJOINT]: { label:'Values must be', operator: '!=' },
+  [SHACLShapeTypeEnum.LESS_THAN]: { label:'Values must be', operator: '<' },
+  [SHACLShapeTypeEnum.LESS_THAN_OR_EQUALS]: { label:'Values must be', operator: '<=' },
+  [SHACLShapeTypeEnum.GREATER_THAN]: { label:'Values must be', operator: '>' },
+  [SHACLShapeTypeEnum.GREATER_THAN_OR_EQUALS]: { label:'Values must be', operator: '>=' },
 }
 
 customElements.define('gscape-entity-details', GscapeEntityDetails)

@@ -166,6 +166,8 @@ export const keepOff = svg`<svg fill="currentColor" xmlns="http://www.w3.org/200
 
 export const swapHorizontal = svg`<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#051e36"><path d="M292-178 106-364.5l185.5-186 48 47L234-398h288v67H234l106 106-48 47Zm376-231.5-48-47 106-106H438v-67h288L620.5-735l48-47L854-596 668-409.5Z"/></svg>`
 
+export const shieldCheck = svg`<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="m439-344 214-215-47.5-47.5L439-439l-85-85-47.5 47.5L439-344Zm41 238q-131.09-32.2-217.05-149.18Q177-372.17 177-515v-222l303-117 303 117v222q0 142.83-85.95 259.82Q611.09-138.2 480-106Zm0-69.5q102.5-32.25 169.25-127.6Q716-398.46 716-515v-176.61L480-782l-236 90.39V-515q0 116.54 66.75 211.9Q377.5-207.75 480-175.5Zm0-303Z"/></svg>`
+
 export const entityIcons: { [x in TypesEnum.CLASS |
   TypesEnum.OBJECT_PROPERTY |
   TypesEnum.DATA_PROPERTY |

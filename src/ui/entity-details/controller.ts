@@ -1,6 +1,8 @@
 import Grapholscape from '../../core'
 import { GrapholElement, GrapholEntity, Iri, LifecycleEvent, RendererStatesEnum, TypesEnum } from '../../model'
+import { SHACLShape, SHACLShapeTypeEnum } from '../../model/rdf-graph/swagger'
 import getEntityViewOccurrences from '../util/get-entity-view-occurrences'
+import { SHACLShapeViewData } from '../view-model'
 import GscapeEntityDetails from './entity-details'
 
 export default function (entityDetailsComponent: GscapeEntityDetails, grapholscape: Grapholscape) {
@@ -10,7 +12,7 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
     grapholscape.selectElement(elementId)
   }
 
-  entityDetailsComponent.onInverseObjectPropertyNavigation = (iri) => {
+  entityDetailsComponent.onEntityNavigation = (iri) => {
     grapholscape.centerOnEntity(iri, undefined, 1.2)
   }
   entityDetailsComponent.language = grapholscape.language
@@ -56,6 +58,51 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
     entityDetailsComponent.language = grapholscape.language
     entityDetailsComponent.inverseObjectPropertyEntities = entity.getInverseObjectProperties()
       ?.map(inverseOPIri => grapholscape.ontology.getEntity(inverseOPIri)!)
+
+    const constraints: SHACLShapeViewData[] = []
+    const domainConstraints: SHACLShapeViewData[] = []
+    const rangeConstraints: SHACLShapeViewData[] = []
+    if (instance) {
+      if (instance.is(TypesEnum.DATA_PROPERTY)) {
+        Array.from(grapholscape.ontology.shaclConstraints).forEach(([classIri, SHACLConstraints]) => {
+          constraints.push(...SHACLConstraints.filter(c => c.path && c.path === entity.iri.fullIri).map(c => {
+            return {
+              type: c.type,
+              path: c.path,
+              property: c.property ? grapholscape.ontology.getEntity(c.property) : undefined,
+              constraintValue: c.constraintValue,
+              targetClass: grapholscape.ontology.getEntity(c.targetClass),
+            }
+          }))
+        })
+      } else if (instance.is(TypesEnum.OBJECT_PROPERTY) && instance.isEdge()) {
+        const sourceClassNode = grapholscape.renderer.cy?.$id(instance.sourceId)
+        const targetClassNode = grapholscape.renderer.cy?.$id(instance.targetId)
+
+        if (sourceClassNode) {
+          domainConstraints.push(...(grapholscape.ontology.shaclConstraints.get(sourceClassNode.data().iri) || [])?.filter(c => c.path === entity.iri.fullIri).map(c => ({
+            type: c.type,
+            path: c.path,
+            property: c.property ? grapholscape.ontology.getEntity(c.property) : undefined,
+            constraintValue: c.constraintValue,
+            targetClass: grapholscape.ontology.getEntity(c.targetClass)
+          })))
+        }
+
+        if (targetClassNode) {
+          rangeConstraints.push(...(grapholscape.ontology.shaclConstraints.get(targetClassNode.data().iri) || [])?.filter(c => c.path === entity.iri.fullIri).map(c => ({
+            type: c.type,
+            path: c.path,
+            property: c.property ? grapholscape.ontology.getEntity(c.property) : undefined,
+            constraintValue: c.constraintValue,
+            targetClass: grapholscape.ontology.getEntity(c.targetClass)
+          })))
+        }
+      }
+    }
+    entityDetailsComponent.constraints = constraints
+    entityDetailsComponent.domainConstraints = domainConstraints
+    entityDetailsComponent.rangeConstraints = rangeConstraints
     entityDetailsComponent.show()
 
     if (grapholscape.lifecycle.entityWikiLinkClick.length > 0 && !entityDetailsComponent.onWikiLinkClick) {
