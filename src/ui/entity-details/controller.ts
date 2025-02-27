@@ -59,21 +59,22 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
     entityDetailsComponent.inverseObjectPropertyEntities = entity.getInverseObjectProperties()
       ?.map(inverseOPIri => grapholscape.ontology.getEntity(inverseOPIri)!)
 
-    const constraints: SHACLShapeViewData[] = []
+    const constraints: Map<SHACLShapeTypeEnum, SHACLShapeViewData[]> = new Map()
     const domainConstraints: SHACLShapeViewData[] = []
     const rangeConstraints: SHACLShapeViewData[] = []
     if (instance) {
       if (instance.is(TypesEnum.DATA_PROPERTY)) {
         Array.from(grapholscape.ontology.shaclConstraints).forEach(([classIri, SHACLConstraints]) => {
-          constraints.push(...SHACLConstraints.filter(c => c.path && c.path === entity.iri.fullIri).map(c => {
-            return {
+          SHACLConstraints.filter(c => c.path && c.path === entity.iri.fullIri).forEach(c => {
+            const shaclViewData = {
               type: c.type,
               path: c.path,
               property: c.property ? grapholscape.ontology.getEntity(c.property) : undefined,
               constraintValue: c.constraintValue,
               targetClass: grapholscape.ontology.getEntity(c.targetClass),
             }
-          }))
+            constraints.set(c.type, [...(constraints.get(c.type) || []), shaclViewData ])
+          })
         })
       } else if (instance.is(TypesEnum.OBJECT_PROPERTY) && instance.isEdge()) {
         const sourceClassNode = grapholscape.renderer.cy?.$id(instance.sourceId)

@@ -24,7 +24,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
   onWikiLinkClick: (iri: string) => void
 
   incrementalSection?: HTMLElement
-  constraints: SHACLShapeViewData[] = []
+  constraints: Map<SHACLShapeTypeEnum, SHACLShapeViewData[]> = new Map()
   domainConstraints: SHACLShapeViewData[] = []
   rangeConstraints: SHACLShapeViewData[] = []
 
@@ -181,7 +181,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
                       <span class="bold-text">Domain</span>
                       ${this.currentOccurrence.domainTyped ? html`<span class="chip-neutral">Typed</span>` : undefined }
                       ${this.currentOccurrence.domainMandatory ? html`<span class="chip-neutral">Mandatory</span>` : undefined }
-                      ${this.domainConstraints.map(constraint => this.constraintTemplate(constraint))}
+                      ${this.domainConstraints.map(constraint => this.constraintTemplate([constraint]))}
                     `
                     : undefined
                   }
@@ -193,7 +193,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
                       <span class="bold-text">Range</span>
                       ${this.currentOccurrence.rangeTyped ? html`<span class="chip-neutral">Typed</span>` : undefined }
                       ${this.currentOccurrence.rangeMandatory ? html`<span class="chip-neutral">Mandatory</span>` : undefined }
-                      ${this.rangeConstraints.map(constraint => this.constraintTemplate(constraint))}
+                      ${this.rangeConstraints.map(constraint => this.constraintTemplate([constraint]))}
                     `
                     : undefined
                   }
@@ -232,7 +232,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
             : null
           }
 
-          ${this.constraints.length > 0
+          ${this.constraints.size > 0
             ? html`
             <div class="section">
               <div class="bold-text section-header">
@@ -240,7 +240,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
                 <span>Constraints</span>
               </div>
               <div class="section-body">
-                ${this.constraints.map(constraint => this.constraintTemplate(constraint))}
+                ${Array.from(this.constraints.entries()).map(([type, constraints]) => this.constraintTemplate(constraints))}
               </div>
             </div>
             `
@@ -302,34 +302,36 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
     `
   }
 
-  private constraintTemplate(constraint: SHACLShapeViewData) {
-    const viewInfo = viewSHACLShapeInfo[constraint.type]
+  private constraintTemplate(constraints: SHACLShapeViewData[]) {
+    const viewInfo = viewSHACLShapeInfo[constraints[0].type]
+    const values = constraints.map(c => c.constraintValue).flat()
     return html`<div class="constraint">
       <span>
         ${viewInfo.label}
       </span>
       ${viewInfo.operator ? html`<span style="display: inline" class="chip chip-neutral">${viewInfo.operator}</span>` : null}
-      ${constraint.constraintValue
-        ? html`
-          <div>
-            ${constraint.constraintValue.map(c => html`<span class="chip">${c}</span>`)}
-          </div>
-        `
-        : null
-      }
-      ${constraint.property
-        ? html`
-          <gscape-entity-list-item
-            displayedName=${constraint.property.getDisplayedName(this.entityNameType, this.language)}
-            .types=${constraint.property.types}
-            iri=${constraint.property.iri.fullIri}
-            ?actionable=${true}
-            @click=${() => this.onEntityNavigation(constraint.property!.iri.fullIri)}
-          >
-          </gscape-entity-list-item>
-        `
-        : null
-      }
+      ${constraints.map(constraint => {
+        if (constraint.constraintValue && constraint.constraintValue.length > 0) {
+          return html`
+            <div>
+              ${values.map(c => html`<span class="chip">${c}</span>`)}
+            </div>
+          `
+        }
+
+        if (constraint.property) {
+          return html`
+            <gscape-entity-list-item
+              displayedName=${constraint.property.getDisplayedName(this.entityNameType, this.language)}
+              .types=${constraint.property.types}
+              iri=${constraint.property.iri.fullIri}
+              ?actionable=${true}
+              @click=${() => this.onEntityNavigation(constraint.property!.iri.fullIri)}
+            >
+            </gscape-entity-list-item>
+          `
+        }
+      })}
     </div>`
   }
 
