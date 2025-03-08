@@ -28,6 +28,7 @@ export { default as ClassInstanceEntity } from './graphol-elems/class-instance-e
 export { default as iFilterManager, BaseFilterManager } from './renderers/i-filter-manager'
 export { default as iRenderState, RendererStatesEnum } from './renderers/i-render-state'
 export { default as BaseRenderer } from './renderers/base-renderer'
+export * from './renderers/layout'
 export { default as Lifecycle } from './lifecycle'
 export * from './lifecycle'
 

@@ -1,7 +1,7 @@
-import { NodeSingular, SingularElementArgument, Stylesheet } from "cytoscape";
+import { NodeSingular, SingularElementArgument, StylesheetJson } from "cytoscape";
 import { ColoursNames, DefaultThemesEnum, GrapholscapeTheme, Shape, TypesEnum } from "../../../model";
 
-export default function (theme: GrapholscapeTheme) {
+export default function (theme: GrapholscapeTheme): StylesheetJson {
   return [
     {
       selector: 'node',
@@ -9,7 +9,7 @@ export default function (theme: GrapholscapeTheme) {
         'height': (node) => node.data('height') || 40,
         'width': (node) => node.data('width') || 40,
         'background-color': (node) => getColor(node, ColoursNames.bg_node_light),
-        'shape': 'data(shape)',
+        'shape': 'data(shape)' as any,
         'border-width': 1,
         'border-color': theme.getColour(ColoursNames.border_node),
         'border-style': 'solid',
@@ -29,7 +29,7 @@ export default function (theme: GrapholscapeTheme) {
       selector: '[displayedName]',
       style: {
         'label': 'data(displayedName)',
-        'min-zoomed-font-size': '12px',
+        "min-zoomed-font-size": 12,
       }
     },
 
@@ -209,7 +209,7 @@ export default function (theme: GrapholscapeTheme) {
         'text-background-color': theme.getColour(ColoursNames.bg_graph),
         'text-background-opacity': 1,
         'text-background-shape': 'roundrectangle',
-        'text-background-padding': 2,
+        'text-background-padding': '2',
       }
     },
 
@@ -338,8 +338,8 @@ export default function (theme: GrapholscapeTheme) {
         'underlay-color': theme.getColour(ColoursNames.accent),
         'underlay-opacity': 0.2,
         'overlay-opacity': 0,
-        'z-index': '100',
-        'underlay-shape': (node: SingularElementArgument) => node.style('shape') === Shape.ELLIPSE ? Shape.ELLIPSE : Shape.ROUND_RECTANGLE
+        'z-index': 100,
+        'underlay-shape': (node: SingularElementArgument) => node.style('shape') === Shape.ELLIPSE ? Shape.ELLIPSE : Shape.ROUND_RECTANGLE as any
       },
     },
 
@@ -350,11 +350,11 @@ export default function (theme: GrapholscapeTheme) {
       style: {
         'overlay-color': theme.getColour(ColoursNames.accent),
         'overlay-opacity': 0.2,
-        'z-index': '100',
-        'overlay-shape': (node: SingularElementArgument) => node.style('shape') === Shape.ELLIPSE ? Shape.ELLIPSE : Shape.ROUND_RECTANGLE
+        'z-index': 100,
+        'overlay-shape': (node: SingularElementArgument) => node.style('shape') === Shape.ELLIPSE ? Shape.ELLIPSE : Shape.ROUND_RECTANGLE as any
       }
     },
-  ] as Stylesheet[]
+  ]
 
   function getColor(node: NodeSingular, colour: ColoursNames): string {
     // take color from parsed XML source file

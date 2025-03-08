@@ -1,4 +1,4 @@
-import cytoscape, { EdgeSingular, Stylesheet } from "cytoscape"
+import cytoscape, { EdgeSingular, StylesheetJson } from "cytoscape"
 import { Diagram, Filter, GrapholscapeTheme, iFilterManager, Ontology, RendererStatesEnum, TypesEnum } from "../../../model"
 import IncrementalDiagram from "../../../model/diagrams/incremental-diagram"
 import FloatyRendererState from "../floaty/floaty-renderer-state"
@@ -53,8 +53,8 @@ export default class IncrementalRendererState extends FloatyRendererState {
     incrementalRepresentation.hasEverBeenRendered = true
   }
 
-  runLayout() {
-    super.runLayout()
+  runLayout(customOptions?: any) {
+    const layoutPromise = super.runLayout(customOptions)
     if (this.isLayoutInfinite) {
       this.unFreezeGraph()
     } else {
@@ -66,23 +66,19 @@ export default class IncrementalRendererState extends FloatyRendererState {
           this.unFreezeGraph()
       })
     }
+    return layoutPromise
   }
 
   runCustomLayout(cyLayoutOptions: any, collection?: cytoscape.Collection) {
-    if (!collection) {
+    if (!this.renderer.cy)
+      return
 
-      if (!this.layoutRunning) {
-        Object.assign(this.floatyLayoutOptions, cyLayoutOptions)
-      }
-      
+    const customLayoutOptions = cyLayoutOptions.overwrite
+      ? cyLayoutOptions
+      : { ...this.gscapeLayout.getCyOptions(collection || this.renderer.cy.collection()), ...cyLayoutOptions }
+    if (!collection) {
       this.runLayout()
-      this.floatyLayoutOptions = this.defaultLayoutOptions
     } else {
-      const customLayoutOptions = {
-        ...this.floatyLayoutOptions,
-        ...cyLayoutOptions,
-      }
-      
       collection.layout(customLayoutOptions).run()
     }
   }
@@ -100,8 +96,7 @@ export default class IncrementalRendererState extends FloatyRendererState {
 
   stopRendering(): void {
     super.stopRendering()
-    if (this.previousDiagram)
-      this.renderer.diagram = this.previousDiagram
+    this.renderer.diagram = this.previousDiagram
   }
 
   transformOntology(ontology: Ontology): void {
@@ -116,7 +111,7 @@ export default class IncrementalRendererState extends FloatyRendererState {
     }
   }
 
-  getGraphStyle(theme: GrapholscapeTheme): Stylesheet[] {
+  getGraphStyle(theme: GrapholscapeTheme): StylesheetJson {
     return incrementalStyle(theme)
   }
 
@@ -226,24 +221,17 @@ export default class IncrementalRendererState extends FloatyRendererState {
     return super.renderer
   }
 
-  protected get defaultLayoutOptions() {
-    return {
-      name: 'cola',
-      avoidOverlap: true,
-      edgeLength: function (edge: EdgeSingular) {
-        let crowdnessFactor =
-          edge.target().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length +
-          edge.source().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length
+  protected edgeLength = (edge: EdgeSingular, crowdness: boolean, edgeLengthFactor: number): number => {
+    const nameLength = edge.data('displayedName')?.length * 5 || 0
+    if (crowdness) {
+      let crowdnessFactor =
+        edge.target().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length +
+        edge.source().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length
 
-        crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 2 : 0
-        const nameLength = edge.data('displayedName')?.length * 5 || 0
-        return 140 + crowdnessFactor + nameLength
-      },
-      fit: false,
-      maxSimulationTime: 1000,
-      infinite: false,
-      handleDisconnected: true, // if true, avoids disconnected components from overlapping
-      centerGraph: false,
+      crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 2 : 0
+      return (4 * edgeLengthFactor) + crowdnessFactor + nameLength
+    } else {
+      return edgeLengthFactor * 2.5 + nameLength
     }
   }
 }

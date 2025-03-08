@@ -1,4 +1,4 @@
-import cytoscape, { NodeSingular } from "cytoscape";
+import cytoscape, { NodeSingular, SingularElementReturnValue, StylesheetJson } from "cytoscape";
 import automove from 'cytoscape-automove';
 import { Renderer } from "..";
 import { BaseRenderer, GrapholscapeTheme, iFilterManager, Ontology, RendererStatesEnum, TypesEnum } from "../../../model";
@@ -8,6 +8,8 @@ import FloatyTransformer from "./floaty-transformer";
 import computeHierarchies from "../../compute-hierarchies";
 import { DiagramColorManager } from "../../colors-manager";
 import Grapholscape from "../../grapholscape";
+import * as Layouts from "../layouts";
+import { GscapeLayout } from "../../../model/renderers/layout";
 
 cytoscape.use(automove)
 
@@ -17,19 +19,58 @@ const lock_open = '<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox
 export default class FloatyRendererState extends BaseRenderer {
   readonly id: RendererStatesEnum = RendererStatesEnum.FLOATY
   filterManager: iFilterManager = new FloatyFilterManager()
+  availableLayouts: GscapeLayout[]
   protected _layout: cytoscape.Layouts
+  protected _gscapeLayout: GscapeLayout
   private centeringOnElem = false
+  protected edgeLength = (edge: SingularElementReturnValue, crowdness: boolean, edgeLengthFactor: number) => {
+    if (crowdness) {
+      let crowdnessFactor = edge.target().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length
+        + edge.source().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length
+
+      crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 10 : 0
+      if (edge.hasClass('role')) {
+        return (5 * edgeLengthFactor) + edge.data('displayedName').length * 4 + crowdnessFactor
+      } else if (edge.target().data('type') == TypesEnum.DATA_PROPERTY
+        || edge.source().data('type') == TypesEnum.DATA_PROPERTY) {
+        return 3 * edgeLengthFactor
+      } else {
+        return (4 * edgeLengthFactor) + crowdnessFactor
+      }
+    } else {
+      return edgeLengthFactor * 2.5
+    }
+  }
 
   set renderer(newRenderer: Renderer) {
     super.renderer = newRenderer
     if (!newRenderer.renderStateData[this.id]) {
       newRenderer.renderStateData[this.id] = {}
       newRenderer.renderStateData[this.id].popperContainers = new Map<number, HTMLDivElement>()
-      this.floatyLayoutOptions = this.defaultLayoutOptions
+      // this.floatyLayoutOptions = this.defaultLayoutOptions
     }
   }
 
   get renderer() { return super.renderer }
+
+  set gscapeLayout(layout: GscapeLayout) {
+    layout.customEdgeLength = this.edgeLength
+    this._gscapeLayout = layout
+  }
+  get gscapeLayout() { return this._gscapeLayout }
+
+  constructor() {
+    super()
+    this.availableLayouts = [
+      new Layouts.ColaLayout(),
+      new Layouts.ClustersLayout(),
+      new Layouts.FcoseLayout(),
+      new Layouts.GridLayout(),
+      new Layouts.DagreLayout(),
+    ]
+
+    this.gscapeLayout = this.availableLayouts[0]
+  }
 
   transformOntology(ontology: Ontology): void {
     ontology.diagrams.forEach(diagram => {
@@ -43,16 +84,18 @@ export default class FloatyRendererState extends BaseRenderer {
     FloatyTransformer.addAnnotationPropertyEdges(grapholscape)
   }
 
-  runLayout(): void {
+  onLayoutRun = () => {}
+  runLayout(customOptions?: any) {
     if (!this.renderer.cy) return
-    this._layout?.stop()
-    this._layout = this.renderer.cy.elements().layout(this.floatyLayoutOptions)
+    this.stopLayout()
+    this._layout = this.renderer.cy.elements().layout(customOptions || this.gscapeLayout.getCyOptions(this.renderer.cy.elements()))
     this._layout.one('layoutstop', (e) => {
       if (e.layout === this._layout) // only if layout has not changed
         this.layoutRunning = false
     })
     this._layout.run()
     this.layoutRunning = true
+    this.onLayoutRun()
   }
 
   render(): void {
@@ -77,17 +120,18 @@ export default class FloatyRendererState extends BaseRenderer {
       // this.floatyLayoutOptions.fit = true
       this.renderer.fit()
       const areAllNodesOnCenter = this.renderer.diagram.representations.get(RendererStatesEnum.GRAPHOL)?.isEmpty()
-      const previousLayoutOptions = this.floatyLayoutOptions
+      const previousLayoutOptions = this.gscapeLayout.highLevelSettings
       if (areAllNodesOnCenter) {
-        this.floatyLayoutOptions = {
-          ...this.floatyLayoutOptions,
-          centerGraph: true,
-          randomize: true,
-        }
+        this.gscapeLayout.randomize = true
+        // this.floatyLayoutOptions = {
+        //   ...this.floatyLayoutOptions,
+        //   centerGraph: true,
+        //   randomize: true,
+        // }
       }
       this.runLayout()
       if (areAllNodesOnCenter) {
-        this.floatyLayoutOptions = previousLayoutOptions
+        this.gscapeLayout.highLevelSettings = previousLayoutOptions
       }
       this.popperContainers.set(this.renderer.diagram.id, document.createElement('div'))
       this.setDragAndPinEventHandlers();
@@ -106,7 +150,7 @@ export default class FloatyRendererState extends BaseRenderer {
       this.unpinAll()
 
     if (this.isLayoutInfinite) {
-      this.floatyLayoutOptions.fit = false
+      this.gscapeLayout.fit = false
       this.runLayout()
     }
 
@@ -124,18 +168,23 @@ export default class FloatyRendererState extends BaseRenderer {
     }
   }
 
-  getGraphStyle(theme: GrapholscapeTheme): cytoscape.Stylesheet[] {
+  getGraphStyle(theme: GrapholscapeTheme): StylesheetJson {
     return floatyStyle(theme)
   }
 
+  onLayoutStop = () => {}
   stopLayout(): void {
     this._layout?.stop()
-    this.floatyLayoutOptions.infinite = false
+    this.layoutRunning = false
+    this.onLayoutStop()
   }
 
   runLayoutInfinitely() {
-    this.floatyLayoutOptions.infinite = true
-    this.floatyLayoutOptions.fit = false
+    if (this.gscapeLayout.canBeInfinite) {
+      this.gscapeLayout.infinite = true
+      this.gscapeLayout.fit = false
+    }
+
     this.runLayout()
   }
 
@@ -183,6 +232,14 @@ export default class FloatyRendererState extends BaseRenderer {
 
   unpinAll() {
     this.renderer.cy?.$('[?pinned]').each(node => this.unpinNode(node))
+  }
+
+  randomizeLayout() {
+    this.gscapeLayout.randomize = true
+    const previouslyInfinite = this.gscapeLayout.infinite
+    this.stopLayout()
+    previouslyInfinite ? this.runLayoutInfinitely() : this.runLayout()
+    this.gscapeLayout.randomize = false
   }
 
   private setPopperStyle(dim, popper) {
@@ -267,34 +324,6 @@ export default class FloatyRendererState extends BaseRenderer {
     }
   }
 
-  protected get defaultLayoutOptions() {
-    return {
-      name: 'cola',
-      avoidOverlap: false,
-      edgeLength: function (edge) {
-        let crowdnessFactor =
-          edge.target().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length +
-          edge.source().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length
-
-        crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 10 : 0
-        if (edge.hasClass('role')) {
-          return 250 + edge.data('displayedName').length * 4 + crowdnessFactor
-        }
-        else if (edge.target().data('type') == TypesEnum.DATA_PROPERTY ||
-          edge.source().data('type') == TypesEnum.DATA_PROPERTY)
-          return 150
-        else {
-          return 200 + crowdnessFactor
-        }
-      },
-      fit: false,
-      maxSimulationTime: 4000,
-      infinite: false,
-      handleDisconnected: true, // if true, avoids disconnected components from overlapping
-      centerGraph: false,
-    }
-  }
-
   centerOnElementById(elementId: string, zoom?: number, select?: boolean): void {
     const cy = this.renderer.cy
     if (!cy || (!zoom && zoom !== 0)) return
@@ -328,7 +357,7 @@ export default class FloatyRendererState extends BaseRenderer {
         performAnimation()
         if (this.isLayoutInfinite) {
           // run layout not fitting it, avoid conflict with fitting view on element
-          this.floatyLayoutOptions.infinite = false
+          this.gscapeLayout.infinite = false
           this.runLayout()
           this.layout.one('layoutstop', (layoutEvent) => {
             if (layoutEvent.layout === this.layout) {
@@ -359,13 +388,21 @@ export default class FloatyRendererState extends BaseRenderer {
     }
   }
 
-  get floatyLayoutOptions() {
-    return this.renderer.renderStateData[this.id].layoutOptions
+  setFixedEdgeLength(numberOrFoo: number | ((elem: SingularElementReturnValue) => number)) {
+    if (typeof numberOrFoo === 'number') {
+      this.edgeLength = () => numberOrFoo
+    } else {
+      this.edgeLength = numberOrFoo
+    }
   }
 
-  set floatyLayoutOptions(newOptions) {
-    this.renderer.renderStateData[this.id].layoutOptions = newOptions
-  }
+  // get floatyLayoutOptions() {
+  //   return this.renderer.renderStateData[this.id].layoutOptions
+  // }
+
+  // set floatyLayoutOptions(newOptions) {
+  //   this.renderer.renderStateData[this.id].layoutOptions = newOptions
+  // }
 
   protected automoveOptions = {
     nodesMatching: (node: NodeSingular) => !this.layoutRunning &&
@@ -375,7 +412,7 @@ export default class FloatyRendererState extends BaseRenderer {
   }
 
   get isLayoutInfinite() {
-    return this.floatyLayoutOptions.infinite ? true : false
+    return this.gscapeLayout.infinite
   }
 
   get dragAndPin() { return this.renderer.renderStateData[this.id].dragAndPing }

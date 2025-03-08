@@ -1,6 +1,8 @@
+import { render } from "lit";
 import { FloatyRendererState, Grapholscape } from "../../core";
 import { LifecycleEvent, RendererStatesEnum } from "../../model";
 import GscapeLayoutSettings from "./layout-settings";
+import { GscapeLayout } from "../../model/renderers/layout";
 
 /**
  * 
@@ -18,8 +20,16 @@ export default function (layoutSettingsComponent: GscapeLayoutSettings, graphols
     }
   }
 
-  layoutSettingsComponent.onLayoutRunToggle = () => {
-    if (grapholscape.renderState !== RendererStatesEnum.FLOATY && 
+  const autoRunLayout = (renderer: FloatyRendererState, forceInfinite?: boolean) => {
+    if (renderer.gscapeLayout.canBeInfinite && (forceInfinite || (renderer.isLayoutInfinite && renderer.layoutRunning))) {
+      renderer.runLayoutInfinitely()
+    } else {
+      renderer.runLayout()
+    }
+  }
+
+  layoutSettingsComponent.onLayoutRunToggle = (isActive: boolean) => {
+    if (grapholscape.renderState !== RendererStatesEnum.FLOATY &&
       grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
       return
 
@@ -29,16 +39,17 @@ export default function (layoutSettingsComponent: GscapeLayoutSettings, graphols
     //   grapholscape.renderer.useOriginalPositions = false
     // }
 
-    if (renderer.isLayoutInfinite) {
+    if (!isActive) {
       renderer.stopLayout()
+      renderer.gscapeLayout.infinite = false
+      updateToggles(renderer.id)
     } else {
-      renderer.runLayoutInfinitely()
+      autoRunLayout(renderer, true)
     }
-    updateToggles(renderer.id)
   }
 
   layoutSettingsComponent.onDragAndPinToggle = () => {
-    if (grapholscape.renderState !== RendererStatesEnum.FLOATY && 
+    if (grapholscape.renderState !== RendererStatesEnum.FLOATY &&
       grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
       return
 
@@ -47,6 +58,35 @@ export default function (layoutSettingsComponent: GscapeLayoutSettings, graphols
     renderer.dragAndPin = !renderer.dragAndPin
     updateToggles(renderer.id)
   }
+
+  layoutSettingsComponent.addEventListener('layoutChange', (e: CustomEvent<GscapeLayout>) => {
+    if (grapholscape.renderState !== RendererStatesEnum.FLOATY &&
+      grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
+      return
+
+    const renderer = grapholscape.renderer.renderState as FloatyRendererState
+    renderer.gscapeLayout = e.detail
+    const previousFitSetting = renderer.gscapeLayout.fit
+    if (!renderer.isLayoutInfinite) {
+      renderer.gscapeLayout.fit = true
+    }
+    autoRunLayout(renderer, layoutSettingsComponent.layoutRun)
+    if (!renderer.isLayoutInfinite) {
+      renderer.gscapeLayout.fit = previousFitSetting
+    }
+    updateToggles(renderer.id)
+  })
+  layoutSettingsComponent.addEventListener('layoutSettingChange', (e: CustomEvent) => {
+    if (grapholscape.renderState !== RendererStatesEnum.FLOATY &&
+      grapholscape.renderState !== RendererStatesEnum.INCREMENTAL)
+      return
+
+    const renderer = grapholscape.renderer.renderState as FloatyRendererState
+    autoRunLayout(renderer)
+  })
+  layoutSettingsComponent.addEventListener('randomize', (e: CustomEvent) => {
+    (grapholscape.renderer.renderState as FloatyRendererState).randomizeLayout()
+  })
 
   grapholscape.on(LifecycleEvent.RendererChange, (rendererState) => {
     updateToggles(rendererState)
@@ -58,11 +98,13 @@ export default function (layoutSettingsComponent: GscapeLayoutSettings, graphols
   })
 
   function updateToggles(renderState: RendererStatesEnum) {
-    if (renderState === RendererStatesEnum.FLOATY || 
+    if (renderState === RendererStatesEnum.FLOATY ||
       grapholscape.renderState === RendererStatesEnum.INCREMENTAL) {
       const renderer = grapholscape.renderer.renderState as FloatyRendererState
-      layoutSettingsComponent.layoutRun = renderer.isLayoutInfinite
-      layoutSettingsComponent.dragAndPin = renderer.dragAndPin
+      // layoutSettingsComponent.layoutRun = renderer.layoutRunning
+      layoutSettingsComponent.selectedLayout = renderer.gscapeLayout
+      layoutSettingsComponent.layouts = renderer.availableLayouts
+      // layoutSettingsComponent.edgeLength = renderer.gscapeLayout.edgeLengthFactor
     }
   }
 

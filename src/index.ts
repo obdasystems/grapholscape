@@ -1,5 +1,8 @@
 import cytoscape from 'cytoscape'
 import cola from 'cytoscape-cola'
+import fcose from 'cytoscape-fcose'
+import dagre from 'cytoscape-dagre'
+import cise from 'cytoscape-cise'
 import popper from 'cytoscape-popper'
 import { GrapholscapeConfig, loadConfig, ThemeConfig } from './config'
 import { Core, Grapholscape, OntologyColorManager } from './core'
@@ -16,6 +19,9 @@ import autopan from "cytoscape-autopan-on-drag"
 
 cytoscape.use(popper)
 cytoscape.use(cola)
+cytoscape.use(fcose)
+cytoscape.use(dagre)
+cytoscape.use(cise)
 autopan(cytoscape)
 cytoscape.warnings(process.env.NODE_ENV !== 'production')
 
@@ -263,7 +269,7 @@ async function getGrapholscape(file: string | File, container: HTMLElement, conf
 
       reader.readAsText(file)
 
-      setTimeout(() => {
+      timeout = setTimeout(() => {
         reject('Error: timeout expired')
       }, 10000)
 

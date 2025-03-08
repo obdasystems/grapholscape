@@ -1,4 +1,4 @@
-import { Stylesheet } from "cytoscape"
+import { StylesheetJson } from "cytoscape"
 import { Renderer } from "../../core/rendering"
 import Ontology from "../ontology"
 import GrapholscapeTheme from "../themes/theme"
@@ -6,17 +6,20 @@ import Filter from "./filter"
 import FilterManager from "./i-filter-manager"
 import RenderState, { RendererStatesEnum } from "./i-render-state"
 import { Grapholscape } from "../../core"
+import { GscapeLayout } from "./layout"
 
 export default abstract class BaseRenderer implements RenderState {
   protected _renderer: Renderer
   abstract id: RendererStatesEnum
   abstract filterManager?: FilterManager
   abstract layout: cytoscape.Layouts
+  abstract gscapeLayout?: GscapeLayout
+  abstract availableLayouts?: GscapeLayout[]
   abstract render(): void
   abstract stopRendering(): void
   abstract runLayout(): void
   abstract stopLayout(): void
-  abstract getGraphStyle(theme: GrapholscapeTheme): Stylesheet[]
+  abstract getGraphStyle(theme: GrapholscapeTheme): StylesheetJson
   abstract transformOntology(ontology: Ontology): void
   abstract postOntologyTransform(ontology: Grapholscape): void
 

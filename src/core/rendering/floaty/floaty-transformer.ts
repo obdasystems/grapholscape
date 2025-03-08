@@ -4,6 +4,8 @@ import { DefaultNamespaces, Diagram, DiagramRepresentation, EntityNameType, Grap
 import BaseGrapholTransformer from "../base-transformer";
 import LiteTransformer from "../lite/lite-transformer";
 import Grapholscape from "../../grapholscape";
+import { GrapholClassNode } from "../../../model/graphol-elems/node";
+import { GrapholObjectPropertyEdge } from "../../../model/graphol-elems/edge";
 
 export default class FloatyTransformer extends BaseGrapholTransformer {
 
@@ -141,7 +143,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
           ? this.getGrapholElement(range.id()) as GrapholNode
           : this.getGrapholElement(range.source().id()) as GrapholNode
 
-        let newGrapholEdge = new GrapholEdge(this.result.getNewId('edge'), TypesEnum.OBJECT_PROPERTY)
+        let newGrapholEdge = new GrapholObjectPropertyEdge(this.result.getNewId('edge'), objectProperty.data().iri)
         newGrapholEdge.sourceId = grapholDomainNode.id
         newGrapholEdge.targetId = grapholRangeNode.id
         if (this.diagramId !== undefined)
@@ -223,12 +225,11 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     originalObjectProperties.forEach(op => {
       if (this.result.cy.$(`[type = "${TypesEnum.OBJECT_PROPERTY}"][iri = "${op.data().iri}"]`).empty()) {
         originalElem = grapholRepresentation.grapholElements.get(op.id())
-        if (originalElem) {
+        if (originalElem && originalElem.iri) {
           if (!owlThingClass) {
             owlThingClass = this.addOWlThing()
           }
-          objectPropertyEdge = new GrapholEdge(this.result.getNewId('edge'), TypesEnum.OBJECT_PROPERTY)
-          objectPropertyEdge.iri = originalElem!.iri
+          objectPropertyEdge = new GrapholObjectPropertyEdge(this.result.getNewId('edge'), originalElem.iri)
           objectPropertyEdge.displayedName = originalElem!.displayedName
           if (this.diagramId !== undefined)
             objectPropertyEdge.diagramId = this.diagramId
@@ -327,9 +328,8 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
         propertyAssertionNode.connectedEdges(`[type = "${TypesEnum.MEMBERSHIP}"]`).forEach(membershipEdge => {
           objectPropertyNode = this.getGrapholElement(membershipEdge.target().id())
 
-          if (objectPropertyNode) {
-            const newObjectPropertyEdge = new GrapholEdge(this.result.getNewId('edge'), TypesEnum.OBJECT_PROPERTY)
-            newObjectPropertyEdge.iri = objectPropertyNode.iri
+          if (objectPropertyNode?.iri) {
+            const newObjectPropertyEdge = new GrapholObjectPropertyEdge(this.result.getNewId('edge'), objectPropertyNode.iri)
             newObjectPropertyEdge.displayedName = objectPropertyNode.displayedName
             if (this.diagramId !== undefined)
               newObjectPropertyEdge.diagramId = this.diagramId
@@ -362,8 +362,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     const owlThingCyElem = this.newCy.$(`[ iri = "${thingIri}"]`).first()
 
     if (owlThingCyElem.empty()) {
-      const owlThingClass = new GrapholNode(this.result.getNewId('node'), TypesEnum.CLASS)
-      owlThingClass.iri = thingIri
+      const owlThingClass = new GrapholClassNode(this.result.getNewId('node'), thingIri)
       owlThingClass.displayedName = 'Thing'
       if (this.diagramId !== undefined)
         owlThingClass.diagramId = this.diagramId

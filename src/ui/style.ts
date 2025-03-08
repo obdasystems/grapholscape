@@ -229,6 +229,18 @@ input {
   color: inherit;
   display: inline-block;
   box-sizing: border-box;
+  accent-color: var(--gscape-color-accent);
+}
+
+input[type = "checkbox"] {
+  cursor: pointer;
+  height: 16px;
+  width: 16px;
+}
+
+input[type = "range"] {
+  cursor: pointer;
+  padding: 0;
 }
 
 .link {

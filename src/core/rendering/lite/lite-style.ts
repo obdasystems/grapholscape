@@ -1,4 +1,4 @@
-import { Stylesheet } from "cytoscape";
+import { StylesheetJson } from "cytoscape";
 import { ColoursNames, GrapholscapeTheme, TypesEnum } from "../../../model";
 import grapholStyle from "../graphol/graphol-style";
 
@@ -147,7 +147,7 @@ export default function (theme: GrapholscapeTheme) {
       }
     },
 
-  ] as Stylesheet[]
+  ] as StylesheetJson
 
   return baseStyle.concat(liteStyle)
 }

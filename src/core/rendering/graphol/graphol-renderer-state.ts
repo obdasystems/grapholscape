@@ -1,4 +1,4 @@
-import { Stylesheet } from "cytoscape"
+import { StylesheetJson } from "cytoscape"
 import { grapholOptions } from "../../../config"
 import { Ontology, BaseRenderer, iFilterManager, RendererStatesEnum, GrapholscapeTheme } from "../../../model"
 import GrapholFilterManager from "./filter-manager"
@@ -6,6 +6,8 @@ import grapholStyle from "./graphol-style"
 import Grapholscape from "../../grapholscape"
 
 export default class GrapholRendererState extends BaseRenderer {
+  gscapeLayout?: undefined
+  availableLayouts?: undefined
   layout: cytoscape.Layouts
   id: RendererStatesEnum = RendererStatesEnum.GRAPHOL
   cyConfig: cytoscape.CytoscapeOptions = grapholOptions
@@ -44,7 +46,7 @@ export default class GrapholRendererState extends BaseRenderer {
     throw new Error("Method not implemented.")
   }
 
-  getGraphStyle(theme: GrapholscapeTheme): Stylesheet[] {
+  getGraphStyle(theme: GrapholscapeTheme): StylesheetJson {
     return grapholStyle(theme)
   }
 

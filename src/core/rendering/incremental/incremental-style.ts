@@ -1,4 +1,4 @@
-import { Stylesheet } from "cytoscape"
+import { StylesheetJson } from "cytoscape"
 import { ColoursNames, GrapholscapeTheme, TypesEnum } from "../../../model"
 import floatyStyle from "../floaty/floaty-style"
 import { getNodeBodyColor, getNodeBorderColor, getNodeLabelColor } from "../style-util"
@@ -132,7 +132,7 @@ export default function (theme: GrapholscapeTheme) {
     }
 
 
-  ] as Stylesheet[]
+  ] as StylesheetJson
 
   return baseStyle.concat(incrementalStyle)
 }

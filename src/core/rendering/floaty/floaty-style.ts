@@ -1,11 +1,11 @@
-import { Stylesheet } from "cytoscape";
+import { NodeSingular, StylesheetJson } from "cytoscape";
 import { ColoursNames, GrapholscapeTheme, TypesEnum } from "../../../model";
 import grapholStyle from "../graphol/graphol-style";
 import { getNodeBodyColor, getNodeBorderColor, getNodeLabelColor } from "../style-util";
 
-export default function (theme: GrapholscapeTheme) {
+export default function (theme: GrapholscapeTheme): StylesheetJson {
   const baseStyle = grapholStyle(theme)
-  const floatyStyle = [
+  const floatyStyle: StylesheetJson = [
 
     {
       selector: 'node',
@@ -26,10 +26,10 @@ export default function (theme: GrapholscapeTheme) {
         // 'text-background-color': (node) => getNodeBodyColor(node, theme) || 'rgba(0, 0, 0, 0)',
         // 'text-background-opacity': (node) => getNodeBodyColor(node, theme) ? 1 : 0,
         'text-background-shape': 'roundrectangle',
-        'text-background-padding': 2,
-        color: (node) => getNodeLabelColor(node, theme),
+        'text-background-padding': '2',
+        color: (node: NodeSingular) => getNodeLabelColor(node, theme) || '',
         backgroundColor: (node) => getNodeBodyColor(node, theme) || theme.getColour(ColoursNames.class),
-        "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.class_contrast),
+        "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.class_contrast) || '',
       }
     },
     {
@@ -45,7 +45,7 @@ export default function (theme: GrapholscapeTheme) {
         'height': (node) => node.data('width') || 60,
         'width': (node) => node.data('width') || 60,
         backgroundColor: (node) => getNodeBodyColor(node, theme) || theme.getColour(ColoursNames.individual),
-        "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.individual_contrast),
+        "border-color": (node) => getNodeBorderColor(node, theme) || theme.getColour(ColoursNames.individual_contrast) || '',
       }
     },
     {
@@ -119,7 +119,7 @@ export default function (theme: GrapholscapeTheme) {
         'text-background-color': theme.getColour(ColoursNames.bg_graph),
         'text-background-opacity': 1,
         'text-background-shape': 'roundrectangle',
-        'text-background-padding': 2,
+        'text-background-padding': '2',
       }
     },
 
@@ -215,7 +215,7 @@ export default function (theme: GrapholscapeTheme) {
         'color': theme.getColour(ColoursNames.label),
         'background-width': '100%',
         'background-height': '100%',
-        'background-image-crossorigin': "null",
+        'background-image-crossorigin': "null" as any,
       }
     },
 
@@ -242,7 +242,7 @@ export default function (theme: GrapholscapeTheme) {
       }
     },
 
-  ] as Stylesheet[]
+  ]
 
   return baseStyle.concat(floatyStyle)
 }

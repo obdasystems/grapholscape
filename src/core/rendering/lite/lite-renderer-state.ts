@@ -11,6 +11,8 @@ export default class LiteRendererState extends BaseRenderer {
   filterManager: iFilterManager = new LiteFilterManager()
   cyConfig: CytoscapeOptions = cytoscapeDefaultConfig
   private _layout: cytoscape.Layouts
+  gscapeLayout: undefined
+  availableLayouts: undefined
 
   runLayout(): void {
     if (!this.renderer.cy) return
@@ -58,7 +60,7 @@ export default class LiteRendererState extends BaseRenderer {
 
   stopLayout(): void { }
 
-  getGraphStyle(theme: GrapholscapeTheme): cytoscape.Stylesheet[] {
+  getGraphStyle(theme: GrapholscapeTheme): cytoscape.StylesheetJson {
     return liteStyle(theme)
   }
 
