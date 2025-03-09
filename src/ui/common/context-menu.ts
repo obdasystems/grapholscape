@@ -2,10 +2,10 @@ import { css, CSSResultArray, html, LitElement, PropertyDeclarations, SVGTemplat
 import baseStyle from "../style"
 import { BaseMixin } from "./mixins"
 import { ContextualWidgetMixin } from "./mixins/contextual-widget-mixin"
-import { arrow_right, bubbles } from "../assets"
+import { arrow_right } from "../assets"
 import { contentSpinnerStyle, getContentSpinner } from "./spinners"
 import emptySearchBlankState from "../util/empty-search-blank-state"
-import { icons } from ".."
+import * as icons from "../assets"
 
 /**
  * A command for the context menu
