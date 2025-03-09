@@ -1,7 +1,7 @@
 import { floatyOptions, Language } from "../../config";
-import GrapholEdge from "../graphol-elems/edge";
+import {GrapholEdge} from "../graphol-elems/edge";
 import GrapholEntity from "../graphol-elems/entity";
-import GrapholNode from "../graphol-elems/node";
+import { GrapholIndividualNode, GrapholNode } from "../graphol-elems/node";
 import Iri from "../iri";
 import { RDFGraphConfigEntityNameTypeEnum, TypesEnum } from "../rdf-graph/swagger";
 import { RendererStatesEnum } from "../renderers/i-render-state";
@@ -30,7 +30,7 @@ export default class AnnotationsDiagram extends Diagram {
     let sourceEntityNode = this.representation.cy.$(`[iri = "${sourceEntity.iri.fullIri}"]`).first()
 
     if (sourceEntityNode.empty()) {
-      node = new GrapholNode(this.representation.getNewId('node'), TypesEnum.INDIVIDUAL)
+      node = new GrapholIndividualNode(this.representation.getNewId('node'), sourceEntity.iri.fullIri)
       node.diagramId = this.id
       node.displayedName = sourceEntity.getDisplayedName(entityNameType, language)
       sourceEntityNode = this.representation.addElement(node, sourceEntity)

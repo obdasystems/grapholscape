@@ -1,6 +1,6 @@
 import { ElementDefinition } from "cytoscape"
 import GrapholEntity from "../entity"
-import GrapholNode from "../node"
+import { GrapholNode } from "../node"
 import FakeGrapholNode from "./fake-base"
 
 export class FakeTopRhomboid extends FakeGrapholNode {

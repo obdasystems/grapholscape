@@ -1,4 +1,4 @@
-import GrapholEdge from "../graphol-elems/edge";
+import { GrapholEdge } from "../graphol-elems/edge";
 import GrapholEntity from "../graphol-elems/entity";
 import { TypesEnum } from "../rdf-graph/swagger";
 

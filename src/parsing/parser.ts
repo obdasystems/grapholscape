@@ -4,7 +4,7 @@ import { FakeCircleLeft, FakeCircleRight } from '../model/graphol-elems/fakes/fa
 import FakeRectangle, { FakeRectangleFront } from '../model/graphol-elems/fakes/fake-rectangle'
 import { FakeBottomRhomboid, FakeTopRhomboid } from '../model/graphol-elems/fakes/fake-rhomboid'
 import { FakeTriangleLeft, FakeTriangleRight } from '../model/graphol-elems/fakes/fake-triangle'
-import { LABEL_HEIGHT } from "../model/graphol-elems/node"
+import { GrapholClassNode, GrapholDataPropertyNode, GrapholIndividualNode, GrapholObjectPropertyNode, LABEL_HEIGHT } from "../model/graphol-elems/node"
 import * as Graphol2 from './parser-v2'
 import * as Graphol3 from './parser-v3'
 import * as ParserUtil from './parser_util'
@@ -168,7 +168,32 @@ export default class GrapholParser {
       console.warn(`[GRAPHOL_PARSER]: ${element.getAttribute('type')} is not a Graphol node type`)
       return
     }
-    let grapholNode = new GrapholNode(element.getAttribute('id') || '', nodeInfoBasedOnType.TYPE)
+    let grapholNode: GrapholNode | undefined
+    const iri = element.getElementsByTagName('iri')[0]?.textContent
+    if (iri) {
+      switch (nodeInfoBasedOnType.TYPE) {
+        case TypesEnum.CLASS:
+          grapholNode = new GrapholClassNode(element.getAttribute('id') || '', iri)
+          break
+  
+        case TypesEnum.DATA_PROPERTY:
+          grapholNode = new GrapholDataPropertyNode(element.getAttribute('id') || '', iri)
+          break
+  
+        case TypesEnum.OBJECT_PROPERTY:
+          grapholNode = new GrapholObjectPropertyNode(element.getAttribute('id') || '', iri)
+          break
+        
+        case TypesEnum.INDIVIDUAL:
+          grapholNode = new GrapholIndividualNode(element.getAttribute('id') || '', iri)
+          break
+        
+        default:
+          grapholNode = new GrapholNode(element.getAttribute('id') || '', nodeInfoBasedOnType.TYPE)
+      }
+    } else {
+      grapholNode = new GrapholNode(element.getAttribute('id') || '', nodeInfoBasedOnType.TYPE)
+    }
     grapholNode.diagramId = diagramId
     grapholNode.shape = nodeInfoBasedOnType.SHAPE
     grapholNode.identity = nodeInfoBasedOnType.IDENTITY

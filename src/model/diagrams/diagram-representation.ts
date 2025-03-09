@@ -114,13 +114,13 @@ export default class DiagramRepresentation {
       iri = iriOrGrapholEntity as string
     }
 
-    for (let [_, grapholElement] of this.grapholElements) {
-      if (grapholElement.iri && iri === grapholElement.iri) {
-        return true
-      }
-    }
+    // for (let [_, grapholElement] of this.grapholElements) {
+    //   if (grapholElement.iri && iri === grapholElement.iri) {
+    //     return true
+    //   }
+    // }
 
-    return false
+    return this.cy.$(`[iri = "${iri}"]`).nonempty()
   }
 
   filter(elementId: string, filterTag: string,) {

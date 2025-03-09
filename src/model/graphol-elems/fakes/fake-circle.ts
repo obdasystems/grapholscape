@@ -1,5 +1,5 @@
 import { Shape } from "../enums"
-import GrapholNode from "../node"
+import { GrapholNode } from "../node"
 import FakeGrapholNode from "./fake-base"
 
 export default class FakeCircle extends FakeGrapholNode {

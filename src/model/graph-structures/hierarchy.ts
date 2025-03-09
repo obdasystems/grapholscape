@@ -1,7 +1,7 @@
-import GrapholEdge from "../graphol-elems/edge";
+import { GrapholEdge } from "../graphol-elems/edge";
 import GrapholEntity from "../graphol-elems/entity";
 import { Shape } from "../graphol-elems/enums";
-import GrapholNode from "../graphol-elems/node";
+import { GrapholNode } from "../graphol-elems/node";
 import { Hierarchy as IHierarchy, Position, TypesEnum } from "../rdf-graph/swagger";
 import { RendererStatesEnum } from "../renderers/i-render-state";
 

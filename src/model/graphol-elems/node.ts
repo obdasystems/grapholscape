@@ -3,10 +3,11 @@ import { Shape } from "./enums"
 import GrapholEntity from "./entity"
 import GrapholElement from "./graphol-element"
 import { Node, Position, TypesEnum } from "../rdf-graph/swagger"
+import { GrapholElementVisitor } from "./entity-visitor"
 
 export const LABEL_HEIGHT = 23
 
-export default class GrapholNode extends GrapholElement implements Node {
+export class GrapholNode extends GrapholElement implements Node {
 
   static newFromSwagger(n: Node) {
     const instance = new GrapholNode(n.id, n.type)
@@ -280,4 +281,67 @@ export default class GrapholNode extends GrapholElement implements Node {
 
 export function isGrapholNode(elem: GrapholElement): elem is GrapholNode {
   return (elem as GrapholNode).isLabelXcentered !== undefined
+}
+
+class GrapholEntityNode extends GrapholNode {
+  protected _iri: string
+  get iri(): string {
+    return this._iri
+  }
+
+  set iri(newIri: string) {
+    this._iri = newIri
+  }
+
+  set type(newTypes: TypesEnum) { }
+  get type() { return this._type }
+
+  constructor(id: string, type: TypesEnum, iri: string) {
+    super(id, type)
+    this.iri = iri
+  }
+}
+
+export class GrapholClassNode extends GrapholEntityNode {
+
+  constructor(id: string, iri: string) {
+    super(id, TypesEnum.CLASS, iri)
+  }
+
+  public accept<T>(entityVisitor: GrapholElementVisitor<T>): T {
+    return entityVisitor.visitClass(this)
+  }
+}
+
+export class GrapholDataPropertyNode extends GrapholEntityNode {
+
+  constructor(id: string, iri: string) {
+    super(id, TypesEnum.DATA_PROPERTY, iri)
+  }
+
+  public accept<T>(entityVisitor: GrapholElementVisitor<T>): T {
+    return entityVisitor.visitDataProperty(this)
+  }
+}
+
+export class GrapholObjectPropertyNode extends GrapholEntityNode {
+
+  constructor(id: string, iri: string) {
+    super(id, TypesEnum.OBJECT_PROPERTY, iri)
+  }
+
+  public accept<T>(entityVisitor: GrapholElementVisitor<T>): T {
+    return entityVisitor.visitObjectPropertyNode(this)
+  }
+}
+
+export class GrapholIndividualNode extends GrapholEntityNode {
+
+  constructor(id: string, iri: string) {
+    super(id, TypesEnum.INDIVIDUAL, iri)
+  }
+
+  public accept<T>(entityVisitor: GrapholElementVisitor<T>): T {
+    return entityVisitor.visitIndividual(this)
+  }
 }

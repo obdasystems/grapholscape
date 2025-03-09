@@ -4,7 +4,7 @@
 
 import { Iri, TypesEnum, FunctionalityEnum, Namespace } from '../src/model'
 import GrapholEntity from '../src/model/graphol-elems/entity'
-import GrapholNode from '../src/model/graphol-elems/node'
+import { GrapholNode } from '../src/model/graphol-elems/node'
 import GrapholParser from '../src/parsing/parser'
 import * as parserV3 from '../src/parsing/parser-v3'
 import { getNewEndpoint } from '../src/parsing/parser_util'
@@ -323,11 +323,11 @@ describe('It should parse edges correctly', () => {
     expect(getNewEndpoint(customEndpoint, grapholNode, firstBreakPoint)).toEqual({ x: 20, y: -25 })
 
     // edge coming from left
-    firstBreakPoint = { x: 100, y: 1010}
+    firstBreakPoint = { x: 100, y: 1010 }
     expect(getNewEndpoint(customEndpoint, grapholNode, firstBreakPoint)).toEqual({ x: -50, y: 10 })
 
     // edge coming from right
-    firstBreakPoint = { x: 1100, y: 1010}
+    firstBreakPoint = { x: 1100, y: 1010 }
     expect(getNewEndpoint(customEndpoint, grapholNode, firstBreakPoint)).toEqual({ x: 50, y: 10 })
   })
 

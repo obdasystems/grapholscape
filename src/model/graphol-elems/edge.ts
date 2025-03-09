@@ -1,10 +1,11 @@
 import { Edge, Position, TypesEnum } from "../rdf-graph/swagger";
 import Breakpoint from "./breakpoint";
 import GrapholEntity from "./entity";
+import { GrapholElementVisitor } from "./entity-visitor";
 import GrapholElement from "./graphol-element";
 
 
-export default class GrapholEdge extends GrapholElement implements Edge {
+export class GrapholEdge extends GrapholElement implements Edge {
 
   static newFromSwagger(n: Edge) {
     const instance = new GrapholEdge(n.id, n.type)
@@ -192,4 +193,34 @@ export default class GrapholEdge extends GrapholElement implements Edge {
 
 export function isGrapholEdge(elem: GrapholElement): elem is GrapholEdge {
   return (elem as GrapholEdge).sourceId !== undefined
+}
+
+class GrapholEntityEdge extends GrapholEdge {
+  protected _iri: string
+  get iri(): string {
+    return this._iri
+  }
+
+  set iri(newIri: string) {
+    this._iri = newIri
+  }
+
+  set type(newTypes: TypesEnum) { }
+  get type() { return this._type }
+
+  constructor(id: string, type: TypesEnum, iri: string) {
+    super(id, type)
+    this.iri = iri
+  }
+}
+
+export class GrapholObjectPropertyEdge extends GrapholEntityEdge {
+
+  constructor(id: string, iri: string) {
+    super(id, TypesEnum.OBJECT_PROPERTY, iri)
+  }
+
+  public accept<T>(entityVisitor: GrapholElementVisitor<T>): T {
+    return entityVisitor.visitObjectPropertyEdge(this)
+  }
 }

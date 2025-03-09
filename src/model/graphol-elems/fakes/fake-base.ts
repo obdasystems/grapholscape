@@ -1,7 +1,7 @@
 import { ElementDefinition } from "cytoscape"
 import { Shape } from "../enums"
 import GrapholEntity from "../entity"
-import GrapholNode from "../node"
+import { GrapholNode } from "../node"
 
 export default class FakeGrapholNode extends GrapholNode {
   constructor(originalNode: GrapholNode) {

@@ -1,5 +1,7 @@
 import cytoscape, { EdgeSingular } from "cytoscape";
 import { Diagram, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, Iri, isGrapholNode, Position, RendererStatesEnum, Shape, TypesEnum } from "../model";
+import { GrapholClassNode, GrapholDataPropertyNode, GrapholIndividualNode } from "../model/graphol-elems/node";
+import { GrapholObjectPropertyEdge } from "../model/graphol-elems/edge";
 
 export default class DiagramBuilder {
 
@@ -24,8 +26,7 @@ export default class DiagramBuilder {
     }
 
     if (!classNode) {
-      classNode = new GrapholNode(this.getNewId('node'), TypesEnum.CLASS)
-      classNode.iri = classEntity.iri.fullIri
+      classNode = new GrapholClassNode(this.getNewId('node'), classEntity.iri.fullIri)
       classNode.displayedName = classEntity.getDisplayedName(EntityNameType.LABEL)
       classNode.height = classNode.width = 80
 
@@ -47,10 +48,9 @@ export default class DiagramBuilder {
 
   addDataProperty(dataPropertyEntity: GrapholEntity, ownerEntity?: GrapholEntity) {
 
-    const dataPropertyNode = new GrapholNode(this.getNewId('node'), TypesEnum.DATA_PROPERTY)
+    const dataPropertyNode = new GrapholDataPropertyNode(this.getNewId('node'), dataPropertyEntity.iri.fullIri)
 
     dataPropertyNode.diagramId = this.diagram.id
-    dataPropertyNode.iri = dataPropertyEntity.iri.fullIri
     dataPropertyNode.displayedName = dataPropertyEntity.getDisplayedName(EntityNameType.LABEL)
     dataPropertyNode.labelXpos = 0
     dataPropertyNode.labelYpos = -15
@@ -218,10 +218,13 @@ export default class DiagramBuilder {
 
     let propertyEdge: GrapholEdge
     if (!propertyEdgeElement) {
-      propertyEdge = new GrapholEdge(this.getNewId('edge'), propertyType)
+      if (propertyType === TypesEnum.OBJECT_PROPERTY) {
+        propertyEdge = new GrapholObjectPropertyEdge(this.getNewId('edge'), propertyEntity.iri.fullIri)
+      } else {
+        propertyEdge = new GrapholEdge(this.getNewId('edge'), propertyType)
+      }
       propertyEdge.displayedName = propertyEntity.getDisplayedName(EntityNameType.LABEL)
       propertyEdge.originalId = propertyEdge.id
-      propertyEdge.iri = propertyEntity.iri.fullIri
     } else {
       propertyEdge = propertyEdgeElement
     }
@@ -249,7 +252,7 @@ export default class DiagramBuilder {
         return this.diagramRepresentation.grapholElements.get(nodeId)
     }
 
-    const individualNode = new GrapholNode(this.getNewId('node'), TypesEnum.INDIVIDUAL)
+    const individualNode = new GrapholIndividualNode(this.getNewId('node'), individualEntity.iri.fullIri)
     if (position)
       individualNode.position = position
     else
@@ -257,7 +260,6 @@ export default class DiagramBuilder {
 
     individualNode.diagramId = this.diagram.id
     individualNode.displayedName = individualEntity.getDisplayedName(EntityNameType.LABEL)
-    individualNode.iri = individualEntity.iri.fullIri
     individualNode.height = individualNode.width = 50
     individualNode.shape = Shape.ELLIPSE
     individualNode.labelXpos = 0
