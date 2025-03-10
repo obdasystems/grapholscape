@@ -6,22 +6,23 @@ export default class ClustersLayout extends GscapeLayout {
   displayedName: string = 'Clusters'
   canBeInfinite: boolean = false
 
-  protected _highLevelSettings: HighLevelSettings = {
-    ...super.highLevelSettings,
+  static defaultSettings: HighLevelSettings = {
+    ...GscapeLayout.defaultSettings,
     considerCrowdness: { disabled: true, value: false },
     avoidOverlap: { disabled: true, value: false },
     handleDisconnected: { disabled: true, value: false },
     randomize: { disabled: true, value: false }
   }
+  protected _highLevelSettings: HighLevelSettings = JSON.parse(JSON.stringify(ClustersLayout.defaultSettings))
 
   private lastClusteredGraph?: Collection
   private nodesIdInclusters: string[][] = []
   
   private getClustersInGraph(graph: Collection): string[][] {
     if (!this.lastClusteredGraph?.same(graph)) {
-      this.nodesIdInclusters = graph.markovClustering({ expandFactor: 3 }).map((nodes) => nodes.map(n => n.id()))
+      this.nodesIdInclusters = this.computeClusters(graph)
     }
-
+    this.lastClusteredGraph = graph
     return this.nodesIdInclusters
   }
 
@@ -32,7 +33,7 @@ export default class ClustersLayout extends GscapeLayout {
    * @param graph the graph to be clustered
    * @returns an array of arrays of nodes id, one array of IDs per cluster
    */
-  computerClusters = (graph: Collection) => {
+  computeClusters = (graph: Collection) => {
     return graph.markovClustering({ expandFactor: 3 }).map((nodes) => nodes.map(n => n.id()))
   }
 

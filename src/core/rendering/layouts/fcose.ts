@@ -7,13 +7,18 @@ export default class FcoseLayout extends GscapeLayout {
   displayedName: string = 'Compound Spring Embedder'
   fit: false
 
-  protected _highLevelSettings: HighLevelSettings = {
-    ...super.highLevelSettings,
+  static defaultSettings: HighLevelSettings = {
+    ...GscapeLayout.defaultSettings,
+    avoidOverlap: {
+      value: false,
+      disabled: true,
+    },
     handleDisconnected: {
       value: false,
       disabled: true
     },
   }
+  protected _highLevelSettings: HighLevelSettings = JSON.parse(JSON.stringify(FcoseLayout.defaultSettings))
 
   getEdgeLength(edge: SingularElementReturnValue, crowdness: boolean, edgeLengthFactor: number): number {
     const baseLength = crowdness
@@ -27,7 +32,7 @@ export default class FcoseLayout extends GscapeLayout {
       name: this.id,
       quality: "default",
       fit: this.fit,
-      avoidOverlap: false,
+      // avoidOverlap: this.avoidOverlap,
       idealEdgeLength: (edge) => this.getEdgeLength(edge, this.considerCrowdness, this.edgeLengthFactor),
       edgeElasticity: edge => {
         return this.considerCrowdness ? (edge.source().degree(true) + edge.target().degree(true) / graph.edges().size()) * 0.4 : 0.45

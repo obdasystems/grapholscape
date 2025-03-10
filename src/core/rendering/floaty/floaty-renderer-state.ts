@@ -84,18 +84,23 @@ export default class FloatyRendererState extends BaseRenderer {
     FloatyTransformer.addAnnotationPropertyEdges(grapholscape)
   }
 
-  onLayoutRun = () => {}
-  runLayout(customOptions?: any) {
-    if (!this.renderer.cy) return
-    this.stopLayout()
-    this._layout = this.renderer.cy.elements().layout(customOptions || this.gscapeLayout.getCyOptions(this.renderer.cy.elements()))
-    this._layout.one('layoutstop', (e) => {
-      if (e.layout === this._layout) // only if layout has not changed
-        this.layoutRunning = false
+  runLayout(customOptions?: any): Promise<void> {
+    return new Promise((resolve) => {
+      if (!this.renderer.cy) {
+        resolve()
+        return
+      }
+      this.stopLayout()
+      this._layout = this.renderer.cy.elements().layout(customOptions || this.gscapeLayout.getCyOptions(this.renderer.cy.elements()))
+      this._layout.one('layoutstop', (e) => {
+        if (e.layout === this._layout) { // only if layout has not changed
+          this.layoutRunning = false
+          resolve()
+        }
+      })
+      this._layout.run()
+      this.layoutRunning = true
     })
-    this._layout.run()
-    this.layoutRunning = true
-    this.onLayoutRun()
   }
 
   render(): void {
@@ -172,11 +177,9 @@ export default class FloatyRendererState extends BaseRenderer {
     return floatyStyle(theme)
   }
 
-  onLayoutStop = () => {}
   stopLayout(): void {
     this._layout?.stop()
     this.layoutRunning = false
-    this.onLayoutStop()
   }
 
   runLayoutInfinitely() {
@@ -185,7 +188,7 @@ export default class FloatyRendererState extends BaseRenderer {
       this.gscapeLayout.fit = false
     }
 
-    this.runLayout()
+    return this.runLayout()
   }
 
   pinNode(nodeOrId: NodeSingular | string) {
@@ -238,8 +241,9 @@ export default class FloatyRendererState extends BaseRenderer {
     this.gscapeLayout.randomize = true
     const previouslyInfinite = this.gscapeLayout.infinite
     this.stopLayout()
-    previouslyInfinite ? this.runLayoutInfinitely() : this.runLayout()
+    const promise = previouslyInfinite ? this.runLayoutInfinitely() : this.runLayout()
     this.gscapeLayout.randomize = false
+    return promise
   }
 
   private setPopperStyle(dim, popper) {

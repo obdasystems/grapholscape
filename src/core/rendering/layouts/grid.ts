@@ -5,7 +5,7 @@ export default class GridLayout extends GscapeLayout {
   canBeInfinite: boolean = false
   displayedName: string = 'Grid'
 
-  protected _highLevelSettings: HighLevelSettings = {
+  static defaultSettings: HighLevelSettings = {
     edgeLengthFactor: {
       value: 40,
       disabled: false
@@ -27,6 +27,7 @@ export default class GridLayout extends GscapeLayout {
       disabled: true
     }
   }
+  protected _highLevelSettings: HighLevelSettings = JSON.parse(JSON.stringify(GridLayout.defaultSettings))
 
   getCyOptions(): cytoscape.GridLayoutOptions {
     return {

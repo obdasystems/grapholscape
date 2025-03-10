@@ -8,7 +8,7 @@ export default class ColaLayout extends GscapeLayout {
   getCyOptions() {
     return {
       name: this.id,
-      avoidOverlap: false,
+      avoidOverlap: this.avoidOverlap,
       edgeLength: (edge) => this.getEdgeLength(edge, this.considerCrowdness, this.edgeLengthFactor),
       fit: this.fit,
       maxSimulationTime: 4000,

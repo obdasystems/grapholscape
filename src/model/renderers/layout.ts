@@ -19,6 +19,13 @@ export abstract class GscapeLayout {
   abstract canBeInfinite: boolean
   abstract displayedName: string
   abstract id: string
+  static defaultSettings: HighLevelSettings = {
+    edgeLengthFactor: { value: 40, disabled: false },
+    considerCrowdness: { value: true, disabled: false },
+    avoidOverlap: { value: false, disabled: false },
+    handleDisconnected: { value: true, disabled: false },
+    randomize: { value: false, disabled: false },
+  }
 
   customEdgeLength?: ((edge: any, considerCrowdness: boolean, edgeLengthFactor: number) => number) | undefined
 
@@ -35,13 +42,7 @@ export abstract class GscapeLayout {
   public fit: boolean = false
   public infinite: boolean = false
 
-  protected _highLevelSettings: HighLevelSettings = {
-    edgeLengthFactor: { value: 40, disabled: false },
-    considerCrowdness: { value: true, disabled: false },
-    avoidOverlap: { value: false, disabled: false },
-    handleDisconnected: { value: true, disabled: false },
-    randomize: { value: false, disabled: false },
-  }
+  protected _highLevelSettings: HighLevelSettings = JSON.parse(JSON.stringify(GscapeLayout.defaultSettings))
 
   constructor(highLevelSettings?: HighLevelSettings) {
     if (highLevelSettings)

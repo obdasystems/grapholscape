@@ -14,6 +14,7 @@ export { default as GscapeConfirmDialog, showMessage } from './common/confirm-di
 export { default as GscapeToggle } from "./common/toggle/gscape-toggle"
 export { default as GscapeSelect, SelectOption } from "./common/gscape-select"
 export { GscapeEntitySelector, IEntitySelector } from './entity-selector'
+export { default as GscapeLayoutSettings } from './floaty-layout-settings'
 export * from './full-page-selector'
 export * from './view-model'
 export { default as initUI } from "./init"

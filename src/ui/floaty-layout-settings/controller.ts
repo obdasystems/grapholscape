@@ -1,15 +1,9 @@
-import { render } from "lit";
 import { FloatyRendererState, Grapholscape } from "../../core";
 import { LifecycleEvent, RendererStatesEnum } from "../../model";
-import GscapeLayoutSettings from "./layout-settings";
 import { GscapeLayout } from "../../model/renderers/layout";
+import GscapeLayoutSettingsHub from "./layout-settings-hub";
 
-/**
- * 
- * @param {import('./layout-settings').default} layoutSettingsComponent 
- * @param {import('../../../grapholscape').default} grapholscape 
- */
-export default function (layoutSettingsComponent: GscapeLayoutSettings, grapholscape: Grapholscape) {
+export default function (layoutSettingsComponent: GscapeLayoutSettingsHub, grapholscape: Grapholscape) {
 
   if (grapholscape.renderState) {
     updateToggles(grapholscape.renderState)
@@ -21,11 +15,16 @@ export default function (layoutSettingsComponent: GscapeLayoutSettings, graphols
   }
 
   const autoRunLayout = (renderer: FloatyRendererState, forceInfinite?: boolean) => {
-    if (renderer.gscapeLayout.canBeInfinite && (forceInfinite || (renderer.isLayoutInfinite && renderer.layoutRunning))) {
-      renderer.runLayoutInfinitely()
-    } else {
-      renderer.runLayout()
-    }
+    setTimeout(() => {
+      let promise: Promise<void>
+      if (renderer.gscapeLayout.canBeInfinite && (forceInfinite || (renderer.isLayoutInfinite && renderer.layoutRunning))) {
+        promise = renderer.runLayoutInfinitely()
+      } else {
+        promise = renderer.runLayout()
+      }
+      layoutSettingsComponent.loading = true
+      promise.finally(() => layoutSettingsComponent.loading = false)
+    }, 0)
   }
 
   layoutSettingsComponent.onLayoutRunToggle = (isActive: boolean) => {
@@ -85,7 +84,11 @@ export default function (layoutSettingsComponent: GscapeLayoutSettings, graphols
     autoRunLayout(renderer)
   })
   layoutSettingsComponent.addEventListener('randomize', (e: CustomEvent) => {
-    (grapholscape.renderer.renderState as FloatyRendererState).randomizeLayout()
+    layoutSettingsComponent.loading = true
+    setTimeout(() => {
+      (grapholscape.renderer.renderState as FloatyRendererState).randomizeLayout()
+        .finally(() => layoutSettingsComponent.loading = false)
+    }, 0)
   })
 
   grapholscape.on(LifecycleEvent.RendererChange, (rendererState) => {

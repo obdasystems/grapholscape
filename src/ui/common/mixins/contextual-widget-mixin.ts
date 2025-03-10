@@ -10,6 +10,7 @@ export declare class IContextualWidgetMixin {
    * @param element the target html elment
    */
   attachTo(element: HTMLElement): void
+  attachToPosition(position: { x: number, y: number }, container: Element): void
   /**
    * Attach cxt widget and do not show it, if it was visible it stays visible
    * @param element the target html element
@@ -23,6 +24,7 @@ export declare class IContextualWidgetMixin {
 export const ContextualWidgetMixin = <T extends Constructor<LitElement>>(superClass: T) => {
 
   class ContextualWidgetMixinClass extends superClass {
+    dummyDiv?: HTMLDivElement
     tippyWidget = tippy(document.createElement('div'))
     cxtWidgetProps: Partial<Props> = {
       trigger: 'manual', // mandatory, we cause the tippy to show programmatically.
@@ -45,6 +47,28 @@ export const ContextualWidgetMixin = <T extends Constructor<LitElement>>(superCl
 
     attachToSilently(element: HTMLElement) {
       this._attachTo(element)
+    }
+
+    attachToPosition(position: { y: string; x: string; }, container: Element) {
+      this.dummyDiv = document.createElement('div')
+      this.dummyDiv.style.position = 'absolute'
+      this.dummyDiv.style.top = position.y + "px"
+      this.dummyDiv.style.left = position.x + "px"
+      container.appendChild(this.dummyDiv)
+      const oldOnHide = this.cxtWidgetProps.onHide
+      this.cxtWidgetProps.onHide = (instance) => {
+        this.dummyDiv?.remove()
+        this.dummyDiv = undefined
+        this.cxtWidgetProps.onHide = undefined
+
+        if (oldOnHide) {
+          oldOnHide(instance)
+
+          //restore oldOnHide
+          this.cxtWidgetProps.onHide = oldOnHide
+        }
+      }
+      this.attachTo(this.dummyDiv)
     }
 
     private _attachTo(element: HTMLElement) {

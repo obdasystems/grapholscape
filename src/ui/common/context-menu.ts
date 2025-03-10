@@ -165,10 +165,6 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
     commands?: CommandList,
     elements?: (LitElement | HTMLElement | TemplateResult)[]
   ): void {
-    const dummyDiv = document.createElement('div')
-    dummyDiv.style.position = 'absolute'
-    dummyDiv.style.top = position.y + "px"
-    dummyDiv.style.left = position.x + "px"
     let searchable = false
     let _commands: Command[] = []
     if (commands) {
@@ -179,26 +175,11 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
         _commands = commands
       }
     }
-    container.appendChild(dummyDiv)
-    super.attachTo(dummyDiv)
+    super.attachToPosition(position, container)
     this.searchable = searchable
     this.commands = _commands
     this.shownCommandsIds = this.commands.map((c, i) => i.toString())
     this.customElements = elements || []
-
-    const oldOnHide = this.cxtWidgetProps.onHide
-
-    this.cxtWidgetProps.onHide = (instance) => {
-      dummyDiv.remove()
-      this.cxtWidgetProps.onHide = undefined
-
-      if (oldOnHide) {
-        oldOnHide(instance)
-
-        //restore oldOnHide
-        this.cxtWidgetProps.onHide = oldOnHide
-      }
-    }
   }
 
   private async handleCommandClick(e: any) {
