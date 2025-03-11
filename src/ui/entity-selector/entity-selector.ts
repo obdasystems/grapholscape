@@ -10,7 +10,7 @@ import a11yClick from '../util/a11y-click'
 import { GscapeEntityListItem } from '../common/list-item'
 import { EntityViewData } from '../view-model'
 import { contentSpinnerStyle, getContentSpinner } from '../common/spinners'
-import { Command, icons } from '..'
+import { Command } from '../common/context-menu'
 
 export interface IEntitySelector {
   onClassSelection(callback:(iri: string) => void): void
@@ -23,14 +23,14 @@ export class GscapeEntitySelector extends DropPanelMixin(BaseMixin(LitElement)) 
   private onClassSelectionCallback: (iri: string) => void
 
   private isSearchTextEmpty: boolean = true
-  private loading: boolean = false
+  loading: boolean = false
   classActions?: Command[]
 
   static get properties() {
     return {
       entityList: { type: Object, attribute: false },
       isSearchTextEmpty: { type: Boolean, state: true },
-      loading: { type: Boolean, state: true },
+      loading: { type: Boolean },
       onClassSelection: { type: Object },
       classActions: { type: Array },
     }
