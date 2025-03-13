@@ -27,7 +27,10 @@ export default class GridLayout extends GscapeLayout {
       disabled: true
     }
   }
-  protected _highLevelSettings: HighLevelSettings = JSON.parse(JSON.stringify(GridLayout.defaultSettings))
+
+  constructor(highLevelSettings: Partial<HighLevelSettings> = {}) {
+    super({ ...GridLayout.defaultSettings, ...highLevelSettings })
+  }
 
   getCyOptions(): cytoscape.GridLayoutOptions {
     return {

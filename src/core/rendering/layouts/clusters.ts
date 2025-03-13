@@ -13,7 +13,10 @@ export default class ClustersLayout extends GscapeLayout {
     handleDisconnected: { disabled: true, value: false },
     randomize: { disabled: true, value: false }
   }
-  protected _highLevelSettings: HighLevelSettings = JSON.parse(JSON.stringify(ClustersLayout.defaultSettings))
+
+  constructor(highLevelSettings: Partial<HighLevelSettings> = {}) {
+    super({ ...ClustersLayout.defaultSettings, ...highLevelSettings })
+  }
 
   private lastClusteredGraph?: Collection
   private nodesIdInclusters: string[][] = []

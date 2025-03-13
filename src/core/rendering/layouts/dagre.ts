@@ -7,9 +7,15 @@ export default class DagreLayout extends GscapeLayout {
   displayedName: string = 'Directed Acyclic Graph'
   fit: false
 
-  static defaultSettings: HighLevelSettings = {
-    avoidOverlap: { value: false, disabled: true },
-    considerCrowdness: { value: false, disabled: false },
+  protected defaultSettings: HighLevelSettings = {
+    avoidOverlap: {
+      value: false,
+      disabled: true
+    },
+    considerCrowdness: {
+      value: false,
+      disabled: false
+    },
     edgeLengthFactor: {
       value: 40,
       disabled: false
@@ -23,7 +29,6 @@ export default class DagreLayout extends GscapeLayout {
       disabled: false
     }
   }
-  protected _highLevelSettings: HighLevelSettings = JSON.parse(JSON.stringify(DagreLayout.defaultSettings))
 
   getCyOptions(graph: Collection) {
     return {

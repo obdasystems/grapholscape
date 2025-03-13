@@ -42,16 +42,15 @@ export abstract class GscapeLayout {
   public fit: boolean = false
   public infinite: boolean = false
 
-  protected _highLevelSettings: HighLevelSettings = JSON.parse(JSON.stringify(GscapeLayout.defaultSettings))
+  protected _highLevelSettings: HighLevelSettings
 
-  constructor(highLevelSettings?: HighLevelSettings) {
-    if (highLevelSettings)
-      this.highLevelSettings = highLevelSettings
+  constructor(highLevelSettings: Partial<HighLevelSettings> = {}) {
+    this._highLevelSettings = JSON.parse(JSON.stringify({ ...GscapeLayout.defaultSettings, ...highLevelSettings }))
   }
 
   set highLevelSettings(newSettings: HighLevelSettings) {
     Object.entries(newSettings).forEach(([key, value]) => {
-      this[key] = value
+      this._highLevelSettings[key] = value
     })
   }
   get highLevelSettings() { return { ...this._highLevelSettings } }

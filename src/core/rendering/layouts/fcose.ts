@@ -18,7 +18,10 @@ export default class FcoseLayout extends GscapeLayout {
       disabled: true
     },
   }
-  protected _highLevelSettings: HighLevelSettings = JSON.parse(JSON.stringify(FcoseLayout.defaultSettings))
+
+  constructor(highLevelSettings: Partial<HighLevelSettings> = {}) {
+    super({ ...FcoseLayout.defaultSettings, ...highLevelSettings })
+  }
 
   getEdgeLength(edge: SingularElementReturnValue, crowdness: boolean, edgeLengthFactor: number): number {
     const baseLength = crowdness
