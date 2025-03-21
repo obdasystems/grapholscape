@@ -78,9 +78,16 @@ export const itemWithIriTemplateStyle = css`
 export function annotationsTemplate(annotations: Annotation[]) {
   if (!annotations || annotations.length === 0) return null
   let propertiesAlreadyInserted: string[] = []
+
+  const annotationsToSkip = [
+    DefaultAnnotationProperties.latitude,
+    DefaultAnnotationProperties.longitude,
+  ]
+
+  console.log(annotationsToSkip)
   return html`
     <div class="annotations">
-      ${annotations.map(annotation => {
+      ${annotations.filter(ann => !annotationsToSkip.find(a => a.equals(ann.property))).map(annotation => {
         
         const property = annotation.property
         
