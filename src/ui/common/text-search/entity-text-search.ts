@@ -5,9 +5,9 @@ import baseStyle from "../../style";
 import getIconSlot from "../../util/get-icon-slot";
 import { IEntityFilters } from "../../view-model";
 import { GscapeButtonStyle } from "../button";
-import { DropPanelMixin } from "../mixins";
+import { BaseMixin, TippyDropPanelMixin } from "../mixins";
 
-export default class GscapeEntitySearch extends DropPanelMixin(LitElement) implements IEntityFilters {
+export default class GscapeEntitySearch extends TippyDropPanelMixin(BaseMixin(LitElement), 'bottom-start') implements IEntityFilters {
   areAllFiltersDisabled: boolean = true;
   [TypesEnum.CLASS]?: number
   [TypesEnum.DATA_PROPERTY]?: number
@@ -94,7 +94,7 @@ export default class GscapeEntitySearch extends DropPanelMixin(LitElement) imple
           : null
         }
       </div>
-      <div id="drop-panel" class="hide">
+      <div id="drop-panel" class="gscape-panel hide">
         <gscape-entity-type-filter
           class=${this[TypesEnum.CLASS] ?? nothing}
           object-property=${this[TypesEnum.OBJECT_PROPERTY] ?? nothing}

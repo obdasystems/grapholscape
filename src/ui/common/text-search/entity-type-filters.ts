@@ -22,7 +22,6 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
     GscapeButtonStyle,
     css`
       .chips-filters {
-        margin-top: 4px;
         white-space: normal;
       }
 
@@ -108,9 +107,11 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
     const labels = type.split('-')
     labels.forEach(l => capitalizeFirstChar(l))
     const label = labels.join(' ')
+    const enabled = this[type] && !this.areAllFiltersDisabled
     return html`
-      <span 
-        class="chip actionable ${this[type] && !this.areAllFiltersDisabled ? null : 'disabled'}"
+      <span
+        title="${enabled ? 'Disable' : 'Enable'} Filter"
+        class="chip actionable ${enabled ? null : 'disabled'}"
         entity-type=${type}
         @click=${this._handleFilterStateChange}
       >

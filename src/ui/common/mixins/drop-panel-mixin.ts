@@ -94,6 +94,16 @@ export const TippyDropPanelMixin = <T extends Constructor<LitElement>>(superClas
       offset: [0, 0],
       trigger: 'manual',
       maxWidth: 'unset',
+      popperOptions: {
+        modifiers: [
+          {
+            name: 'preventOverflow',
+            options: {
+              padding: 0,
+            },
+          },
+        ],
+      },
       appendTo: (ref) => this.shadowRoot as unknown as Element || 'parent'
     }
     protected tippyRef?: Instance<Props>
