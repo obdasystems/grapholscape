@@ -2,15 +2,14 @@ import { css, CSSResultGroup, html, LitElement, PropertyDeclarations } from 'lit
 import { GscapeLayout } from '../../model/renderers/layout'
 import { keep, playCircle, tune } from '../assets/icons'
 import { BaseMixin, TippyDropPanelMixin } from '../common/mixins'
-import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
-import getIconSlot from '../util/get-icon-slot'
 import { contentSpinnerStyle, getContentSpinner } from '../common/spinners'
+import baseStyle, { BOTTOM_RIGHT_WIDGET } from '../style'
 
 export default class GscapeLayoutSettingsHub extends TippyDropPanelMixin(BaseMixin(LitElement), 'left') {
   layoutRun = false
   dragAndPin = false
-  layouts: GscapeLayout[]
-  selectedLayout: GscapeLayout
+  layouts: GscapeLayout[] = []
+  selectedLayout?: GscapeLayout
   loading: boolean
 
   onLayoutRunToggle: (isActive: boolean) => void = () => { }
@@ -107,7 +106,7 @@ export default class GscapeLayoutSettingsHub extends TippyDropPanelMixin(BaseMix
             <gscape-button 
               label="Randomize"
               @click=${this.handleRandomize}
-              ?disabled=${this.selectedLayout.highLevelSettings.randomize.disabled}
+              ?disabled=${this.selectedLayout?.highLevelSettings.randomize.disabled}
             ></gscape-button>
           </center>
       </div>

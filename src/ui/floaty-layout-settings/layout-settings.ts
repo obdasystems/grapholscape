@@ -22,7 +22,7 @@ export default class GscapeLayoutSettings extends LitElement {
   }
 
   layouts: GscapeLayout[] = []
-  selectedLayout: GscapeLayout
+  selectedLayout?: GscapeLayout
   loading: boolean = false
 
   private edgeLength?: number
@@ -73,63 +73,65 @@ export default class GscapeLayoutSettings extends LitElement {
             text: layout.displayedName,
             leadingIcon: this.layoutIcons[layout.id],
           })) as SelectOption[]}
-          default-option=${this.selectedLayout.id}
+          default-option=${this.selectedLayout?.id}
           @change=${this.handleLayoutChange}
         >
         </gscape-select>
         <slot id="middle-slot"></slot>
-        <div class="area">
-          <div class="preference actionable">
-            <label for="edgeLengthSlider">Edge Length</label>
-            <input
-              ?disabled=${this.selectedLayout.highLevelSettings.edgeLengthFactor.disabled}
-              @change=${(e) => {
-                this.handleSettingChange(e, 'edgeLengthFactor', 'value')
-              }}
-              @input=${(e) => { this.edgeLength = e.target.value }} 
-              type="range"
-              min="0"
-              max="100"
-              .value=${this.edgeLength !== undefined ? this.edgeLength : this.selectedLayout.edgeLengthFactor}
-              class="slider"
-              id="edgeLengthSlider"
-            />
-            <span>${this.edgeLength !== undefined ? this.edgeLength : this.selectedLayout.edgeLengthFactor}</span>
-          </div>
+        ${this.selectedLayout !== undefined
+          ? html`<div class="area">
+            <div class="preference actionable">
+              <label for="edgeLengthSlider">Edge Length</label>
+              <input
+                ?disabled=${this.selectedLayout.highLevelSettings.edgeLengthFactor.disabled}
+                @change=${(e) => {
+                  this.handleSettingChange(e, 'edgeLengthFactor', 'value')
+                }}
+                @input=${(e) => { this.edgeLength = e.target.value }} 
+                type="range"
+                min="0"
+                max="100"
+                .value=${this.edgeLength !== undefined ? this.edgeLength : this.selectedLayout.edgeLengthFactor}
+                class="slider"
+                id="edgeLengthSlider"
+              />
+              <span>${this.edgeLength !== undefined ? this.edgeLength : this.selectedLayout.edgeLengthFactor}</span>
+            </div>
 
-          <div class="preference actionable" title="Make edges longer if there are many edges on the same source or target node">
-            <label for="crowdness">Consider Nearby Edges</label>
-            <input
-              ?disabled=${this.selectedLayout.highLevelSettings.considerCrowdness.disabled}
-              @change=${e => this.handleSettingChange(e, 'considerCrowdness', 'checked')}
-              type="checkbox" 
-              .checked=${this.selectedLayout.considerCrowdness}
-              id="crowdness" 
-            />
-          </div>
-          
-          <div class="preference actionable" title="Avoid node overlapping">
-            <label for="avoidOverlap">Avoid Node Overlap</label>
-            <input
-              ?disabled=${this.selectedLayout.highLevelSettings.avoidOverlap.disabled}
-              @change=${e => this.handleSettingChange(e, 'avoidOverlap', 'checked')}
-              type="checkbox"
-              .checked=${this.selectedLayout.avoidOverlap}
-              id="avoidOverlap"
-            />
-          </div>
+            <div class="preference actionable" title="Make edges longer if there are many edges on the same source or target node">
+              <label for="crowdness">Consider Nearby Edges</label>
+              <input
+                ?disabled=${this.selectedLayout.highLevelSettings.considerCrowdness.disabled}
+                @change=${e => this.handleSettingChange(e, 'considerCrowdness', 'checked')}
+                type="checkbox" 
+                .checked=${this.selectedLayout.considerCrowdness}
+                id="crowdness" 
+              />
+            </div>
+            
+            <div class="preference actionable" title="Avoid node overlapping">
+              <label for="avoidOverlap">Avoid Node Overlap</label>
+              <input
+                ?disabled=${this.selectedLayout.highLevelSettings.avoidOverlap.disabled}
+                @change=${e => this.handleSettingChange(e, 'avoidOverlap', 'checked')}
+                type="checkbox"
+                .checked=${this.selectedLayout.avoidOverlap}
+                id="avoidOverlap"
+              />
+            </div>
 
-          <div class="preference actionable" title="Avoid overlapping between disconnected graphs">
-            <label for="handleDisconnected">Handle Disconnected Components</label>
-            <input
-              ?disabled=${this.selectedLayout.highLevelSettings.handleDisconnected.disabled}
-              @change=${e => this.handleSettingChange(e, 'handleDisconnected', 'checked')}
-              type="checkbox"
-              .checked=${this.selectedLayout.handleDisconnected}
-              id="handleDisconnected"
-            />
+            <div class="preference actionable" title="Avoid overlapping between disconnected graphs">
+              <label for="handleDisconnected">Handle Disconnected Components</label>
+              <input
+                ?disabled=${this.selectedLayout.highLevelSettings.handleDisconnected.disabled}
+                @change=${e => this.handleSettingChange(e, 'handleDisconnected', 'checked')}
+                type="checkbox"
+                .checked=${this.selectedLayout.handleDisconnected}
+                id="handleDisconnected"
+              />
+            </div>
           </div>
-        </div>
+        ` : null}
         <slot id="footer-slot"></slot>
       </div>
     `
@@ -152,21 +154,22 @@ export default class GscapeLayoutSettings extends LitElement {
 
   private async handleSettingChange(e, settingId: string, settingKeyValue: 'value' | 'checked') {
     e.preventDefault()
-    
-    this.selectedLayout[settingId] = settingKeyValue === 'value'
-    ? e.target.valueAsNumber
-    : e.target.checked
-    
-    await this.updateComplete
-    this.dispatchEvent(new CustomEvent('layoutSettingChange', {
-      composed: true,
-      bubbles: true,
-      detail: {
-        layout: this.selectedLayout,
-        changedSetting: settingId,
-      },
-    }))
-    this.requestUpdate()
+    if (this.selectedLayout) {
+      this.selectedLayout[settingId] = settingKeyValue === 'value'
+      ? e.target.valueAsNumber
+      : e.target.checked
+      
+      await this.updateComplete
+      this.dispatchEvent(new CustomEvent('layoutSettingChange', {
+        composed: true,
+        bubbles: true,
+        detail: {
+          layout: this.selectedLayout,
+          changedSetting: settingId,
+        },
+      }))
+      this.requestUpdate()
+    }
   }
 }
 
