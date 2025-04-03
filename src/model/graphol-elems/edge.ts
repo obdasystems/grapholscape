@@ -8,7 +8,18 @@ import GrapholElement from "./graphol-element";
 export class GrapholEdge extends GrapholElement implements Edge {
 
   static newFromSwagger(n: Edge) {
-    const instance = new GrapholEdge(n.id, n.type)
+    let instance = new GrapholEdge(n.id, n.type)
+    if (n.iri) {
+      switch (n.type) {
+        case TypesEnum.OBJECT_PROPERTY:
+          instance = new GrapholObjectPropertyEdge(n.id, n.iri)
+          break
+
+        default:
+          instance = new GrapholEntityEdge(n.id, n.type, n.iri)
+          break
+      }
+    }
 
     if (n.type === TypesEnum.COMPLETE_DISJOINT_UNION ||
       n.type === TypesEnum.COMPLETE_UNION) {

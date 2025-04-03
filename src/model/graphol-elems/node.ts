@@ -10,7 +10,22 @@ export const LABEL_HEIGHT = 23
 export class GrapholNode extends GrapholElement implements Node {
 
   static newFromSwagger(n: Node) {
-    const instance = new GrapholNode(n.id, n.type)
+    let instance = new GrapholNode(n.id, n.type)
+    if (n.iri) {
+      switch (n.type) {
+        case TypesEnum.CLASS:
+          instance = new GrapholClassNode(n.id, n.iri)
+          break
+
+        case TypesEnum.INDIVIDUAL:
+          instance = new GrapholIndividualNode(n.id, n.iri)
+          break
+
+        default:
+          instance = new GrapholEntityNode(n.id, n.type, n.iri)
+          break
+      }
+    }
 
     Object.entries(n).forEach(([key, value]) => {
       if (n[key] !== undefined && n[key] !== null && key !== 'id' && key !== 'type') {
@@ -64,7 +79,6 @@ export class GrapholNode extends GrapholElement implements Node {
 
   icon: string | undefined
   geoPosition: Position | undefined
-  
 
   get position() { return { x: this.x, y: this.y } }
   set position(pos: Position) {
@@ -73,7 +87,7 @@ export class GrapholNode extends GrapholElement implements Node {
   }
 
   get renderedPosition() {
-    if (this._renderedX !== undefined && this._renderedY !== undefined) 
+    if (this._renderedX !== undefined && this._renderedY !== undefined)
       return { x: this._renderedX, y: this._renderedY }
   }
   set renderedPosition(pos: Position | undefined) {
@@ -202,7 +216,7 @@ export class GrapholNode extends GrapholElement implements Node {
     } else {
       thisCytoscapeRepr[0].position = this.position
     }
-      
+
     Object.assign(thisCytoscapeRepr[0].data, {
       shape: this.shape || undefined,
       height: this.height || undefined,
