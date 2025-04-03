@@ -84,7 +84,6 @@ export function annotationsTemplate(annotations: Annotation[]) {
     DefaultAnnotationProperties.longitude,
   ]
 
-  console.log(annotationsToSkip)
   return html`
     <div class="annotations">
       ${annotations.filter(ann => !annotationsToSkip.find(a => a.equals(ann.property))).map(annotation => {
@@ -115,7 +114,7 @@ export function annotationsTemplate(annotations: Annotation[]) {
               `
             })}
           </div>
-        `            
+        `
       })}
     </div>
   `
