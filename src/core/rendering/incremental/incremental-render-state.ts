@@ -1,5 +1,5 @@
 import cytoscape, { EdgeSingular, StylesheetJson } from "cytoscape"
-import { Diagram, Filter, GrapholscapeTheme, iFilterManager, Ontology, RendererStatesEnum, TypesEnum } from "../../../model"
+import { Diagram, Filter, GrapholscapeTheme, GscapeLayout, iFilterManager, Ontology, RendererStatesEnum, TypesEnum } from "../../../model"
 import IncrementalDiagram from "../../../model/diagrams/incremental-diagram"
 import FloatyRendererState from "../floaty/floaty-renderer-state"
 import FloatyTransformer from "../floaty/floaty-transformer"
@@ -22,6 +22,13 @@ export default class IncrementalRendererState extends FloatyRendererState {
   filterManager: iFilterManager = new IncrementalFilterManager()
 
   private previousDiagram: Diagram
+
+  set gscapeLayout(layout: GscapeLayout) {
+    /** Do not set custom edge length */
+    //   layout.customEdgeLength = this.edgeLength
+    this._gscapeLayout = layout
+  }
+  get gscapeLayout() { return this._gscapeLayout }
 
   render() {
     if (this.renderer.diagram && this.renderer.diagram?.id !== IncrementalDiagram.ID) {
@@ -219,19 +226,5 @@ export default class IncrementalRendererState extends FloatyRendererState {
 
   get renderer(): Renderer {
     return super.renderer
-  }
-
-  protected edgeLength = (edge: EdgeSingular, crowdness: boolean, edgeLengthFactor: number): number => {
-    const nameLength = edge.data('displayedName')?.length * 5 || 0
-    if (crowdness) {
-      let crowdnessFactor =
-        edge.target().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length +
-        edge.source().neighborhood(`[type = "${TypesEnum.OBJECT_PROPERTY}"]`).length
-
-      crowdnessFactor = crowdnessFactor > 5 ? crowdnessFactor * 2 : 0
-      return (4 * edgeLengthFactor) + crowdnessFactor + nameLength
-    } else {
-      return edgeLengthFactor * 2.5 + nameLength
-    }
   }
 }
