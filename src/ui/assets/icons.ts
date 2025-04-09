@@ -180,6 +180,8 @@ export const clustersLaoutIcon = svg`<svg xmlns="http://www.w3.org/2000/svg" hei
 
 export const coordinateIcon = svg`<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="M480-98.5q-106.5 0-172-30.8T242.5-210q0-29 24.5-52.5t70-39.5l53 49.5q-20.5 6.5-43.33 17.24-22.84 10.73-38.17 26.26 8.36 15 63.68 29.25T480-165.5q56.5 0 110.82-14.25Q645.14-194 651.5-212q-16.5-13.5-40-24.25T568-253l53.5-50.5q46.5 15.5 71.25 40.17Q717.5-238.65 717.5-210q0 49.9-65.5 80.7-65.5 30.8-172 30.8Zm1-211q92.51-68.84 139.26-141.17Q667-523 667-592q0-96.51-60.37-145.76Q546.25-787 480-787t-126.62 49.24Q293-688.52 293-592.02q0 64.02 46.78 135.08Q386.56-385.87 481-309.5Zm-1 83.5q-128-94.5-191-187.13T226-592q0-63.5 23.12-112.51 23.13-49 59.75-82 36.63-32.99 81.78-50.24Q435.81-854 480-854t89.35 17.25q45.15 17.25 81.78 50.24 36.62 33 59.75 82Q734-655.5 734-591.87q0 85.87-63 178.62T480-226Zm.04-305q27.96 0 47.46-19.54 19.5-19.55 19.5-47.5 0-27.96-19.54-47.46-19.55-19.5-47.5-19.5-27.96 0-47.46 20.04-19.5 20.05-19.5 47Q413-571 432.54-551q19.55 20 47.5 20Zm-.04-67Z"/></svg>`
 
+export const calendarClock = svg`<svg xmlns="http://www.w3.org/2000/svg" style="box-sizing: border-box; padding: 1px" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="M182-626.5h596v-132H182v132Zm0 0v-132 132ZM182-85q-22.97 0-40.23-17.27-17.27-17.26-17.27-40.23v-616q0-22.97 17.27-40.23Q159.03-816 182-816h67.5v-60H312v60h336v-60h62.5v60H778q22.97 0 40.23 17.27 17.27 17.26 17.27 40.23v307q-13.54-6.29-27.93-10.94-14.38-4.66-29.57-7.06V-569H182v426.5h327q5.55 16.12 13.19 30.37T540.5-85H182Zm552.97 40q-77.4 0-131.44-54.07-54.03-54.06-54.03-131.46t54.07-131.44Q657.63-416 735.03-416t131.44 54.07q54.03 54.06 54.03 131.46T866.43-99.03Q812.37-45 734.97-45Zm57.77-86L820-158.5l-74.48-73.3V-343H707v124.49L792.74-131Z"/></svg>`
+
 export const entityIcons: { [x in TypesEnum.CLASS |
   TypesEnum.OBJECT_PROPERTY |
   TypesEnum.DATA_PROPERTY |
@@ -205,5 +207,7 @@ export const annotationIcons: { [x: string]: SVGTemplateResult | undefined } = {
   incompatibleWith: undefined,
   backwardCompatible: undefined,
   backwardCompatibleWith: undefined,
-  location: coordinateIcon, 
+  location: coordinateIcon,
+  startDate: calendarClock,
+  endDate: calendarClock,
 }

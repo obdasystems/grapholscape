@@ -15,6 +15,8 @@ export const DefaultAnnotationProperties: { [x: string]: Iri } = {
   latitude: new Iri(`${DefaultNamespaces.OBDA.value}latitude`, [DefaultNamespaces.OBDA]),
   longitude: new Iri(`${DefaultNamespaces.OBDA.value}longitude`, [DefaultNamespaces.OBDA]),
   location: new Iri(`${DefaultNamespaces.OBDA.value}location`, [DefaultNamespaces.OBDA]),
+  startDate: new Iri(`${DefaultNamespaces.OBDA.value}startDate`, [DefaultNamespaces.OBDA]),
+  endDate: new Iri(`${DefaultNamespaces.OBDA.value}endDate`, [DefaultNamespaces.OBDA]),
 }
 
 export default class AnnotationProperty extends Iri {
