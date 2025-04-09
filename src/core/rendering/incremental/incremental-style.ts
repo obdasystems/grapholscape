@@ -117,14 +117,6 @@ export default function (theme: GrapholscapeTheme) {
     },
 
     {
-      selector: "node.localized",
-      style: {
-        "border-color": theme.getColour(ColoursNames.danger_muted),
-        "border-width": 4,
-      }
-    },
-
-    {
       selector: 'edge.localized',
       style: {
         "width": 2,

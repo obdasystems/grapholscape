@@ -31,8 +31,7 @@ export default css`
 }
 
 .btn:hover {
-  background-color: var(--gscape-color-neutral);
-  border-color: var(--gscape-color-border-default);
+  filter: brightness(0.95);
 }
 
 .btn:active {
@@ -54,20 +53,14 @@ export default css`
   padding: 3px 4px;
 }
 
-.btn-s[label] {
-  padding-left: 8px;
-  padding-right: 8px;
-}
-
-
 .btn-m {
   font-size: 14px;
   padding: 5px 6px;
 }
 
-.btn-m[label] {
-  padding-left: 16px;
-  padding-right: 16px;
+.btn-m[label], .btn-s[label] {
+  padding-left: 8px;
+  padding-right: 8px;
 }
 
 .btn-l {
@@ -76,8 +69,8 @@ export default css`
 }
 
 .btn-l[label] {
-  padding-left: 32px;
-  padding-right: 32px;
+  padding-left: 12px;
+  padding-right: 12px;
 }
 
 .btn.primary, .primary-box {
@@ -92,6 +85,7 @@ export default css`
 }
 
 .btn.subtle:hover {
+  filter: brightness(1);
   background-color: var(--gscape-color-neutral);
 }
 
