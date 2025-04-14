@@ -53,7 +53,8 @@ export abstract class GscapeLayout {
       this._highLevelSettings[key] = value
     })
   }
-  get highLevelSettings() { return { ...this._highLevelSettings } }
+  // return copy of the object
+  get highLevelSettings() { return JSON.parse(JSON.stringify(this._highLevelSettings)) }
 
   set edgeLengthFactor(edgeLengthFactor: number) {
     this._highLevelSettings.edgeLengthFactor.value = edgeLengthFactor < 1 ? 1 : edgeLengthFactor

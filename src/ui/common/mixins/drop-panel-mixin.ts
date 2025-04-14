@@ -90,7 +90,7 @@ export const TippyDropPanelMixin = <T extends Constructor<LitElement>>(superClas
       placement: placement,
       interactive: true,
       allowHTML: true,
-      hideOnClick: true,
+      hideOnClick: 'toggle',
       offset: [0, 0],
       trigger: 'manual',
       maxWidth: 'unset',
