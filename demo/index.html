@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <link rel="icon" type="image/png" href="./icon.png">
   <link href="style/style.css" rel="stylesheet" />
@@ -20,8 +21,8 @@
     </div>
 
     <form id="url-graphol-form" onsubmit="fetchGrapholFromUrl(this)" action="javascript:void(0);">
-      <input id="url-input" type="url" placeholder="URL of your .graphol file..." required/>
-      <input id="submit-input" type="submit" value="Open"/>
+      <input id="url-input" type="url" placeholder="URL of your .graphol file..." required />
+      <input id="submit-input" type="submit" value="Open" />
     </form>
     <center>or</center>
     <div id="gscape-panel-wrapper">
@@ -32,7 +33,7 @@
           </ul>
         </div>
       </div>
-      <hr/>
+      <hr />
       <div class="gscape-panel" id="right-panel">
         <div id="dropbox">
           <h2>Select or drop a file</h2>
@@ -49,9 +50,9 @@
     var dropbox = document.getElementById('dropbox');
 
     dropbox.addEventListener('click', selectGraphol)
-    dropbox.addEventListener("dragenter",dragenter,false);
+    dropbox.addEventListener("dragenter", dragenter, false);
     dropbox.addEventListener("dragover", dragover, false);
-    dropbox.addEventListener("drop", drop,false);
+    dropbox.addEventListener("drop", drop, false);
 
     function dragenter(e) {
       e.stopPropagation();
@@ -70,7 +71,7 @@
       var dt = e.dataTransfer;
       var files = dt.files;
 
-      useGrapholscape(files[0])
+      useGrapholscape(files[0], files[0].name.split('.').pop())
     }
 
     // Handle  dialog for file selection
@@ -80,35 +81,58 @@
       hidden_input.click()
     }
 
-    hidden_input.onchange = function(e) {
-      useGrapholscape(e.target.files[0])
+    hidden_input.onchange = function (e) {
+      useGrapholscape(e.target.files[0], e.target.files[0].name.split('.').pop())
     }
 
     // Examples
     var examples_list = document.querySelector('#examples_list > ul');
     var i = 0;
 
-    for (i=0; i<examples.length; i++) {
+    for (i = 0; i < examples.length; i++) {
       var li = document.createElement('li');
       li.innerHTML = examples[i][0];
-      li.setAttribute('exmp_id',i);
+      li.setAttribute('exmp_id', i);
 
-      li.onclick = function() {
-        useGrapholscape(examples[this.getAttribute('exmp_id')][1])
+      li.onclick = function () {
+        useGrapholscape(examples[this.getAttribute('exmp_id')][1], 'graphol')
       };
 
       examples_list.appendChild(li);
     }
     let grapholscape
-    async function useGrapholscape(file) {
+    async function useGrapholscape(file, format) {
       document.getElementById('home').style.display = 'none';
       grapholscape_container.style.display = 'block';
 
-      grapholscape = await Grapholscape.fullGrapholscape(file, grapholscape_container)
-      if (grapholscape.renderState === Grapholscape.RendererStatesEnum.INCREMENTAL) {
-        grapholscape.incremental.showDiagram()
-      } else {
-        grapholscape.showDiagram(0)
+      try {
+        if (format === 'graphol') {
+          grapholscape = await Grapholscape.fullGrapholscape(file, grapholscape_container)
+        } else if (format === 'gscape') {
+          let fileString
+          if (typeof file !== 'string') {
+            fileString = await file.text()
+          } else {
+            fileString = file
+          }
+          grapholscape = await Grapholscape.resume(
+            JSON.parse(fileString),
+            grapholscape_container,
+            {
+              renderers: [Grapholscape.RendererStatesEnum.FLOATY],
+            })
+        } else {
+          throw new Error('File not supported')
+        }
+        if (grapholscape.renderState === Grapholscape.RendererStatesEnum.INCREMENTAL) {
+          grapholscape.incremental.showDiagram()
+        } else {
+          grapholscape.showDiagram(0)
+        }
+      } catch (e) {
+        alert('File not supported')
+        document.getElementById('home').style.display = 'block';
+        grapholscape_container.style.display = 'none';
       }
     }
 
@@ -117,12 +141,12 @@
       const url = inputField.value
       fetch(url)
         .then(response => {
-          if(!response.ok) {
+          if (!response.ok) {
             inputField.setCustomValidity('This is not a valid file')
             return
           }
           response.blob().then(file => file.text().then(text => {
-            if (text && text.length > 0) useGrapholscape(text)
+            if (text && text.length > 0) useGrapholscape(text, url.split('.').pop())
           }))
         })
         .catch(error => {
@@ -131,4 +155,5 @@
     }
   </script>
 </body>
+
 </html>
