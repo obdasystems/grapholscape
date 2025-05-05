@@ -37,7 +37,6 @@ export interface IIncremental {
   addEdge(sourceId: string, targetId: string, edgeType: TypesEnum.INCLUSION | TypesEnum.INPUT | TypesEnum.EQUIVALENCE | TypesEnum.INSTANCE_OF): GrapholElement | undefined
 
   getContextMenuCommands(grapholElement: GrapholElement, cyElement: SingularElementReturnValue): Command[]
-  getNodeButtons(grapholElement: GrapholElement, cyElement: SingularElementReturnValue): NodeButton[]
 
   getIDByIRI(iri: string, type: TypesEnum): string | undefined
 
@@ -72,7 +71,6 @@ export default abstract class IncrementalBase implements IIncremental {
   abstract getSuperClasses(classIri: string): Promise<GrapholEntity[]>
   abstract getSubClasses(classIri: string): Promise<GrapholEntity[]>
   abstract getContextMenuCommands(grapholElement: GrapholElement, cyElement: SingularElementReturnValue): Command[]
-  abstract getNodeButtons(grapholElement: GrapholElement, cyElement: SingularElementReturnValue): NodeButton[]
   abstract init(...args: any[]): void
   abstract reset(...args: any[]): void
   abstract setIncrementalEventHandlers(...args: any[]): void

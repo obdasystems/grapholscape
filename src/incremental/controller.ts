@@ -7,9 +7,8 @@ import NeighbourhoodFinder, { ObjectPropertyConnectedClasses } from "./neighbour
 import * as IncrementalCommands from './ui/commands-widget/commands';
 import { initIncrementalUI } from './ui'
 import { IncrementalEvent } from "./lifecycle";
-import { individualIcon, objectPropertyIcon } from "../ui/assets";
+import { classIcon, individualIcon, objectPropertyIcon } from "../ui/assets";
 // import individualButtonHandler from "./individual-button-handler";
-import objectPropertyButtonHandler from "./object-property-button-handler";
 
 export default class IncrementalController extends IncrementalBase {
 
@@ -83,6 +82,48 @@ export default class IncrementalController extends IncrementalBase {
     const commands: Command[] = []
 
     if (grapholElement.is(TypesEnum.CLASS) && grapholElement.iri) {
+      const exploreRelationshipsSubcommands = new Promise<Command[]>(async (resolve, reject) => {
+        const objectProperties = await this.getObjectPropertiesHighlights([grapholElement.iri!], false)
+
+        if (!objectProperties) {
+          reject()
+          return
+        }
+
+        resolve(Array.from(objectProperties).map(([opEntity, info]) => ({
+          content: `${opEntity.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language)}${!info.direct ? '  - (inverse)' : ''}`,
+          disabled: false,
+          icon: objectPropertyIcon,
+          subCommands: Promise.resolve({
+            searchable: false,
+            commands: info.list.map(connectedClass => {
+              return {
+                content: connectedClass.getDisplayedName(this.grapholscape.entityNameType, this.grapholscape.language),
+                icon: classIcon,
+                select: async () => {
+                  this.performActionWithBlockedGraph(() => {
+                    if (grapholElement.iri) {
+                      info.direct
+                        ? this.addIntensionalObjectProperty(opEntity.iri.fullIri, grapholElement.iri, connectedClass.iri.fullIri)
+                        : this.addIntensionalObjectProperty(opEntity.iri.fullIri, connectedClass.iri.fullIri, grapholElement.iri)
+                    }
+                  })
+                }
+              }
+            }).sort((a, b) => a.content.localeCompare(b.content))
+          })
+        })))
+      })
+
+      const exploreObjectPropertiesCommand: Command = {
+        content: 'Explore Relationships',
+        icon: objectPropertyIcon,
+        description: 'Navigate the object properties in the ontology for this class',
+        subCommands: exploreRelationshipsSubcommands,
+      }
+
+      commands.push(exploreObjectPropertiesCommand)
+
       const superHierarchies = this.grapholscape.ontology.getSuperHierarchiesOf(grapholElement.iri)
       if (superHierarchies && superHierarchies.length > 0) {
         const areAllSuperHierarchiesVisible = superHierarchies.every(hierarchy => this.diagram.isHierarchyVisible(hierarchy))
@@ -216,23 +257,6 @@ export default class IncrementalController extends IncrementalBase {
   init(): void {
     this.setIncrementalEventHandlers()
     initIncrementalUI(this)
-    this.initNodeButtons()
-  }
-
-  private initNodeButtons() {
-    // this.individualsButton.title = 'Search Individuals'
-    // this.individualsButton.onclick = e => individualButtonHandler(e, this)
-
-    this.objectPropertyButton.title = 'Navigate through object properties'
-    this.objectPropertyButton.onclick = e => objectPropertyButtonHandler(e, this)
-  }
-
-  getNodeButtons(grapholElement: GrapholElement): NodeButton[] {
-    if (grapholElement.is(TypesEnum.CLASS)) {
-      return [this.objectPropertyButton]
-    }
-
-    return []
   }
 
   setIncrementalEventHandlers() {
