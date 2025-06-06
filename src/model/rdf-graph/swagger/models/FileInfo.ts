@@ -16,56 +16,55 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface Theme
+ * @interface FileInfo
  */
-export interface Theme {
+export interface FileInfo {
     /**
      * 
      * @type {string}
-     * @memberof Theme
+     * @memberof FileInfo
      */
-    id: string;
+    fileName?: string;
     /**
      * 
      * @type {string}
-     * @memberof Theme
+     * @memberof FileInfo
      */
-    name?: string;
+    fileType?: string;
     /**
      * 
-     * @type {object}
-     * @memberof Theme
+     * @type {string}
+     * @memberof FileInfo
      */
-    colours?: object;
+    content?: string;
 }
 
 /**
- * Check if a given object implements the Theme interface.
+ * Check if a given object implements the FileInfo interface.
  */
-export function instanceOfTheme(value: object): boolean {
+export function instanceOfFileInfo(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "id" in value;
 
     return isInstance;
 }
 
-export function ThemeFromJSON(json: any): Theme {
-    return ThemeFromJSONTyped(json, false);
+export function FileInfoFromJSON(json: any): FileInfo {
+    return FileInfoFromJSONTyped(json, false);
 }
 
-export function ThemeFromJSONTyped(json: any, ignoreDiscriminator: boolean): Theme {
+export function FileInfoFromJSONTyped(json: any, ignoreDiscriminator: boolean): FileInfo {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'id': json['id'],
-        'name': !exists(json, 'name') ? undefined : json['name'],
-        'colours': !exists(json, 'colours') ? undefined : json['colours'],
+        'fileName': !exists(json, 'fileName') ? undefined : json['fileName'],
+        'fileType': !exists(json, 'fileType') ? undefined : json['fileType'],
+        'content': !exists(json, 'content') ? undefined : json['content'],
     };
 }
 
-export function ThemeToJSON(value?: Theme | null): any {
+export function FileInfoToJSON(value?: FileInfo | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -74,9 +73,9 @@ export function ThemeToJSON(value?: Theme | null): any {
     }
     return {
         
-        'id': value.id,
-        'name': value.name,
-        'colours': value.colours,
+        'fileName': value.fileName,
+        'fileType': value.fileType,
+        'content': value.content,
     };
 }
 

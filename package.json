@@ -35,12 +35,7 @@
     "git-add-all": "git add -A",
     "rdf-graph-gen": "run-s rdf-graph-gen:*",
     "rdf-graph-gen:clean": "rimraf ./src/model/rdf-graph/swagger",
-    "rdf-graph-gen:get": "openapi-generator-cli generate -c ./src/model/rdf-graph/config.json -g typescript-fetch -o ./src/model/rdf-graph/swagger -i https://raw.githubusercontent.com/obdasystems/swaggers/main/apis/rdf-graph/rdf-graph.yaml",
-    "rdf-graph-gen:fix-index": "node src/model/rdf-graph/fix-index.js",
-    "apigen": "run-s apigen:*",
-    "apigen:clean": "rimraf ./src/incremental/api/swagger",
-    "apigen:get": "openapi-generator-cli generate -g typescript-fetch -o ./src/incremental/api/swagger -i https://api.swaggerhub.com/apis/OBDASystems/swagger-sparqling_ws/1.0.3",
-    "apigen:post-gen": "node src/incremental/api/post-api-gen.js",
+    "rdf-graph-gen:get": "openapi-generator-cli generate -c ./src/model/rdf-graph/config.json -g typescript-fetch -o ./src/model/rdf-graph/swagger -i https://raw.githubusercontent.com/obdasystems/swaggers/main/bundled/vkg.yaml",
     "snapshot": "npm version prerelease --no-git-tag --preid=snap"
   },
   "repository": {

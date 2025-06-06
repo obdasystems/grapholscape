@@ -220,6 +220,23 @@ export default function (theme: GrapholscapeTheme): StylesheetJson {
     },
 
     // {
+    //   selector: `[?aiGenerated]`,
+    //   style: {
+    //     'underlay-color': theme.getColour(ColoursNames.attention),
+    //     'underlay-opacity': 0.8,
+    //   }
+    // },
+
+    {
+      selector: `[?aiGenerated.isNew]`,
+      style: {
+        'underlay-color': theme.getColour(ColoursNames.attention),
+        'underlay-opacity': 0.8,
+        'underlay-shape': 'ellipse',
+      }
+    },
+
+    // {
     //   selector: `node[icon][type = "${TypesEnum.CLASS}"]`,
     //   style: {
     //     'background-width': '50%',

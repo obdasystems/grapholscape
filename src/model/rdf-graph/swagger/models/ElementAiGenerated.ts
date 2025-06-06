@@ -16,50 +16,49 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface Namespace
+ * @interface ElementAiGenerated
  */
-export interface Namespace {
+export interface ElementAiGenerated {
     /**
      * 
      * @type {string}
-     * @memberof Namespace
+     * @memberof ElementAiGenerated
      */
-    value: string;
+    chunkId: string;
     /**
      * 
-     * @type {Array<string>}
-     * @memberof Namespace
+     * @type {boolean}
+     * @memberof ElementAiGenerated
      */
-    prefixes: Array<string>;
+    isNew?: boolean;
 }
 
 /**
- * Check if a given object implements the Namespace interface.
+ * Check if a given object implements the ElementAiGenerated interface.
  */
-export function instanceOfNamespace(value: object): boolean {
+export function instanceOfElementAiGenerated(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "value" in value;
-    isInstance = isInstance && "prefixes" in value;
+    isInstance = isInstance && "chunkId" in value;
 
     return isInstance;
 }
 
-export function NamespaceFromJSON(json: any): Namespace {
-    return NamespaceFromJSONTyped(json, false);
+export function ElementAiGeneratedFromJSON(json: any): ElementAiGenerated {
+    return ElementAiGeneratedFromJSONTyped(json, false);
 }
 
-export function NamespaceFromJSONTyped(json: any, ignoreDiscriminator: boolean): Namespace {
+export function ElementAiGeneratedFromJSONTyped(json: any, ignoreDiscriminator: boolean): ElementAiGenerated {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'value': json['value'],
-        'prefixes': json['prefixes'],
+        'chunkId': json['chunkId'],
+        'isNew': !exists(json, 'isNew') ? undefined : json['isNew'],
     };
 }
 
-export function NamespaceToJSON(value?: Namespace | null): any {
+export function ElementAiGeneratedToJSON(value?: ElementAiGenerated | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -68,8 +67,8 @@ export function NamespaceToJSON(value?: Namespace | null): any {
     }
     return {
         
-        'value': value.value,
-        'prefixes': value.prefixes,
+        'chunkId': value.chunkId,
+        'isNew': value.isNew,
     };
 }
 

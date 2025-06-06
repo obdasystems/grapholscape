@@ -2,7 +2,7 @@ import AnnotatedElement from "../annotated-element"
 import { RendererStatesEnum } from "../renderers/i-render-state"
 import Iri from "../iri"
 import GrapholElement from "./graphol-element"
-import { Entity, RDFGraphConfigEntityNameTypeEnum as EntityNameType, FunctionPropertiesEnum, TypesEnum } from "../rdf-graph/swagger"
+import { GrapholscapeEntity as Entity, RDFGraphConfigEntityNameTypeEnum as EntityNameType, FunctionPropertiesEnum, TypesEnum } from "../rdf-graph/swagger"
 
 // export enum FunctionalityEnum {
 //   functional = 'functional',

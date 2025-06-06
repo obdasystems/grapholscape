@@ -2,7 +2,7 @@ import { floatyOptions, GrapholscapeConfig, Language } from "../config";
 import computeHierarchies from "../core/compute-hierarchies";
 import { Annotation, AnnotationProperty, ClassInstanceEntity, DefaultAnnotationProperties, Diagram, DiagramRepresentation, EntityNameType, GrapholEdge, GrapholEntity, GrapholNode, GrapholscapeTheme, IncrementalDiagram, Iri, Namespace, Ontology, RendererStatesEnum } from "../model";
 import AnnotationsDiagram from "../model/diagrams/annotations-diagram";
-import { Entity, RDFGraph, RDFGraphMetadata, RDFGraphModelTypeEnum, TypesEnum } from "../model/rdf-graph/swagger";
+import { GrapholscapeEntity as Entity, RDFGraph, RDFGraphMetadata, RDFGraphModelTypeEnum, TypesEnum } from "../model/rdf-graph/swagger";
 
 export default function parseRDFGraph(rdfGraph: RDFGraph) {
   const rendererState = rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY

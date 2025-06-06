@@ -1,5 +1,5 @@
 import { ElementDefinition } from "cytoscape"
-import { Element, TypesEnum, FunctionPropertiesEnum } from "../rdf-graph/swagger"
+import { Element, TypesEnum, FunctionPropertiesEnum, ElementAiGenerated } from "../rdf-graph/swagger"
 import GrapholEntity from "./entity"
 import { GrapholNode } from "./node"
 import { GrapholEdge } from "./edge"
@@ -10,6 +10,7 @@ export default class GrapholElement implements Element {
   private _originalId?: string // In case of replicated elements, this is the id of the original node
   protected _iri?: string
   private _diagramId: number
+  aiGenerated?: ElementAiGenerated
 
   constructor(private _id: string, protected _type: TypesEnum) { }
 
@@ -76,6 +77,7 @@ export default class GrapholElement implements Element {
         originalId: this.originalId || undefined,
         iri: this.iri || grapholEntity?.iri.fullIri,
         datatype: grapholEntity?.datatype,
+        aiGenerated: this.aiGenerated,
       }
     }
 
