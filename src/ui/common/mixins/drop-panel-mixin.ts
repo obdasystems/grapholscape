@@ -104,6 +104,7 @@ export const TippyDropPanelMixin = <T extends Constructor<LitElement>>(superClas
           },
         ],
       },
+      onClickOutside: () => this.closePanel(),
       appendTo: (ref) => this.shadowRoot as unknown as Element || 'parent'
     }
     protected tippyRef?: Instance<Props>

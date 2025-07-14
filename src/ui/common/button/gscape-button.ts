@@ -110,12 +110,9 @@ export default class GscapeButton extends BaseMixin(LitElement) {
       >
       ${this.loading
         ? getContentSpinner()
-        : null
-      }
-
-      ${this.toggled && this.altIcon
-        ? html`<slot name="alt-icon" class="slotted-icon"></slot>`
-        : html`<slot name="icon" class="slotted-icon"></slot>`
+        : this.toggled && this.altIcon
+          ? html`<slot name="alt-icon" class="slotted-icon"></slot>`
+          : html`<slot name="icon" class="slotted-icon"></slot>`
       }
 
       ${this.label ? html`<span class="btn-label ellipsed">${this.label}<span>` : ``}
