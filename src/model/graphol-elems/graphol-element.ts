@@ -104,6 +104,7 @@ export default class GrapholElement implements Element {
       diagramId: this.diagramId,
       displayedName: this.displayedName,
       iri: this.iri,
+      aiGenerated: this.aiGenerated,
     }
 
     return result
