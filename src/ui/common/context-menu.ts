@@ -16,7 +16,7 @@ export interface Command {
   /** optional icon */
   icon?: SVGTemplateResult,
   /** callback to execute on selection */
-  select?: (...args: any[]) => void,
+  select?: (...args: any[]) => void | Promise<void>,
   subCommands?: Promise<CommandList>,
   description?: string,
   disabled?: boolean,
@@ -183,18 +183,19 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
   }
 
   private async handleCommandClick(e: any) {
-    const command = this.commands[e.currentTarget.getAttribute('command-id')]
+    const commandId = e.currentTarget.getAttribute('command-id')
+    const command = this.commands[commandId]
     if (command.select && !command.disabled) {
-      command.select()
-
+      this.loadingCommandsIds = [...this.loadingCommandsIds, commandId]
+      await command.select()
       await this.updateComplete
       this.dispatchEvent(new CustomEvent('subcommandclick', {
         bubbles: true,
         composed: true,
         cancelable: false,
-        detail: 'ciao'
       }))
-      
+      this.loadingCommandsIds = this.loadingCommandsIds.filter(c => c !== commandId)
+      this.requestUpdate()
       this.onCommandRun()
       this.hide()
     }
@@ -234,15 +235,12 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
                 <span class="command-text">${command.content}</span>
 
                 <span style="min-width: 20px">
-                  ${command.subCommands
-                    ? html`
-                      <span class="command-icon slotted-icon">
-                        ${this.loadingCommandsIds.includes(id.toString())
-                          ? getContentSpinner()
-                          : arrow_right
-                        }
-                      </span>
-                    `
+                  ${this.loadingCommandsIds.includes(id.toString())
+                    ? html`<span class="command-icon slotted-icon">${getContentSpinner()}</span>`
+                    : command.subCommands
+                      ? html`
+                        <span class="command-icon slotted-icon">${arrow_right}</span>
+                      `
                     : null
                   }
                 </span>
