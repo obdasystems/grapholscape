@@ -13,12 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { Annotation } from './Annotation';
-import {
-    AnnotationFromJSON,
-    AnnotationFromJSONTyped,
-    AnnotationToJSON,
-} from './Annotation';
 import type { DataPropertyValue } from './DataPropertyValue';
 import {
     DataPropertyValueFromJSON,
@@ -31,6 +25,12 @@ import {
     FunctionPropertiesEnumFromJSONTyped,
     FunctionPropertiesEnumToJSON,
 } from './FunctionPropertiesEnum';
+import type { GrapholscapeAnnotation } from './GrapholscapeAnnotation';
+import {
+    GrapholscapeAnnotationFromJSON,
+    GrapholscapeAnnotationFromJSONTyped,
+    GrapholscapeAnnotationToJSON,
+} from './GrapholscapeAnnotation';
 
 /**
  * 
@@ -46,10 +46,10 @@ export interface ClassInstanceEntity {
     fullIri: string;
     /**
      * 
-     * @type {Array<Annotation>}
+     * @type {Array<GrapholscapeAnnotation>}
      * @memberof ClassInstanceEntity
      */
-    annotations?: Array<Annotation>;
+    annotations?: Array<GrapholscapeAnnotation>;
     /**
      * 
      * @type {string}
@@ -109,7 +109,7 @@ export function ClassInstanceEntityFromJSONTyped(json: any, ignoreDiscriminator:
     return {
         
         'fullIri': json['fullIri'],
-        'annotations': !exists(json, 'annotations') ? undefined : ((json['annotations'] as Array<any>).map(AnnotationFromJSON)),
+        'annotations': !exists(json, 'annotations') ? undefined : ((json['annotations'] as Array<any>).map(GrapholscapeAnnotationFromJSON)),
         'datatype': !exists(json, 'datatype') ? undefined : json['datatype'],
         'isDataPropertyFunctional': !exists(json, 'isDataPropertyFunctional') ? undefined : json['isDataPropertyFunctional'],
         'functionProperties': !exists(json, 'functionProperties') ? undefined : ((json['functionProperties'] as Array<any>).map(FunctionPropertiesEnumFromJSON)),
@@ -129,7 +129,7 @@ export function ClassInstanceEntityToJSON(value?: ClassInstanceEntity | null): a
     return {
         
         'fullIri': value.fullIri,
-        'annotations': value.annotations === undefined ? undefined : ((value.annotations as Array<any>).map(AnnotationToJSON)),
+        'annotations': value.annotations === undefined ? undefined : ((value.annotations as Array<any>).map(GrapholscapeAnnotationToJSON)),
         'datatype': value.datatype,
         'isDataPropertyFunctional': value.isDataPropertyFunctional,
         'functionProperties': value.functionProperties === undefined ? undefined : ((value.functionProperties as Array<any>).map(FunctionPropertiesEnumToJSON)),

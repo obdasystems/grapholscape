@@ -103,7 +103,7 @@ export function ElementFromJSONTyped(json: any, ignoreDiscriminator: boolean): E
         'displayedName': !exists(json, 'displayedName') ? undefined : json['displayedName'],
         'iri': !exists(json, 'iri') ? undefined : json['iri'],
         'type': TypesEnumFromJSON(json['type']),
-        'aiGenerated': !exists(json, 'ai_generated') ? undefined : ElementAiGeneratedFromJSON(json['ai_generated']),
+        'aiGenerated': !exists(json, 'aiGenerated') ? undefined : ElementAiGeneratedFromJSON(json['aiGenerated']),
     };
 }
 
@@ -122,7 +122,7 @@ export function ElementToJSON(value?: Element | null): any {
         'displayedName': value.displayedName,
         'iri': value.iri,
         'type': TypesEnumToJSON(value.type),
-        'ai_generated': ElementAiGeneratedToJSON(value.aiGenerated),
+        'aiGenerated': ElementAiGeneratedToJSON(value.aiGenerated),
     };
 }
 

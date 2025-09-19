@@ -13,12 +13,24 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { CustomNodeRendering } from './CustomNodeRendering';
+import {
+    CustomNodeRenderingFromJSON,
+    CustomNodeRenderingFromJSONTyped,
+    CustomNodeRenderingToJSON,
+} from './CustomNodeRendering';
 import type { RDFGraph } from './RDFGraph';
 import {
     RDFGraphFromJSON,
     RDFGraphFromJSONTyped,
     RDFGraphToJSON,
 } from './RDFGraph';
+import type { VKGCustomFilter } from './VKGCustomFilter';
+import {
+    VKGCustomFilterFromJSON,
+    VKGCustomFilterFromJSONTyped,
+    VKGCustomFilterToJSON,
+} from './VKGCustomFilter';
 
 /**
  * 
@@ -31,13 +43,13 @@ export interface VKGSnapshot {
      * @type {string}
      * @memberof VKGSnapshot
      */
-    id?: string;
+    id: string;
     /**
      * 
      * @type {string}
      * @memberof VKGSnapshot
      */
-    name?: string;
+    name: string;
     /**
      * 
      * @type {string}
@@ -49,13 +61,25 @@ export interface VKGSnapshot {
      * @type {number}
      * @memberof VKGSnapshot
      */
-    lastModification?: number;
+    lastModification: number;
     /**
      * 
      * @type {RDFGraph}
      * @memberof VKGSnapshot
      */
-    rdfGraph?: RDFGraph;
+    rdfGraph: RDFGraph;
+    /**
+     * 
+     * @type {{ [key: string]: CustomNodeRendering; }}
+     * @memberof VKGSnapshot
+     */
+    customNodeRenderings?: { [key: string]: CustomNodeRendering; };
+    /**
+     * 
+     * @type {{ [key: string]: VKGCustomFilter; }}
+     * @memberof VKGSnapshot
+     */
+    customFilters?: { [key: string]: VKGCustomFilter; };
 }
 
 /**
@@ -63,6 +87,10 @@ export interface VKGSnapshot {
  */
 export function instanceOfVKGSnapshot(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && "id" in value;
+    isInstance = isInstance && "name" in value;
+    isInstance = isInstance && "lastModification" in value;
+    isInstance = isInstance && "rdfGraph" in value;
 
     return isInstance;
 }
@@ -77,11 +105,13 @@ export function VKGSnapshotFromJSONTyped(json: any, ignoreDiscriminator: boolean
     }
     return {
         
-        'id': !exists(json, 'id') ? undefined : json['id'],
-        'name': !exists(json, 'name') ? undefined : json['name'],
+        'id': json['id'],
+        'name': json['name'],
         'description': !exists(json, 'description') ? undefined : json['description'],
-        'lastModification': !exists(json, 'lastModification') ? undefined : json['lastModification'],
-        'rdfGraph': !exists(json, 'rdfGraph') ? undefined : RDFGraphFromJSON(json['rdfGraph']),
+        'lastModification': json['lastModification'],
+        'rdfGraph': RDFGraphFromJSON(json['rdfGraph']),
+        'customNodeRenderings': !exists(json, 'customNodeRenderings') ? undefined : (mapValues(json['customNodeRenderings'], CustomNodeRenderingFromJSON)),
+        'customFilters': !exists(json, 'customFilters') ? undefined : (mapValues(json['customFilters'], VKGCustomFilterFromJSON)),
     };
 }
 
@@ -99,6 +129,8 @@ export function VKGSnapshotToJSON(value?: VKGSnapshot | null): any {
         'description': value.description,
         'lastModification': value.lastModification,
         'rdfGraph': RDFGraphToJSON(value.rdfGraph),
+        'customNodeRenderings': value.customNodeRenderings === undefined ? undefined : (mapValues(value.customNodeRenderings, CustomNodeRenderingToJSON)),
+        'customFilters': value.customFilters === undefined ? undefined : (mapValues(value.customFilters, VKGCustomFilterToJSON)),
     };
 }
 

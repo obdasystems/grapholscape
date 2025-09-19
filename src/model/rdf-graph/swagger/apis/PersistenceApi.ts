@@ -15,23 +15,15 @@
 
 import * as runtime from '../runtime';
 import type {
-  CustomNodeRendering,
   FileInfo,
   VKGSnapshot,
 } from '../models';
 import {
-    CustomNodeRenderingFromJSON,
-    CustomNodeRenderingToJSON,
     FileInfoFromJSON,
     FileInfoToJSON,
     VKGSnapshotFromJSON,
     VKGSnapshotToJSON,
 } from '../models';
-
-export interface DeleteVkgNodeRenderingRequest {
-    name: string;
-    version: string;
-}
 
 export interface DeleteVkgSnapshotRequest {
     name: string;
@@ -49,11 +41,6 @@ export interface ExportVkgSnapshotsRequest {
     version: string;
 }
 
-export interface GetDefaultNodeRenderingRequest {
-    name: string;
-    version: string;
-}
-
 export interface GetVkgSnapshotsRequest {
     name: string;
     version: string;
@@ -66,22 +53,10 @@ export interface ImportVkgSnapshotsRequest {
     fileInfo: FileInfo;
 }
 
-export interface PostDefaultNodeRenderingRequest {
-    name: string;
-    version: string;
-    requestBody: { [key: string]: CustomNodeRendering; };
-}
-
 export interface PostVkgSnapshotRequest {
     name: string;
     version: string;
     vKGSnapshot: VKGSnapshot;
-}
-
-export interface PutDefaultNodeRenderingRequest {
-    name: string;
-    version: string;
-    requestBody: { [key: string]: CustomNodeRendering; };
 }
 
 export interface PutVkgSnapshotRequest {
@@ -94,56 +69,7 @@ export interface PutVkgSnapshotRequest {
 /**
  * 
  */
-export class DefaultApi extends runtime.BaseAPI {
-
-    /**
-     * DELETE mwsx/owlOntology/{name}/version/vkg/node-rendering
-     */
-    async deleteVkgNodeRenderingRaw(requestParameters: DeleteVkgNodeRenderingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.name === null || requestParameters.name === undefined) {
-            throw new runtime.RequiredError('name','Required parameter requestParameters.name was null or undefined when calling deleteVkgNodeRendering.');
-        }
-
-        if (requestParameters.version === null || requestParameters.version === undefined) {
-            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling deleteVkgNodeRendering.');
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters.version !== undefined) {
-            queryParameters['version'] = requestParameters.version;
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-MONOLITH-SESSION-ID"] = this.configuration.apiKey("X-MONOLITH-SESSION-ID"); // apiKey authentication
-        }
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("jwt", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/owlOntology/{name}/version/vkg/node-rendering`.replace(`{${"name"}}`, encodeURIComponent(String(requestParameters.name))),
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * DELETE mwsx/owlOntology/{name}/version/vkg/node-rendering
-     */
-    async deleteVkgNodeRendering(requestParameters: DeleteVkgNodeRenderingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.deleteVkgNodeRenderingRaw(requestParameters, initOverrides);
-    }
+export class PersistenceApi extends runtime.BaseAPI {
 
     /**
      * Delete a given VKG Snapshot from catalog for a given ontology (name, version)
@@ -300,56 +226,6 @@ export class DefaultApi extends runtime.BaseAPI {
     }
 
     /**
-     * Returns the default VKG node rendering for the ontology version
-     */
-    async getDefaultNodeRenderingRaw(requestParameters: GetDefaultNodeRenderingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<{ [key: string]: CustomNodeRendering; }>> {
-        if (requestParameters.name === null || requestParameters.name === undefined) {
-            throw new runtime.RequiredError('name','Required parameter requestParameters.name was null or undefined when calling getDefaultNodeRendering.');
-        }
-
-        if (requestParameters.version === null || requestParameters.version === undefined) {
-            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling getDefaultNodeRendering.');
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters.version !== undefined) {
-            queryParameters['version'] = requestParameters.version;
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-MONOLITH-SESSION-ID"] = this.configuration.apiKey("X-MONOLITH-SESSION-ID"); // apiKey authentication
-        }
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("jwt", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/owlOntology/{name}/version/vkg/node-rendering`.replace(`{${"name"}}`, encodeURIComponent(String(requestParameters.name))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => runtime.mapValues(jsonValue, CustomNodeRenderingFromJSON));
-    }
-
-    /**
-     * Returns the default VKG node rendering for the ontology version
-     */
-    async getDefaultNodeRendering(requestParameters: GetDefaultNodeRenderingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{ [key: string]: CustomNodeRendering; }> {
-        const response = await this.getDefaultNodeRenderingRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
      * Get the VKG Snaphot catalog for a given ontology (name, version)
      */
     async getVkgSnapshotsRaw(requestParameters: GetVkgSnapshotsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VKGSnapshot>>> {
@@ -465,63 +341,6 @@ export class DefaultApi extends runtime.BaseAPI {
     }
 
     /**
-     * Set a default VKG node rendering for the ontology version
-     */
-    async postDefaultNodeRenderingRaw(requestParameters: PostDefaultNodeRenderingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<{ [key: string]: CustomNodeRendering; }>> {
-        if (requestParameters.name === null || requestParameters.name === undefined) {
-            throw new runtime.RequiredError('name','Required parameter requestParameters.name was null or undefined when calling postDefaultNodeRendering.');
-        }
-
-        if (requestParameters.version === null || requestParameters.version === undefined) {
-            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling postDefaultNodeRendering.');
-        }
-
-        if (requestParameters.requestBody === null || requestParameters.requestBody === undefined) {
-            throw new runtime.RequiredError('requestBody','Required parameter requestParameters.requestBody was null or undefined when calling postDefaultNodeRendering.');
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters.version !== undefined) {
-            queryParameters['version'] = requestParameters.version;
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-MONOLITH-SESSION-ID"] = this.configuration.apiKey("X-MONOLITH-SESSION-ID"); // apiKey authentication
-        }
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("jwt", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/owlOntology/{name}/version/vkg/node-rendering`.replace(`{${"name"}}`, encodeURIComponent(String(requestParameters.name))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters.requestBody,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => runtime.mapValues(jsonValue, CustomNodeRenderingFromJSON));
-    }
-
-    /**
-     * Set a default VKG node rendering for the ontology version
-     */
-    async postDefaultNodeRendering(requestParameters: PostDefaultNodeRenderingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{ [key: string]: CustomNodeRendering; }> {
-        const response = await this.postDefaultNodeRenderingRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
      * Save a new VKG Snaphot in the catalog for a given ontology (name, version).
      */
     async postVkgSnapshotRaw(requestParameters: PostVkgSnapshotRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<VKGSnapshot>>> {
@@ -575,63 +394,6 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async postVkgSnapshot(requestParameters: PostVkgSnapshotRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<VKGSnapshot>> {
         const response = await this.postVkgSnapshotRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Modifies the default VKG node rendering for the ontology version
-     */
-    async putDefaultNodeRenderingRaw(requestParameters: PutDefaultNodeRenderingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<{ [key: string]: CustomNodeRendering; }>> {
-        if (requestParameters.name === null || requestParameters.name === undefined) {
-            throw new runtime.RequiredError('name','Required parameter requestParameters.name was null or undefined when calling putDefaultNodeRendering.');
-        }
-
-        if (requestParameters.version === null || requestParameters.version === undefined) {
-            throw new runtime.RequiredError('version','Required parameter requestParameters.version was null or undefined when calling putDefaultNodeRendering.');
-        }
-
-        if (requestParameters.requestBody === null || requestParameters.requestBody === undefined) {
-            throw new runtime.RequiredError('requestBody','Required parameter requestParameters.requestBody was null or undefined when calling putDefaultNodeRendering.');
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters.version !== undefined) {
-            queryParameters['version'] = requestParameters.version;
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-MONOLITH-SESSION-ID"] = this.configuration.apiKey("X-MONOLITH-SESSION-ID"); // apiKey authentication
-        }
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("jwt", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/owlOntology/{name}/version/vkg/node-rendering`.replace(`{${"name"}}`, encodeURIComponent(String(requestParameters.name))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: requestParameters.requestBody,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => runtime.mapValues(jsonValue, CustomNodeRenderingFromJSON));
-    }
-
-    /**
-     * Modifies the default VKG node rendering for the ontology version
-     */
-    async putDefaultNodeRendering(requestParameters: PutDefaultNodeRenderingRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<{ [key: string]: CustomNodeRendering; }> {
-        const response = await this.putDefaultNodeRenderingRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

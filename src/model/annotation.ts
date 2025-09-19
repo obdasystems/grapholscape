@@ -1,6 +1,6 @@
 import AnnotationProperty from "./annotation-property"
 import Iri from "./iri"
-import { Annotation as IAnnotation } from "./rdf-graph/swagger"
+import { GrapholscapeAnnotation as IAnnotation } from "./rdf-graph/swagger"
 
 export default class Annotation implements IAnnotation {
   private _property: AnnotationProperty

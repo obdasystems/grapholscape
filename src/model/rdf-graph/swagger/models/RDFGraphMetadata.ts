@@ -13,12 +13,12 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { Annotation } from './Annotation';
+import type { GrapholscapeAnnotation } from './GrapholscapeAnnotation';
 import {
-    AnnotationFromJSON,
-    AnnotationFromJSONTyped,
-    AnnotationToJSON,
-} from './Annotation';
+    GrapholscapeAnnotationFromJSON,
+    GrapholscapeAnnotationFromJSONTyped,
+    GrapholscapeAnnotationToJSON,
+} from './GrapholscapeAnnotation';
 import type { Namespace } from './Namespace';
 import {
     NamespaceFromJSON,
@@ -70,10 +70,10 @@ export interface RDFGraphMetadata {
     namespaces: Array<Namespace>;
     /**
      * 
-     * @type {Array<Annotation>}
+     * @type {Array<GrapholscapeAnnotation>}
      * @memberof RDFGraphMetadata
      */
-    annotations?: Array<Annotation>;
+    annotations?: Array<GrapholscapeAnnotation>;
     /**
      * 
      * @type {Array<string>}
@@ -108,7 +108,7 @@ export function RDFGraphMetadataFromJSONTyped(json: any, ignoreDiscriminator: bo
         'languages': !exists(json, 'languages') ? undefined : json['languages'],
         'defaultLanguage': !exists(json, 'defaultLanguage') ? undefined : json['defaultLanguage'],
         'namespaces': ((json['namespaces'] as Array<any>).map(NamespaceFromJSON)),
-        'annotations': !exists(json, 'annotations') ? undefined : ((json['annotations'] as Array<any>).map(AnnotationFromJSON)),
+        'annotations': !exists(json, 'annotations') ? undefined : ((json['annotations'] as Array<any>).map(GrapholscapeAnnotationFromJSON)),
         'annotationProperties': !exists(json, 'annotationProperties') ? undefined : json['annotationProperties'],
     };
 }
@@ -128,7 +128,7 @@ export function RDFGraphMetadataToJSON(value?: RDFGraphMetadata | null): any {
         'languages': value.languages,
         'defaultLanguage': value.defaultLanguage,
         'namespaces': ((value.namespaces as Array<any>).map(NamespaceToJSON)),
-        'annotations': value.annotations === undefined ? undefined : ((value.annotations as Array<any>).map(AnnotationToJSON)),
+        'annotations': value.annotations === undefined ? undefined : ((value.annotations as Array<any>).map(GrapholscapeAnnotationToJSON)),
         'annotationProperties': value.annotationProperties,
     };
 }

@@ -16,52 +16,52 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface Annotation
+ * @interface GrapholscapeAnnotation
  */
-export interface Annotation {
+export interface GrapholscapeAnnotation {
     /**
      * Has been renamed to `value`, kept for back-compatibility.
      * @type {string}
-     * @memberof Annotation
+     * @memberof GrapholscapeAnnotation
      * @deprecated
      */
     lexicalForm?: string;
     /**
      * 
      * @type {string}
-     * @memberof Annotation
+     * @memberof GrapholscapeAnnotation
      */
     value: string;
     /**
      * 
      * @type {boolean}
-     * @memberof Annotation
+     * @memberof GrapholscapeAnnotation
      */
     hasIriValue?: boolean;
     /**
      * 
      * @type {string}
-     * @memberof Annotation
+     * @memberof GrapholscapeAnnotation
      */
     property: string;
     /**
      * 
      * @type {string}
-     * @memberof Annotation
+     * @memberof GrapholscapeAnnotation
      */
     language?: string;
     /**
      * 
      * @type {string}
-     * @memberof Annotation
+     * @memberof GrapholscapeAnnotation
      */
     datatype?: string;
 }
 
 /**
- * Check if a given object implements the Annotation interface.
+ * Check if a given object implements the GrapholscapeAnnotation interface.
  */
-export function instanceOfAnnotation(value: object): boolean {
+export function instanceOfGrapholscapeAnnotation(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && "value" in value;
     isInstance = isInstance && "property" in value;
@@ -69,11 +69,11 @@ export function instanceOfAnnotation(value: object): boolean {
     return isInstance;
 }
 
-export function AnnotationFromJSON(json: any): Annotation {
-    return AnnotationFromJSONTyped(json, false);
+export function GrapholscapeAnnotationFromJSON(json: any): GrapholscapeAnnotation {
+    return GrapholscapeAnnotationFromJSONTyped(json, false);
 }
 
-export function AnnotationFromJSONTyped(json: any, ignoreDiscriminator: boolean): Annotation {
+export function GrapholscapeAnnotationFromJSONTyped(json: any, ignoreDiscriminator: boolean): GrapholscapeAnnotation {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -88,7 +88,7 @@ export function AnnotationFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     };
 }
 
-export function AnnotationToJSON(value?: Annotation | null): any {
+export function GrapholscapeAnnotationToJSON(value?: GrapholscapeAnnotation | null): any {
     if (value === undefined) {
         return undefined;
     }
