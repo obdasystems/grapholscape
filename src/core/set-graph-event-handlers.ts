@@ -1,6 +1,4 @@
-import { Diagram, Lifecycle, LifecycleEvent, Ontology, TypesEnum } from "../model"
-import { isGrapholEdge } from "../model/graphol-elems/edge"
-import { isGrapholNode } from "../model/graphol-elems/node"
+import { Diagram, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Lifecycle, LifecycleEvent, MultipleSelectionEventDetail, Ontology } from "../model"
 
 export default function setGraphEventHandlers(diagram: Diagram, lifecycle: Lifecycle, ontology: Ontology) {
 
@@ -8,25 +6,54 @@ export default function setGraphEventHandlers(diagram: Diagram, lifecycle: Lifec
     const cy = diagramRepresentation.cy
     if (cy.scratch('_gscape-graph-handlers-set')) return
 
-    cy.on('select', e => {
-      const grapholElement = diagramRepresentation.grapholElements.get(e.target.id())
-      if (grapholElement) {
-        if (grapholElement.isEntity()) {
-          const grapholEntity = ontology.getEntity(e.target.data().iri) || (
-            ontology.ontologyEntity?.iri.equals(e.target.data().iri) && ontology.ontologyEntity
-          )
-          if (grapholEntity) {
-            lifecycle.trigger(LifecycleEvent.EntitySelection, grapholEntity, grapholElement)
+    // cy.on('box', () => console.log(cy.$(':selected')))
+    cy.on('select box', e => {
+      const selectedElements = cy.$(':selected').union(e.target)
+      const eventDetail: MultipleSelectionEventDetail = {
+        elements: {
+          nodes: [] as GrapholNode[],
+          edges: [] as GrapholEdge[],
+        },
+        entities: [] as {
+          grapholElement: GrapholElement,
+          entity: GrapholEntity,
+        }[],
+      }
+      selectedElements.forEach(cyElem => {
+        const grapholElement = diagramRepresentation.grapholElements.get(cyElem.id())
+        if (grapholElement) {
+          if (grapholElement.isNode()) {
+            eventDetail.elements.nodes.push(grapholElement)
+          } else if (grapholElement.isEdge()) {
+            eventDetail.elements.edges.push(grapholElement)
+          }
+
+          if (grapholElement.isEntity()) {
+            const grapholEntity = ontology.getEntity(grapholElement.iri) || (
+              ontology.ontologyEntity?.iri.equals(grapholElement.iri) && ontology.ontologyEntity
+            )
+
+            if (grapholEntity) {
+              eventDetail.entities.push({ entity: grapholEntity, grapholElement })
+            }
           }
         }
-        
-        if (grapholElement.isNode()) {
-          lifecycle.trigger(LifecycleEvent.NodeSelection, grapholElement)
+      })
+
+      if (eventDetail.elements.nodes.length + eventDetail.elements.edges.length === 1) {
+        if (eventDetail.entities.length === 1) {
+          lifecycle.trigger(LifecycleEvent.EntitySelection, eventDetail.entities[0].entity, eventDetail.entities[0].grapholElement)
         }
 
-        if (grapholElement.isEdge()) {
-          lifecycle.trigger(LifecycleEvent.EdgeSelection, grapholElement)
+        if (eventDetail.elements.nodes.length === 1) {
+          lifecycle.trigger(LifecycleEvent.NodeSelection, eventDetail.elements.nodes[0])
         }
+        
+        if (eventDetail.elements.edges.length === 1) {
+          lifecycle.trigger(LifecycleEvent.EdgeSelection, eventDetail.elements.edges[0])
+        }
+      } else {
+        lifecycle.trigger(LifecycleEvent.MultipleSelection, eventDetail)
       }
     })
 

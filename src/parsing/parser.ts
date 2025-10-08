@@ -62,8 +62,14 @@ export default class GrapholParser {
         if (!node) continue
 
         let grapholEntity: GrapholEntity | undefined
+        const isEntity = // do not use node.isEntity() cause iri is still undefined => not yet an entity element
+          node.is(TypesEnum.CLASS) ||
+          node.is(TypesEnum.DATA_PROPERTY) ||
+          node.is(TypesEnum.OBJECT_PROPERTY) ||
+          node.is(TypesEnum.INDIVIDUAL) ||
+          node.is(TypesEnum.ANNOTATION_PROPERTY)
 
-        if (node.isEntity() && grapholNodeType) {
+        if (isEntity && grapholNodeType) {
           const iri = this.graphol.getIri(nodeXmlElement, this.ontology)
           if (iri) {
             grapholEntity = this.ontology.entities.get(iri.fullIri)

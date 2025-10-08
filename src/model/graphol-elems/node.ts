@@ -297,7 +297,7 @@ export function isGrapholNode(elem: GrapholElement): elem is GrapholNode {
   return (elem as GrapholNode).isLabelXcentered !== undefined
 }
 
-class GrapholEntityNode extends GrapholNode {
+export class GrapholEntityNode extends GrapholNode {
   protected _iri: string
   get iri(): string {
     return this._iri

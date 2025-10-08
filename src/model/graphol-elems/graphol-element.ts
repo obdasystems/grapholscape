@@ -1,8 +1,8 @@
 import { ElementDefinition } from "cytoscape"
 import { Element, TypesEnum, FunctionPropertiesEnum, ElementAiGenerated } from "../rdf-graph/swagger"
 import GrapholEntity from "./entity"
-import { GrapholNode } from "./node"
-import { GrapholEdge } from "./edge"
+import { GrapholClassNode, GrapholEntityNode, GrapholNode } from "./node"
+import { GrapholEdge, GrapholObjectPropertyEdge } from "./edge"
 import { GrapholElementVisitor } from "./entity-visitor"
 
 export default class GrapholElement implements Element {
@@ -54,15 +54,17 @@ export default class GrapholElement implements Element {
    * 
    * @returns whether node is an entity
    */
-  isEntity(): boolean {
-    switch (this.type) {
-      case TypesEnum.DATA_PROPERTY:
-        return this.isNode()
-      case TypesEnum.CLASS:
-      case TypesEnum.OBJECT_PROPERTY:
-      case TypesEnum.ANNOTATION_PROPERTY:
-      case TypesEnum.INDIVIDUAL:
-        return true
+  isEntity(): this is (GrapholEntityNode | GrapholObjectPropertyEdge) {
+    if (this.iri) {
+      switch (this.type) {
+        case TypesEnum.DATA_PROPERTY:
+          return this.isNode()
+        case TypesEnum.CLASS:
+        case TypesEnum.OBJECT_PROPERTY:
+        case TypesEnum.ANNOTATION_PROPERTY:
+        case TypesEnum.INDIVIDUAL:
+          return true
+      }
     }
 
     return false

@@ -17,6 +17,7 @@ export enum LifecycleEvent {
   EntitySelection = 'entitySelection',
   NodeSelection = 'nodeSelection',
   EdgeSelection = 'edgeSelection',
+  MultipleSelection = 'multipleSelection',
   LanguageChange = 'languageChange',
   EntityNameTypeChange = 'entityNameTypeChange',
   Filter = 'filter',
@@ -35,6 +36,7 @@ export interface IonEvent {
   (event: LifecycleEvent.EntitySelection, callback: (entity: GrapholEntity, instance: GrapholElement) => void): void
   (event: LifecycleEvent.NodeSelection, callback: (node: GrapholNode) => void): void
   (event: LifecycleEvent.EdgeSelection, callback: (edge: GrapholEdge) => void): void
+  (event: LifecycleEvent.MultipleSelection, callback: (selectedElements: MultipleSelectionEventDetail) => void): void
   (event: LifecycleEvent.ThemeChange, callback: (theme: GrapholscapeTheme) => void): void
   (event: LifecycleEvent.DiagramChange, callback: (diagram: Diagram) => void): void
   (event: LifecycleEvent.RendererChange, callback: (renderer: RendererStatesEnum) => void): void
@@ -56,6 +58,7 @@ export interface IEventTriggers {
   (event: LifecycleEvent.EntitySelection, entity: GrapholEntity, instance: GrapholElement): void
   (event: LifecycleEvent.NodeSelection, node: GrapholNode): void
   (event: LifecycleEvent.EdgeSelection, edge: GrapholEdge): void
+  (event: LifecycleEvent.MultipleSelection, selectedElements: MultipleSelectionEventDetail): void
   (event: LifecycleEvent.ThemeChange, theme: GrapholscapeTheme): void
   (event: LifecycleEvent.DiagramChange, diagram: Diagram): void
   (event: LifecycleEvent.RendererChange, renderer: RendererStatesEnum): void
@@ -73,11 +76,23 @@ export interface IEventTriggers {
   (event: LifecycleEvent.EntityWikiLinkClick, iri: string): void
 }
 
+export type MultipleSelectionEventDetail = {
+  elements: {
+    nodes: GrapholNode[],
+    edges: GrapholEdge[],
+  },
+  entities: {
+    grapholElement: GrapholElement,
+    entity: GrapholEntity,
+  }[],
+}
+
 export default class Lifecycle {
   private diagramChange: ((diagram: Diagram) => void)[] = []
   private rendererChange: ((renderer: string) => void)[] = []
   private themeChange: ((theme: GrapholscapeTheme) => void)[] = []
   private entitySelection: ((entity: GrapholEntity) => void)[] = []
+  private multipleSelection: ((selectedElements: MultipleSelectionEventDetail) => void)[] = []
   private nodeSelection: ((grapholNode: GrapholNode) => void)[] = []
   private edgeSelection: ((grapholEdge: GrapholEdge) => void)[] = []
   private languageChange: ((language: Language) => void)[] = []
