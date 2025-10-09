@@ -24,6 +24,12 @@ export interface SHACLShape {
      * @type {string}
      * @memberof SHACLShape
      */
+    id?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SHACLShape
+     */
     type: SHACLShapeTypeEnum;
     /**
      * 
@@ -56,6 +62,7 @@ export interface SHACLShape {
 * @enum {string}
 */
 export enum SHACLShapeTypeEnum {
+    CLASS = 'Class',
     MIN_COUNT = 'MinCount',
     MAX_COUNT = 'MaxCount',
     MIN_EXCLUSIVE = 'MinExclusive',
@@ -69,9 +76,7 @@ export enum SHACLShapeTypeEnum {
     EQUALS = 'Equals',
     DISJOINT = 'Disjoint',
     LESS_THAN = 'LessThan',
-    LESS_THAN_OR_EQUALS = 'LessThanOrEquals',
-    GREATER_THAN = 'GreaterThan',
-    GREATER_THAN_OR_EQUALS = 'GreaterThanOrEquals'
+    LESS_THAN_OR_EQUALS = 'LessThanOrEquals'
 }
 
 
@@ -97,6 +102,7 @@ export function SHACLShapeFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     }
     return {
         
+        'id': !exists(json, 'id') ? undefined : json['id'],
         'type': json['type'],
         'targetClass': json['targetClass'],
         'path': json['path'],
@@ -114,6 +120,7 @@ export function SHACLShapeToJSON(value?: SHACLShape | null): any {
     }
     return {
         
+        'id': value.id,
         'type': value.type,
         'targetClass': value.targetClass,
         'path': value.path,
