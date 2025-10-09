@@ -398,21 +398,20 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
 
 const viewSHACLShapeInfo: {[x in SHACLShapeTypeEnum]: { label: string, operator?: string }} = {
   [SHACLShapeTypeEnum.MIN_COUNT]: { label: 'Min. Cardinality:' },
-  [SHACLShapeTypeEnum.MAX_COUNT]: { label: 'Max. Cardinality:'},
-  [SHACLShapeTypeEnum.MIN_EXCLUSIVE]: { label:'Values must be', operator: '>=' },
-  [SHACLShapeTypeEnum.MIN_INCLUSIVE]: { label:'Values must be', operator: '>' },
-  [SHACLShapeTypeEnum.MAX_EXCLUSIVE]: { label:'Values must be', operator: '<=' },
-  [SHACLShapeTypeEnum.MAX_INCLUSIVE]: { label:'Values must be', operator: '<' },
-  [SHACLShapeTypeEnum.MIN_LENGTH]: { label:'Min. Length:' },
-  [SHACLShapeTypeEnum.MAX_LENGTH]: { label:'Max. Length:' },
-  [SHACLShapeTypeEnum.PATTERN]: { label:'Regular Expression:' },
-  [SHACLShapeTypeEnum.IN]: { label:'Admitted Values:' },
-  [SHACLShapeTypeEnum.EQUALS]: { label:'Values must be', operator: '=' },
-  [SHACLShapeTypeEnum.DISJOINT]: { label:'Values must be', operator: '!=' },
-  [SHACLShapeTypeEnum.LESS_THAN]: { label:'Values must be', operator: '<' },
-  [SHACLShapeTypeEnum.LESS_THAN_OR_EQUALS]: { label:'Values must be', operator: '<=' },
-  [SHACLShapeTypeEnum.GREATER_THAN]: { label:'Values must be', operator: '>' },
-  [SHACLShapeTypeEnum.GREATER_THAN_OR_EQUALS]: { label:'Values must be', operator: '>=' },
+  [SHACLShapeTypeEnum.MAX_COUNT]: { label: 'Max. Cardinality:' },
+  [SHACLShapeTypeEnum.MIN_EXCLUSIVE]: { label: 'Values must be', operator: '>=' },
+  [SHACLShapeTypeEnum.MIN_INCLUSIVE]: { label: 'Values must be', operator: '>' },
+  [SHACLShapeTypeEnum.MAX_EXCLUSIVE]: { label: 'Values must be', operator: '<=' },
+  [SHACLShapeTypeEnum.MAX_INCLUSIVE]: { label: 'Values must be', operator: '<' },
+  [SHACLShapeTypeEnum.MIN_LENGTH]: { label: 'Min. Length:' },
+  [SHACLShapeTypeEnum.MAX_LENGTH]: { label: 'Max. Length:' },
+  [SHACLShapeTypeEnum.PATTERN]: { label: 'Regular Expression:' },
+  [SHACLShapeTypeEnum.IN]: { label: 'Admitted Values:' },
+  [SHACLShapeTypeEnum.EQUALS]: { label: 'Values must be', operator: '=' },
+  [SHACLShapeTypeEnum.DISJOINT]: { label: 'Values must be', operator: '!=' },
+  [SHACLShapeTypeEnum.LESS_THAN]: { label: 'Values must be', operator: '<' },
+  [SHACLShapeTypeEnum.LESS_THAN_OR_EQUALS]: { label: 'Values must be', operator: '<=' },
+  [SHACLShapeTypeEnum.CLASS]: { label: 'Has class' }
 }
 
 customElements.define('gscape-entity-details', GscapeEntityDetails)
