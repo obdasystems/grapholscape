@@ -1,11 +1,6 @@
 import { css } from "lit";
 
 export default css`
-:host {
-  display: inline-block;
-  pointer-events: none !important;
-}
-
 .btn {
   border-radius: var(--gscape-border-radius-btn);
   border: 1px solid var(--gscape-color-border-subtle);

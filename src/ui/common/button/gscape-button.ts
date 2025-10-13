@@ -39,6 +39,11 @@ export default class GscapeButton extends BaseMixin(LitElement) {
     buttonStyle, 
     contentSpinnerStyle,
     css`
+      :host {
+        display: inline-block;
+        pointer-events: none !important;
+      }
+
       .lds-ring, .lds-ring div {
         border-top-color: currentColor;
       }

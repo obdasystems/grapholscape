@@ -55,7 +55,7 @@ export default class GscapeSelect extends TippyDropPanelMixin(BaseMixin(LitEleme
     GscapeButtonStyle,
     css`
       :host {
-        width: 100%;
+        display: inline-block;
       }
 
       gscape-button {
