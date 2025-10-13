@@ -85,6 +85,7 @@ export type MultipleSelectionEventDetail = {
     grapholElement: GrapholElement,
     entity: GrapholEntity,
   }[],
+  target?: GrapholElement,
 }
 
 export default class Lifecycle {

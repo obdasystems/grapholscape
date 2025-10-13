@@ -23,6 +23,7 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
   grapholscape.on(LifecycleEvent.EntitySelection, setGrapholEntity)
 
   grapholscape.on(LifecycleEvent.NodeSelection, node => {
+    entityDetailsComponent.grapholEntities = undefined
     if (node.is(TypesEnum.IRI) && node.iri) {
       const tempEntity = new GrapholEntity(new Iri(node.iri, grapholscape.ontology.namespaces))
       setGrapholEntity(tempEntity, node)
@@ -31,8 +32,22 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
   })
 
   grapholscape.on(LifecycleEvent.EdgeSelection, edge => {
+    entityDetailsComponent.grapholEntities = undefined
     if (!edge.isEntity())
       entityDetailsComponent.hide()
+  })
+
+  grapholscape.on(LifecycleEvent.MultipleSelection, evtDetail => {
+    entityDetailsComponent.grapholEntities = evtDetail
+    if (evtDetail.target?.iri) {
+      const selectedEntity = evtDetail.entities.find(e => e.entity.iri.equals(evtDetail.target!.iri!))
+      if (selectedEntity) {
+        setGrapholEntity(selectedEntity.entity, selectedEntity.grapholElement)
+      }
+    }
+    evtDetail.entities.length === 0
+      ? entityDetailsComponent.hide()
+      : entityDetailsComponent.show()
   })
 
   grapholscape.on(LifecycleEvent.LanguageChange, language => {
@@ -73,7 +88,7 @@ export default function (entityDetailsComponent: GscapeEntityDetails, grapholsca
               constraintValue: c.constraintValue,
               targetClass: grapholscape.ontology.getEntity(c.targetClass),
             }
-            constraints.set(c.type, [...(constraints.get(c.type) || []), shaclViewData ])
+            constraints.set(c.type, [...(constraints.get(c.type) || []), shaclViewData])
           })
         })
       } else if (instance.is(TypesEnum.OBJECT_PROPERTY) && instance.isEdge()) {

@@ -1,6 +1,6 @@
 import { css, html, LitElement } from 'lit'
-import { EntityNameType, GrapholElement, GrapholEntity, TypesEnum } from '../../model'
-import { blankSlateDiagrams, commentIcon, domain, infoFilled, minus, plus, range, shieldCheck, swapHorizontal } from '../assets/icons'
+import { EntityNameType, GrapholElement, GrapholEntity, MultipleSelectionEventDetail, TypesEnum } from '../../model'
+import { blankSlateDiagrams, commentIcon, domain, entityIcons, infoFilled, minus, plus, range, shieldCheck, swapHorizontal } from '../assets/icons'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
 import { GscapeButtonStyle } from '../common/button'
 import { BaseMixin, DropPanelMixin } from '../common/mixins'
@@ -9,9 +9,11 @@ import { DiagramViewData, getEntityOccurrencesTemplate, OccurrenceIdViewData } f
 import commentsTemplate from '../common/comments-template'
 import { SHACLShapeTypeEnum } from '../../model/rdf-graph/swagger'
 import { SHACLShapeViewData } from '../view-model'
+import { SelectOption } from '../common/gscape-select'
 
 export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Entity Details'
+  grapholEntities?: MultipleSelectionEventDetail
   grapholEntity: GrapholEntity
   currentOccurrence?: GrapholElement
   occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>
@@ -41,6 +43,7 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
       _isPanelClosed: { type: Boolean, attribute: false },
       incrementalSection: {type: Object, attribute: false },
       constraints: { type: Array },
+      grapholEntities: { type: Object },
     }
   }
 
@@ -139,6 +142,31 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
     if (!this.grapholEntity) return
     return html`
       <div class="gscape-panel ellipsed" id="drop-panel">
+        ${this.grapholEntities
+          ? html`
+            <div style="display: flex; justify-content: center">
+              <gscape-select
+                @change=${(e) => {
+                  const selectedEntity = this.grapholEntities
+                    ?.entities
+                    .find(entity => entity.entity.iri.equals(e.currentTarget.selectedOptionsId[0]))
+
+                  if (selectedEntity) {
+                    this.setGrapholEntity(selectedEntity?.entity, selectedEntity?.grapholElement)
+                  }
+                }}
+                .selectedOptionsId=${[this.grapholEntity.iri.fullIri]}
+                .options=${this.grapholEntities?.entities.map(e => ({
+                  id: e.entity.fullIri,
+                  text: e.grapholElement.displayedName,
+                  leadingIcon: entityIcons[e.grapholElement.type],
+                } as SelectOption))}
+              ></gscape-select>
+            </div>
+          `
+          : null
+        }
+
         ${itemWithIriTemplate(this.entityForTemplate, this.onWikiLinkClick, this.currentOccurrence?.is(TypesEnum.IRI))}
 
         <div class="content-wrapper">

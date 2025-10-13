@@ -287,7 +287,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   }
 
   getEntity(iri: string | Iri) {
-    return this.entities.get(iri.toString())
+    return iri ? this.entities.get(iri.toString()) : undefined
   }
 
   getEntitiesByType(entityType: TypesEnum) {
