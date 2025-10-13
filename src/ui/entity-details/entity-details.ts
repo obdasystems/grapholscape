@@ -1,15 +1,15 @@
 import { css, html, LitElement } from 'lit'
 import { EntityNameType, GrapholElement, GrapholEntity, MultipleSelectionEventDetail, TypesEnum } from '../../model'
-import { blankSlateDiagrams, commentIcon, domain, entityIcons, infoFilled, minus, plus, range, shieldCheck, swapHorizontal } from '../assets/icons'
+import { SHACLShapeTypeEnum } from '../../model/rdf-graph/swagger'
+import { blankSlateDiagrams, domain, entityIcons, infoFilled, minus, plus, range, shieldCheck, swapHorizontal } from '../assets/icons'
 import { annotationsStyle, annotationsTemplate, itemWithIriTemplate, itemWithIriTemplateStyle, ViewItemWithIri } from '../common/annotations-template'
 import { GscapeButtonStyle } from '../common/button'
+import commentsTemplate from '../common/comments-template'
+import { SelectOption } from '../common/gscape-select'
 import { BaseMixin, DropPanelMixin } from '../common/mixins'
 import baseStyle from '../style'
 import { DiagramViewData, getEntityOccurrencesTemplate, OccurrenceIdViewData } from '../util/get-entity-view-occurrences'
-import commentsTemplate from '../common/comments-template'
-import { SHACLShapeTypeEnum } from '../../model/rdf-graph/swagger'
 import { SHACLShapeViewData } from '../view-model'
-import { SelectOption } from '../common/gscape-select'
 
 export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitElement)) {
   title = 'Entity Details'
@@ -153,6 +153,13 @@ export default class GscapeEntityDetails extends DropPanelMixin(BaseMixin(LitEle
 
                   if (selectedEntity) {
                     this.setGrapholEntity(selectedEntity?.entity, selectedEntity?.grapholElement)
+                    this.updateComplete.then(() => {
+                      this.dispatchEvent(new CustomEvent('multi-entity-change', {
+                        bubbles: true,
+                        composed: true,
+                        detail: selectedEntity,
+                      }))
+                    })
                   }
                 }}
                 .selectedOptionsId=${[this.grapholEntity.iri.fullIri]}
