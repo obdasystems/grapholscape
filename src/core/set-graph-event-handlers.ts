@@ -6,8 +6,6 @@ export default function setGraphEventHandlers(diagram: Diagram, lifecycle: Lifec
   diagram.representations.forEach(diagramRepresentation => {
     const cy = diagramRepresentation.cy
     if (cy.scratch('_gscape-graph-handlers-set')) return
-
-    // cy.on('box', () => console.log(cy.$(':selected')))
     let timeout: number | NodeJS.Timeout = setTimeout(() => { }, 100)
     let selection: Collection = cy.collection()
     cy.on('tap box', _evt => {
@@ -23,8 +21,6 @@ export default function setGraphEventHandlers(diagram: Diagram, lifecycle: Lifec
       clearTimeout(timeout)
 
       timeout = setTimeout((evt: EventObject, selectedElements: Collection) => {
-        console.log(evt.target.data().iri, evt.type)
-        // let selectedElements = evt.originalEvent?.ctrlKey ? cy.$(':selected').union(evt.target) : evt.target
         if (!evt.type.startsWith('box')) {
           cy.nodes().difference(selectedElements).forEach(n => {
             if (selectedElements.nodes().some((elem: NodeSingular) => {
