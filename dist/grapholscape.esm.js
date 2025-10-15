@@ -15795,10 +15795,10 @@ GscapeEntityDetails.styles = [
 const viewSHACLShapeInfo = {
     [SHACLShapeTypeEnum.MIN_COUNT]: { label: 'Min. Cardinality:' },
     [SHACLShapeTypeEnum.MAX_COUNT]: { label: 'Max. Cardinality:' },
-    [SHACLShapeTypeEnum.MIN_EXCLUSIVE]: { label: 'Values must be', operator: '>=' },
-    [SHACLShapeTypeEnum.MIN_INCLUSIVE]: { label: 'Values must be', operator: '>' },
-    [SHACLShapeTypeEnum.MAX_EXCLUSIVE]: { label: 'Values must be', operator: '<=' },
-    [SHACLShapeTypeEnum.MAX_INCLUSIVE]: { label: 'Values must be', operator: '<' },
+    [SHACLShapeTypeEnum.MIN_EXCLUSIVE]: { label: 'Values must be', operator: '>' },
+    [SHACLShapeTypeEnum.MIN_INCLUSIVE]: { label: 'Values must be', operator: '>=' },
+    [SHACLShapeTypeEnum.MAX_EXCLUSIVE]: { label: 'Values must be', operator: '<' },
+    [SHACLShapeTypeEnum.MAX_INCLUSIVE]: { label: 'Values must be', operator: '<=' },
     [SHACLShapeTypeEnum.MIN_LENGTH]: { label: 'Min. Length:' },
     [SHACLShapeTypeEnum.MAX_LENGTH]: { label: 'Max. Length:' },
     [SHACLShapeTypeEnum.PATTERN]: { label: 'Regular Expression:' },
@@ -17436,7 +17436,7 @@ class GscapeSettings extends TippyDropPanelMixin(BaseMixin(s), 'left') {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.1.1"}</span>
+            <span>${"4.1.2"}</span>
           </div>
         </div>
       </div>
