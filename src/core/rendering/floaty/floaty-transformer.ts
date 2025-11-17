@@ -88,6 +88,60 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     }
   }
 
+  static removeUnnecessaryOWLThingProperties(ontology: Ontology) {
+    ontology.diagrams.forEach(diagram => {
+      const representation = diagram.representations.get(RendererStatesEnum.FLOATY)
+      if (!representation) return
+
+      const owlThingCyNode = representation.cy.$(`[ iri = "${DefaultNamespaces.OWL.toString()}Thing"]`).nodes().first()
+      if (owlThingCyNode.empty()) return
+
+      owlThingCyNode.connectedEdges().forEach(edge => {
+        let propertyIri: string | undefined, propertyGrapholElem: GrapholElement | undefined
+        if (edge.data('type') === TypesEnum.OBJECT_PROPERTY) {
+          if (!edge.isLoop()) {
+            return
+          }
+          propertyIri = edge.data('iri')
+          propertyGrapholElem = representation.grapholElements.get(edge.id())
+        } else {
+          propertyIri = edge.connectedNodes(`[type = "${TypesEnum.DATA_PROPERTY}"]`).first().data('iri')
+          propertyGrapholElem = representation.grapholElements.get(edge.connectedNodes(`[type = "${TypesEnum.DATA_PROPERTY}"]`).first().id())
+        }
+
+        if (propertyIri && propertyGrapholElem) {
+          const propertyEntity = ontology.getEntity(propertyIri)
+          if (propertyEntity) {
+            let canBeRemoved = false
+
+            if (propertyEntity.is(TypesEnum.DATA_PROPERTY)) {
+              canBeRemoved = (propertyEntity.occurrences.get(RendererStatesEnum.FLOATY) || []).length! > 1
+            } else if (propertyEntity.is(TypesEnum.OBJECT_PROPERTY)) {
+              // can be removed if there is at least another occurrence different from this one that is a loop on owl:Thing
+              for (let occurrence of propertyEntity.occurrences.get(RendererStatesEnum.FLOATY) || []) {
+                if (occurrence.id !== propertyGrapholElem.id && occurrence.diagramId !== diagram.id) {
+                  canBeRemoved = !ontology.getDiagram(occurrence.diagramId!)?.representations.get(RendererStatesEnum.FLOATY)?.cy.$id(occurrence.id).isLoop()
+                  if (canBeRemoved)
+                    break
+                }
+              }
+            }
+
+            if (canBeRemoved) {
+              propertyEntity.removeOccurrence(propertyGrapholElem, RendererStatesEnum.FLOATY)
+              representation.removeElement(propertyGrapholElem.id)
+              representation.removeElement(edge.id())
+            }
+          }
+        }
+      })
+
+      if (owlThingCyNode.degree(true) === 0) {
+        representation.removeElement(owlThingCyNode.id())
+      }
+    })
+  }
+
   private makeEdgesStraight() {
     this.result.cy.$('edge').forEach(edge => {
       const grapholEdge = this.getGrapholElement(edge.id()) as GrapholEdge

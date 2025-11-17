@@ -82,6 +82,7 @@ export default class FloatyRendererState extends BaseRenderer {
 
   postOntologyTransform(grapholscape: Grapholscape) {
     FloatyTransformer.addAnnotationPropertyEdges(grapholscape)
+    FloatyTransformer.removeUnnecessaryOWLThingProperties(grapholscape.ontology)
   }
 
   runLayout(customOptions?: any): Promise<void> {
