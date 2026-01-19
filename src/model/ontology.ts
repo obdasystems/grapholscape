@@ -217,7 +217,16 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
 
   /** @param {Namespace} namespace */
   addNamespace(namespace: Namespace) {
-    this.namespaces.push(namespace)
+    const ns = this.namespaces.find(ns => ns.value === namespace.value)
+    if (ns) {
+      namespace.prefixes.forEach(newPrefix => {
+        if (!ns.hasPrefix(newPrefix)) {
+          ns.addPrefix(newPrefix)
+        }
+      })
+    } else {
+      this.namespaces.push(namespace)
+    }
   }
 
   /**
