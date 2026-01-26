@@ -10,7 +10,11 @@ export default function parseRDFGraph(rdfGraph: RDFGraph) {
     : RendererStatesEnum.INCREMENTAL
 
   const ontology = getOntology(rdfGraph)
-  ontology.entities = getEntities(rdfGraph, ontology.namespaces)
+  ontology.entities = new Map(
+    Array.from(getEntities(rdfGraph, ontology.namespaces))
+      .concat(Array.from(getClassInstances(rdfGraph, this.ontology.namespaces)))
+  )
+  // ontology.entities = getEntities(rdfGraph, ontology.namespaces)
 
   // const classInstances = getClassInstances(rdfGraph, ontology.namespaces)
   // let incrementalDiagram: IncrementalDiagram
