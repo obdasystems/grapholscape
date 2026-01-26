@@ -2,7 +2,7 @@ import { Language } from "./config";
 import FloatyTransformer from "./core/rendering/floaty/floaty-transformer";
 import { IIncremental } from "./incremental/i-incremental";
 import { Diagram, DiagramRepresentation, EntityNameType, GrapholscapeTheme, Ontology, Position, RendererStatesEnum, Viewport } from "./model";
-import { Edge, Node, RDFGraph, RDFGraphModelTypeEnum } from "./model/rdf-graph/swagger";
+import { Edge, GrapholscapeEntity, Node, RDFGraph, RDFGraphModelTypeEnum } from "./model/rdf-graph/swagger";
 
 export interface IGscape {
   ontology: Ontology
@@ -27,9 +27,15 @@ export interface IGscape {
 export default function (grapholscape: IGscape, modelType = RDFGraphModelTypeEnum.ONTOLOGY) {
   const ontology = grapholscape.ontology
 
+  const usedLanguages: Set<string | undefined> = new Set()
+  let entityJSON: GrapholscapeEntity
   const result: RDFGraph = {
     diagrams: [],
-    entities: Array.from(ontology.entities.values()).map(e => e.json()),
+    entities: Array.from(ontology.entities.values()).map(e => {
+      entityJSON = e.json()
+      entityJSON.annotations?.forEach(ann => usedLanguages.add(ann.language))
+      return entityJSON
+    }),
     modelType: modelType,
     metadata: {
       name: ontology.name,
@@ -42,8 +48,9 @@ export default function (grapholscape: IGscape, modelType = RDFGraphModelTypeEnu
       }),
       iri: ontology.iri,
       defaultLanguage: ontology.defaultLanguage,
-      languages: ontology.languages,
+      // languages: ontology.languages,
       annotations: ontology.getAnnotations().map(ann => {
+        usedLanguages.add(ann.language)
         return {
           property: ann.property,
           value: ann.value,
@@ -56,6 +63,7 @@ export default function (grapholscape: IGscape, modelType = RDFGraphModelTypeEnu
     },
     constraints: Array.from(ontology.shaclConstraints.values()).flat()
   }
+  result.metadata.languages = Array.from(usedLanguages).filter(l => l !== undefined)
 
   let diagrams: Diagram[] = []
   if (modelType === RDFGraphModelTypeEnum.VKG) {
