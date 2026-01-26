@@ -12,7 +12,7 @@ export default function parseRDFGraph(rdfGraph: RDFGraph) {
   const ontology = getOntology(rdfGraph)
   ontology.entities = new Map(
     Array.from(getEntities(rdfGraph, ontology.namespaces))
-      .concat(Array.from(getClassInstances(rdfGraph, this.ontology.namespaces)))
+      .concat(Array.from(getClassInstances(rdfGraph, ontology.namespaces)))
   )
   // ontology.entities = getEntities(rdfGraph, ontology.namespaces)
 
