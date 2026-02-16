@@ -21,6 +21,7 @@ export interface Command {
   description?: string,
   disabled?: boolean,
   hidden?: boolean,
+  shortcut?: string,
 }
 
 export type CommandList = Command[] | { searchable: boolean, commands: Command[] }
@@ -97,6 +98,12 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
         display: flex;
         align-items: center;
         justify-content: center;
+      }
+
+      .shortcut {
+        color: var(--gscape-color-fg-subtle);
+        font-size: 0.9em;
+        margin-left: 48px;
       }
     `
   ]
@@ -234,16 +241,15 @@ export default class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(L
                 ${command.icon ? html`<span class="command-icon slotted-icon">${command.icon}</span>` : null}
                 <span class="command-text">${command.content}</span>
 
-                <span style="min-width: 20px">
-                  ${this.loadingCommandsIds.includes(id.toString())
-                    ? html`<span class="command-icon slotted-icon">${getContentSpinner()}</span>`
-                    : command.subCommands
-                      ? html`
-                        <span class="command-icon slotted-icon">${arrow_right}</span>
-                      `
-                    : null
-                  }
-                </span>
+                ${command.shortcut ? html`<span class="shortcut">${command.shortcut}</span>` : null}
+                ${this.loadingCommandsIds.includes(id.toString())
+                  ? html`<span class="command-icon slotted-icon" style="min-width: 20px">${getContentSpinner()}</span>`
+                  : command.subCommands
+                    ? html`
+                      <span class="command-icon slotted-icon" style="min-width: 20px">${arrow_right}</span>
+                    `
+                  : null
+                }
               </div>
             `
           })}
