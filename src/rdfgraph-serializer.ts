@@ -63,7 +63,7 @@ export default function (grapholscape: IGscape, modelType = RDFGraphModelTypeEnu
     },
     constraints: Array.from(ontology.shaclConstraints.values()).flat()
   }
-  result.metadata.languages = Array.from(usedLanguages).filter(l => l !== undefined)
+  result.metadata.languages = Array.from(usedLanguages).filter(l => l !== undefined) as string[]
 
   let diagrams: Diagram[] = []
   if (modelType === RDFGraphModelTypeEnum.VKG) {
