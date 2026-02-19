@@ -332,7 +332,7 @@ export default abstract class Grapholscape {
       this.displayedNamesManager.setEntityNameType(newConfig.entityNameType)
     }
 
-    if (newConfig.renderers) {
+    if (newConfig.renderers && newConfig.renderers.length > 0) {
       this.availableRenderers = newConfig.renderers
     }
 
@@ -376,7 +376,7 @@ export default abstract class Grapholscape {
       }
     }
 
-    if (newConfig.themes) {
+    if (newConfig.themes && newConfig.themes.length > 0) {
       this.themesManager.removeThemes()
       newConfig.themes.forEach(newTheme => {
         const _castedNewTheme = newTheme as GrapholscapeTheme
@@ -395,7 +395,7 @@ export default abstract class Grapholscape {
 
     if (newConfig.selectedTheme && this.themeList.map(theme => theme.id).includes(newConfig.selectedTheme)) {
       this.themesManager.setTheme(newConfig.selectedTheme)
-    } else if (!this.themeList.includes(this.theme)) {
+    } else if (!this.themeList.includes(this.theme) && this.themeList[0]) {
       this.themesManager.setTheme(this.themeList[0].id)
     }
 
