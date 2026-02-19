@@ -4669,6 +4669,7 @@ interface Command {
     description?: string;
     disabled?: boolean;
     hidden?: boolean;
+    shortcut?: string;
 }
 type CommandList = Command[] | {
     searchable: boolean;

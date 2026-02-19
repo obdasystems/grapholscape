@@ -5035,7 +5035,17 @@ class Ontology extends AnnotatedElement {
     }
     /** @param {Namespace} namespace */
     addNamespace(namespace) {
-        this.namespaces.push(namespace);
+        const ns = this.namespaces.find(ns => ns.value === namespace.value);
+        if (ns) {
+            namespace.prefixes.forEach(newPrefix => {
+                if (!ns.hasPrefix(newPrefix)) {
+                    ns.addPrefix(newPrefix);
+                }
+            });
+        }
+        else {
+            this.namespaces.push(namespace);
+        }
     }
     /**
      * Get the Namspace object given its IRI string
@@ -7108,6 +7118,58 @@ class FloatyTransformer extends BaseGrapholTransformer {
             });
         }
     }
+    static removeUnnecessaryOWLThingProperties(ontology) {
+        ontology.diagrams.forEach(diagram => {
+            const representation = diagram.representations.get(RendererStatesEnum.FLOATY);
+            if (!representation)
+                return;
+            const owlThingCyNode = representation.cy.$(`[ iri = "${DefaultNamespaces.OWL.toString()}Thing"]`).nodes().first();
+            if (owlThingCyNode.empty())
+                return;
+            owlThingCyNode.connectedEdges().forEach(edge => {
+                var _a, _b;
+                let propertyIri, propertyGrapholElem;
+                if (edge.data('type') === TypesEnum.OBJECT_PROPERTY) {
+                    if (!edge.isLoop()) {
+                        return;
+                    }
+                    propertyIri = edge.data('iri');
+                    propertyGrapholElem = representation.grapholElements.get(edge.id());
+                }
+                else {
+                    propertyIri = edge.connectedNodes(`[type = "${TypesEnum.DATA_PROPERTY}"]`).first().data('iri');
+                    propertyGrapholElem = representation.grapholElements.get(edge.connectedNodes(`[type = "${TypesEnum.DATA_PROPERTY}"]`).first().id());
+                }
+                if (propertyIri && propertyGrapholElem) {
+                    const propertyEntity = ontology.getEntity(propertyIri);
+                    if (propertyEntity) {
+                        let canBeRemoved = false;
+                        if (propertyEntity.is(TypesEnum.DATA_PROPERTY)) {
+                            canBeRemoved = (propertyEntity.occurrences.get(RendererStatesEnum.FLOATY) || []).length > 1;
+                        }
+                        else if (propertyEntity.is(TypesEnum.OBJECT_PROPERTY)) {
+                            // can be removed if there is at least another occurrence different from this one that is a loop on owl:Thing
+                            for (let occurrence of propertyEntity.occurrences.get(RendererStatesEnum.FLOATY) || []) {
+                                if (occurrence.id !== propertyGrapholElem.id && occurrence.diagramId !== diagram.id) {
+                                    canBeRemoved = !((_b = (_a = ontology.getDiagram(occurrence.diagramId)) === null || _a === void 0 ? void 0 : _a.representations.get(RendererStatesEnum.FLOATY)) === null || _b === void 0 ? void 0 : _b.cy.$id(occurrence.id).isLoop());
+                                    if (canBeRemoved)
+                                        break;
+                                }
+                            }
+                        }
+                        if (canBeRemoved) {
+                            propertyEntity.removeOccurrence(propertyGrapholElem, RendererStatesEnum.FLOATY);
+                            representation.removeElement(propertyGrapholElem.id);
+                            representation.removeElement(edge.id());
+                        }
+                    }
+                }
+            });
+            if (owlThingCyNode.degree(true) === 0) {
+                representation.removeElement(owlThingCyNode.id());
+            }
+        });
+    }
     makeEdgesStraight() {
         this.result.cy.$('edge').forEach(edge => {
             const grapholEdge = this.getGrapholElement(edge.id());
@@ -7345,9 +7407,16 @@ class FloatyTransformer extends BaseGrapholTransformer {
 /** @internal */
 function rdfgraphSerializer (grapholscape, modelType = RDFGraphModelTypeEnum.ONTOLOGY) {
     const ontology = grapholscape.ontology;
+    const usedLanguages = new Set();
+    let entityJSON;
     const result = {
         diagrams: [],
-        entities: Array.from(ontology.entities.values()).map(e => e.json()),
+        entities: Array.from(ontology.entities.values()).map(e => {
+            var _a;
+            entityJSON = e.json();
+            (_a = entityJSON.annotations) === null || _a === void 0 ? void 0 : _a.forEach(ann => usedLanguages.add(ann.language));
+            return entityJSON;
+        }),
         modelType: modelType,
         metadata: {
             name: ontology.name,
@@ -7360,8 +7429,9 @@ function rdfgraphSerializer (grapholscape, modelType = RDFGraphModelTypeEnum.ONT
             }),
             iri: ontology.iri,
             defaultLanguage: ontology.defaultLanguage,
-            languages: ontology.languages,
+            // languages: ontology.languages,
             annotations: ontology.getAnnotations().map(ann => {
+                usedLanguages.add(ann.language);
                 return {
                     property: ann.property,
                     value: ann.value,
@@ -7374,6 +7444,7 @@ function rdfgraphSerializer (grapholscape, modelType = RDFGraphModelTypeEnum.ONT
         },
         constraints: Array.from(ontology.shaclConstraints.values()).flat()
     };
+    result.metadata.languages = Array.from(usedLanguages).filter(l => l !== undefined);
     let diagrams = [];
     if (modelType === RDFGraphModelTypeEnum.VKG) {
         if (grapholscape.incremental) {
@@ -9126,6 +9197,7 @@ class FloatyRendererState extends BaseRenderer {
     }
     postOntologyTransform(grapholscape) {
         FloatyTransformer.addAnnotationPropertyEdges(grapholscape);
+        FloatyTransformer.removeUnnecessaryOWLThingProperties(grapholscape.ontology);
     }
     runLayout(customOptions) {
         return new Promise((resolve) => {
@@ -9928,7 +10000,9 @@ function parseRDFGraph(rdfGraph) {
         ? RendererStatesEnum.FLOATY
         : RendererStatesEnum.INCREMENTAL;
     const ontology = getOntology(rdfGraph);
-    ontology.entities = getEntities(rdfGraph, ontology.namespaces);
+    ontology.entities = new Map(Array.from(getEntities(rdfGraph, ontology.namespaces))
+        .concat(Array.from(getClassInstances(rdfGraph, ontology.namespaces))));
+    // ontology.entities = getEntities(rdfGraph, ontology.namespaces)
     // const classInstances = getClassInstances(rdfGraph, ontology.namespaces)
     // let incrementalDiagram: IncrementalDiagram
     if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
@@ -10393,7 +10467,7 @@ class Grapholscape {
         if (newConfig.entityNameType) {
             this.displayedNamesManager.setEntityNameType(newConfig.entityNameType);
         }
-        if (newConfig.renderers) {
+        if (newConfig.renderers && newConfig.renderers.length > 0) {
             this.availableRenderers = newConfig.renderers;
         }
         let rendererStateToSet = undefined;
@@ -10431,7 +10505,7 @@ class Grapholscape {
                 }
             }
         }
-        if (newConfig.themes) {
+        if (newConfig.themes && newConfig.themes.length > 0) {
             this.themesManager.removeThemes();
             newConfig.themes.forEach(newTheme => {
                 const _castedNewTheme = newTheme;
@@ -10448,7 +10522,7 @@ class Grapholscape {
         if (newConfig.selectedTheme && this.themeList.map(theme => theme.id).includes(newConfig.selectedTheme)) {
             this.themesManager.setTheme(newConfig.selectedTheme);
         }
-        else if (!this.themeList.includes(this.theme)) {
+        else if (!this.themeList.includes(this.theme) && this.themeList[0]) {
             this.themesManager.setTheme(this.themeList[0].id);
         }
         if (newConfig.widgets) {
@@ -12491,7 +12565,7 @@ class NodeButton extends ContextualWidgetMixin(BaseMixin(s)) {
             placement: "right",
             appendTo: ((ref) => {
                 return document.querySelector('.gscape-ui') || ref;
-            }) || undefined,
+            }),
             // content prop can be used when the target is a single element https://atomiks.github.io/tippyjs/v6/constructor/#prop
             content: this,
             offset: [0, 0],
@@ -12680,15 +12754,14 @@ class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(s)) {
                 ${command.icon ? x `<span class="command-icon slotted-icon">${command.icon}</span>` : null}
                 <span class="command-text">${command.content}</span>
 
-                <span style="min-width: 20px">
-                  ${this.loadingCommandsIds.includes(id.toString())
-                    ? x `<span class="command-icon slotted-icon">${getContentSpinner()}</span>`
+                ${command.shortcut ? x `<span class="shortcut">${command.shortcut}</span>` : null}
+                ${this.loadingCommandsIds.includes(id.toString())
+                    ? x `<span class="command-icon slotted-icon" style="min-width: 20px">${getContentSpinner()}</span>`
                     : command.subCommands
                         ? x `
-                        <span class="command-icon slotted-icon">${arrow_right}</span>
-                      `
+                      <span class="command-icon slotted-icon" style="min-width: 20px">${arrow_right}</span>
+                    `
                         : null}
-                </span>
               </div>
             `;
             })}
@@ -12819,6 +12892,12 @@ GscapeContextMenu.styles = [
         display: flex;
         align-items: center;
         justify-content: center;
+      }
+
+      .shortcut {
+        color: var(--gscape-color-fg-subtle);
+        font-size: 0.9em;
+        margin-left: 48px;
       }
     `
 ];
@@ -17436,7 +17515,7 @@ class GscapeSettings extends TippyDropPanelMixin(BaseMixin(s), 'left') {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.1.2"}</span>
+            <span>${"4.1.3-snap.0"}</span>
           </div>
         </div>
       </div>
