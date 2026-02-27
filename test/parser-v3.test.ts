@@ -117,7 +117,7 @@ describe('Test retrieving IRI of a node', () => {
   const output1 = {
     fullIri: 'http://www.obdasystems.com/testNode1',
     prefix: 'test',
-    raminder: 'Node1',
+    remainder: 'testNode1',
     prefixed: 'test:Node1',
     namespace: 'http://www.obdasystems.com/test'
   }
@@ -146,7 +146,7 @@ describe('Test retrieving IRI of a node', () => {
     const output2 = {
       fullIri: 'http://www.unkwown.com/testNode2',
       prefix: undefined,
-      remainder: 'http://www.unkwown.com/testNode2',
+      remainder: 'testNode2',
       prefixed: 'http://www.unkwown.com/testNode2',
       namespace: undefined
     }
