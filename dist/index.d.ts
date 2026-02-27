@@ -3441,7 +3441,7 @@ declare class Iri {
     private _remainder;
     fullIri: string;
     constructor(iri: string, namespaces: Namespace[], remainder?: string);
-    set remainder(value: string);
+    /** @readonly */
     get remainder(): string;
     private set namespace(value);
     get namespace(): Namespace | undefined;

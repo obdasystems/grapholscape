@@ -258,41 +258,18 @@ const DefaultNamespaces = {
 
 class Iri {
     constructor(iri, namespaces, remainder) {
-        let isPrefixed = false;
         this.fullIri = iri;
-        this.namespace = namespaces.find(n => {
-            if (iri.includes(n.toString()))
-                return true;
-            for (let prefix of n.prefixes) {
-                if (iri === `${prefix}:${iri.split(':')[1]}` && !iri.startsWith('http://')) {
-                    isPrefixed = true;
-                    return true;
-                }
-            }
-        });
-        if (remainder) {
-            this.remainder = remainder;
-        }
-        else {
-            if (!this.namespace) {
-                console.warn(`Namespace not found for [${iri}]. The prefix undefined has been assigned`);
-                // try {
-                //   const uri = new URL(iri)
-                //   this.remainder = uri.hash || uri.pathname.slice(uri.pathname.lastIndexOf('/') + 1)
-                //   this.namespace = new Namespace([], uri.toString().slice(0, uri.toString().length - this.remainder.length))
-                // } catch (e) {
-                //   this.remainder = iri
-                // }
-                this.remainder = iri;
-            }
-            else {
-                this.remainder = isPrefixed ? iri.split(':')[1] : iri.slice(this.namespace.toString().length);
+        let matchLength = 0;
+        for (let n of namespaces) {
+            if (iri.startsWith(n.toString()) && n.value.length > matchLength) {
+                this.namespace = n;
+                matchLength = n.value.length;
             }
         }
+        const lastSeparatorIndex = Math.max(this.fullIri.lastIndexOf('/'), this.fullIri.lastIndexOf('#'));
+        this._remainder = this.fullIri.substring(lastSeparatorIndex + 1);
     }
-    set remainder(value) {
-        this._remainder = value;
-    }
+    /** @readonly */
     get remainder() {
         return this._remainder;
     }
@@ -310,7 +287,9 @@ class Iri {
     //   return this.namespace?.toString() ? `${this.namespace.toString()}${this.remainder}` : this.remainder
     // }
     get prefixed() {
-        return this.prefix || this.prefix === '' ? `${this.prefix}:${this.remainder}` : `${this.remainder}`;
+        return this.prefix || this.prefix === ''
+            ? `${this.prefix}:${this.fullIri.split(this.namespace.value)[1]}`
+            : `${this.fullIri}`;
     }
     equals(iriToCheck) {
         if (typeof iriToCheck !== 'string') {
@@ -17515,7 +17494,7 @@ class GscapeSettings extends TippyDropPanelMixin(BaseMixin(s), 'left') {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.1.3-snap.0"}</span>
+            <span>${"4.1.3-snap.1"}</span>
           </div>
         </div>
       </div>
