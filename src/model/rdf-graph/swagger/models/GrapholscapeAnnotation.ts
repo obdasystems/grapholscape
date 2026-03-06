@@ -31,7 +31,7 @@ export interface GrapholscapeAnnotation {
      * @type {string}
      * @memberof GrapholscapeAnnotation
      */
-    value: string;
+    value?: string;
     /**
      * 
      * @type {boolean}
@@ -63,7 +63,6 @@ export interface GrapholscapeAnnotation {
  */
 export function instanceOfGrapholscapeAnnotation(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && "value" in value;
     isInstance = isInstance && "property" in value;
 
     return isInstance;
@@ -80,7 +79,7 @@ export function GrapholscapeAnnotationFromJSONTyped(json: any, ignoreDiscriminat
     return {
         
         'lexicalForm': !exists(json, 'lexicalForm') ? undefined : json['lexicalForm'],
-        'value': json['value'],
+        'value': !exists(json, 'value') ? undefined : json['value'],
         'hasIriValue': !exists(json, 'hasIriValue') ? undefined : json['hasIriValue'],
         'property': json['property'],
         'language': !exists(json, 'language') ? undefined : json['language'],
