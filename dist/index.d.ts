@@ -491,7 +491,7 @@ interface GrapholscapeAnnotation {
      * @type {string}
      * @memberof GrapholscapeAnnotation
      */
-    value: string;
+    value?: string;
     /**
      *
      * @type {boolean}

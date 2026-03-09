@@ -983,7 +983,6 @@ function FunctionPropertiesEnumToJSON(value) {
  */
 function instanceOfGrapholscapeAnnotation(value) {
     let isInstance = true;
-    isInstance = isInstance && "value" in value;
     isInstance = isInstance && "property" in value;
     return isInstance;
 }
@@ -996,7 +995,7 @@ function GrapholscapeAnnotationFromJSONTyped(json, ignoreDiscriminator) {
     }
     return {
         'lexicalForm': !exists(json, 'lexicalForm') ? undefined : json['lexicalForm'],
-        'value': json['value'],
+        'value': !exists(json, 'value') ? undefined : json['value'],
         'hasIriValue': !exists(json, 'hasIriValue') ? undefined : json['hasIriValue'],
         'property': json['property'],
         'language': !exists(json, 'language') ? undefined : json['language'],
@@ -17494,7 +17493,7 @@ class GscapeSettings extends TippyDropPanelMixin(BaseMixin(s), 'left') {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.1.3-snap.1"}</span>
+            <span>${"4.1.3-snap.2"}</span>
           </div>
         </div>
       </div>
