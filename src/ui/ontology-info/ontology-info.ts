@@ -121,8 +121,8 @@ export default class GscapeOntologyInfo extends TippyDropPanelMixin(BaseMixin(Li
       }
 
       .counter-bar[type = "class-instance"] {
-        background: var(--gscape-color-class-instance);
-        border: solid 1px var(--gscape-color-class-instance-contrast);
+        background: var(--gscape-color-individual);
+        border: solid 1px var(--gscape-color-individual-contrast);
       }
     `,
   ]

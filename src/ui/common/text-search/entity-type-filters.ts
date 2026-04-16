@@ -46,8 +46,8 @@ export default class GscapeEntityTypeFilters extends BaseMixin(LitElement) imple
       }
 
       .chip[entity-type = "class-instance"] {
-        color: var(--gscape-color-class-instance-contrast);
-        border-color: var(--gscape-color-class-instance-contrast);
+        color: var(--gscape-color-individual-contrast);
+        border-color: var(--gscape-color-individual-contrast);
       }
 
       .chip {
