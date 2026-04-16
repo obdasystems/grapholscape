@@ -8587,7 +8587,9 @@ function getNodeLabelColor(node, theme) {
          * 4.5:1 minimum contrast suggested by
          * https://www.w3.org/TR/WCAG20-TECHS/G18.html
          */
-        if (chroma.contrast(nodeBGColor, labelColor) > 4.5) {
+        const constrast1 = chroma.contrast(nodeBGColor, labelColor);
+        const constrast2 = chroma.contrast(nodeBGColor, theme.getColour(ColoursNames.label_contrast) || '#000');
+        if (Math.max(constrast1, constrast2) === constrast1) {
             return theme.getColour(ColoursNames.label);
         }
         else {
@@ -11316,10 +11318,10 @@ const authorIcon = b `<svg xmlns="http://www.w3.org/2000/svg" width="20" height=
 const addDiagramIcon = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="M746.5 801.5v-132h-132v-67h132v-132h67v132h132v67h-132v132h-67Zm-600-132v-379h667v113h-67v-46h-533v245h334v67h-401Zm67-134v-178 245-67Z"/></svg>`;
 const addClassIcon = b `<svg fill="var(--gscape-color-class-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="M480.207 953q-78.083 0-146.895-29.75-68.812-29.75-120.838-81.522-52.027-51.772-81.75-120.954Q101 651.593 101 573.883q0-148.383 98.783-255.444Q298.567 211.378 444 197v87q-109 14.5-182.5 96.729T188 574.536q0 120.964 85.171 206.214Q358.343 866 480 866q72.5 0 132.25-31.5T712 750l77 43q-53 73.5-133.176 116.75Q575.649 953 480.207 953ZM447 737V607H317v-67h130V410h67v130h130v67H514v130h-67Zm378-6-77-43q11-26 17.5-55t6.5-59q0-111.864-73.75-193.932Q624.5 298 516 284v-87q144.933 14.397 243.967 121.604Q859 425.812 859 573.793q0 42.194-8.765 81.511Q841.471 694.621 825 731Z"/></svg>`;
 const addDataPropertyIcon = b `<svg fill="var(--gscape-color-data-property-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="M480.207 953q-78.083 0-146.895-29.75-68.812-29.75-120.838-81.522-52.027-51.772-81.75-120.954Q101 651.593 101 573.883q0-148.383 98.783-255.444Q298.567 211.378 444 197v87q-109 14.5-182.5 96.729T188 574.536q0 120.964 85.171 206.214Q358.343 866 480 866q72.5 0 132.25-31.5T712 750l77 43q-53 73.5-133.176 116.75Q575.649 953 480.207 953ZM447 737V607H317v-67h130V410h67v130h130v67H514v130h-67Zm378-6-77-43q11-26 17.5-55t6.5-59q0-111.864-73.75-193.932Q624.5 298 516 284v-87q144.933 14.397 243.967 121.604Q859 425.812 859 573.793q0 42.194-8.765 81.511Q841.471 694.621 825 731Z"/></svg>`;
-const addIndividualIcon = b `<svg fill="var(--gscape-color-class-instance-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="M480.207 953q-78.083 0-146.895-29.75-68.812-29.75-120.838-81.522-52.027-51.772-81.75-120.954Q101 651.593 101 573.883q0-148.383 98.783-255.444Q298.567 211.378 444 197v87q-109 14.5-182.5 96.729T188 574.536q0 120.964 85.171 206.214Q358.343 866 480 866q72.5 0 132.25-31.5T712 750l77 43q-53 73.5-133.176 116.75Q575.649 953 480.207 953ZM447 737V607H317v-67h130V410h67v130h130v67H514v130h-67Zm378-6-77-43q11-26 17.5-55t6.5-59q0-111.864-73.75-193.932Q624.5 298 516 284v-87q144.933 14.397 243.967 121.604Q859 425.812 859 573.793q0 42.194-8.765 81.511Q841.471 694.621 825 731Z"/></svg>`;
+const addIndividualIcon = b `<svg fill="var(--gscape-color-individual-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="M480.207 953q-78.083 0-146.895-29.75-68.812-29.75-120.838-81.522-52.027-51.772-81.75-120.954Q101 651.593 101 573.883q0-148.383 98.783-255.444Q298.567 211.378 444 197v87q-109 14.5-182.5 96.729T188 574.536q0 120.964 85.171 206.214Q358.343 866 480 866q72.5 0 132.25-31.5T712 750l77 43q-53 73.5-133.176 116.75Q575.649 953 480.207 953ZM447 737V607H317v-67h130V410h67v130h130v67H514v130h-67Zm378-6-77-43q11-26 17.5-55t6.5-59q0-111.864-73.75-193.932Q624.5 298 516 284v-87q144.933 14.397 243.967 121.604Q859 425.812 859 573.793q0 42.194-8.765 81.511Q841.471 694.621 825 731Z"/></svg>`;
 const addObjectPropertyIcon = b `<svg fill="var(--gscape-color-object-property-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="m575 762-47-47.5 105-105H199v-67h434l-105-105 47-47.5 186 186-186 186Z"/></svg>`;
 const addISAIcon = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="m575 762-47-47.5 105-105H199v-67h434l-105-105 47-47.5 186 186-186 186Z"/></svg>`;
-const addInstanceIcon = b `<svg fill="var(--gscape-color-class-instance-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="m575 762-47-47.5 105-105H199v-67h434l-105-105 47-47.5 186 186-186 186Z"/></svg>`;
+const addInstanceIcon = b `<svg fill="var(--gscape-color-individual-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="m575 762-47-47.5 105-105H199v-67h434l-105-105 47-47.5 186 186-186 186Z"/></svg>`;
 const addParentClassIcon = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M479.747-194.5q-78.747 0-133.997-55.471-55.25-55.471-55.25-134.173 0-69.733 44.5-121.795Q379.5-558 446.5-570.562V-732.5l-58 58.5-47.5-47.5 139-139 139 139-47.5 47-58-58v161.938q67 12.411 111.5 64.475 44.5 52.063 44.5 121.798 0 79.289-55.503 134.539-55.502 55.25-134.25 55.25Zm.224-67q51.029 0 86.779-35.721 35.75-35.72 35.75-86.75 0-51.029-35.721-86.779-35.72-35.75-86.75-35.75-51.029 0-86.779 35.721-35.75 35.72-35.75 86.75 0 51.029 35.721 86.779 35.72 35.75 86.75 35.75ZM480-384Z"/></svg>`;
 const addChildClassIcon = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="m480-99.5-139-139 47.5-47 58 58v-161.938q-67-12.411-111.5-64.475-44.5-52.063-44.5-121.798 0-79.289 55.503-134.539 55.502-55.25 134.25-55.25 78.747 0 133.997 55.471 55.25 55.471 55.25 134.173 0 69.733-44.5 121.795Q580.5-402 513.5-389.438V-227.5l58-58.5 47.5 47.5-139 139Zm-.029-354q51.029 0 86.779-35.721 35.75-35.72 35.75-86.75 0-51.029-35.721-86.779-35.72-35.75-86.75-35.75-51.029 0-86.779 35.721-35.75 35.72-35.75 86.75 0 51.029 35.721 86.779 35.72 35.75 86.75 35.75ZM480-576Z"/></svg>`;
 const addSubhierarchyIcon = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M251.788-410q-29.288 0-49.538-20.462Q182-450.925 182-480.212q0-29.288 20.462-49.538Q222.925-550 252.212-550q29.288 0 49.538 20.462Q322-509.075 322-479.788q0 29.288-20.462 49.538Q281.075-410 251.788-410Zm228 0q-29.288 0-49.538-20.462Q410-450.925 410-480.212q0-29.288 20.462-49.538Q450.925-550 480.212-550q29.288 0 49.538 20.462Q550-509.075 550-479.788q0 29.288-20.462 49.538Q509.075-410 479.788-410Zm228 0q-29.288 0-49.538-20.462Q638-450.925 638-480.212q0-29.288 20.462-49.538Q678.925-550 708.212-550q29.288 0 49.538 20.462Q778-509.075 778-479.788q0 29.288-20.462 49.538Q737.075-410 707.788-410Z"/></svg>`;
@@ -13484,8 +13486,8 @@ GscapeEntityTypeFilters.styles = [
       }
 
       .chip[entity-type = "class-instance"] {
-        color: var(--gscape-color-class-instance-contrast);
-        border-color: var(--gscape-color-class-instance-contrast);
+        color: var(--gscape-color-individual-contrast);
+        border-color: var(--gscape-color-individual-contrast);
       }
 
       .chip {
@@ -16667,8 +16669,8 @@ GscapeOntologyInfo.styles = [
       }
 
       .counter-bar[type = "class-instance"] {
-        background: var(--gscape-color-class-instance);
-        border: solid 1px var(--gscape-color-class-instance-contrast);
+        background: var(--gscape-color-individual);
+        border: solid 1px var(--gscape-color-individual-contrast);
       }
     `,
 ];
@@ -17493,7 +17495,7 @@ class GscapeSettings extends TippyDropPanelMixin(BaseMixin(s), 'left') {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.1.3-snap.2"}</span>
+            <span>${"4.1.3-snap.3"}</span>
           </div>
         </div>
       </div>
