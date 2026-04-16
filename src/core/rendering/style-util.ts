@@ -47,7 +47,9 @@ export function getNodeLabelColor(node: NodeSingular, theme: GrapholscapeTheme) 
      * 4.5:1 minimum contrast suggested by
      * https://www.w3.org/TR/WCAG20-TECHS/G18.html
      */
-    if (chroma.contrast(nodeBGColor, labelColor) > 4.5) {
+    const constrast1 = chroma.contrast(nodeBGColor, labelColor)
+    const constrast2 = chroma.contrast(nodeBGColor, theme.getColour(ColoursNames.label_contrast) || '#000')
+    if (Math.max(constrast1, constrast2) === constrast1) {
       return theme.getColour(ColoursNames.label)
     } else {
       return theme.getColour(ColoursNames.label_contrast)
