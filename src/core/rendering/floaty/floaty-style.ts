@@ -15,7 +15,7 @@ export default function (theme: GrapholscapeTheme): StylesheetJson {
     },
 
     {
-      selector: `[type = "${TypesEnum.CLASS}"]`,
+      selector: `[type = "${TypesEnum.CLASS}"],[type = "${TypesEnum.INDIVIDUAL}"]`,
       style: {
         'text-margin-x': 0,
         'text-margin-y': 0,
@@ -23,6 +23,12 @@ export default function (theme: GrapholscapeTheme): StylesheetJson {
         'text-halign': 'center',
         'height': (node) => node.data('width') || 80,
         'width': (node) => node.data('width') || 80,
+      }
+    },
+
+    {
+      selector: `[type = "${TypesEnum.CLASS}"]`,
+      style: {
         // 'text-background-color': (node) => getNodeBodyColor(node, theme) || 'rgba(0, 0, 0, 0)',
         // 'text-background-opacity': (node) => getNodeBodyColor(node, theme) ? 1 : 0,
         'text-background-shape': 'roundrectangle',
