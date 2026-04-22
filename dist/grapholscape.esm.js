@@ -4388,7 +4388,7 @@ class GrapholNode extends GrapholElement {
             instance.labelXpos = 0;
         }
         if (instance.labelYpos === undefined || instance.labelYpos === null) {
-            instance.labelYpos = -18;
+            instance.labelYpos = -20;
         }
         return instance;
     }
@@ -8616,7 +8616,7 @@ function floatyStyle (theme) {
             }
         },
         {
-            selector: `[type = "${TypesEnum.CLASS}"]`,
+            selector: `[type = "${TypesEnum.CLASS}"],[type = "${TypesEnum.INDIVIDUAL}"]`,
             style: {
                 'text-margin-x': 0,
                 'text-margin-y': 0,
@@ -8624,6 +8624,11 @@ function floatyStyle (theme) {
                 'text-halign': 'center',
                 'height': (node) => node.data('width') || 80,
                 'width': (node) => node.data('width') || 80,
+            }
+        },
+        {
+            selector: `[type = "${TypesEnum.CLASS}"]`,
+            style: {
                 // 'text-background-color': (node) => getNodeBodyColor(node, theme) || 'rgba(0, 0, 0, 0)',
                 // 'text-background-opacity': (node) => getNodeBodyColor(node, theme) ? 1 : 0,
                 'text-background-shape': 'roundrectangle',
@@ -17495,7 +17500,7 @@ class GscapeSettings extends TippyDropPanelMixin(BaseMixin(s), 'left') {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.1.3-snap.3"}</span>
+            <span>${"4.1.3-snap.4"}</span>
           </div>
         </div>
       </div>
