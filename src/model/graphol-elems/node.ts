@@ -45,7 +45,7 @@ export class GrapholNode extends GrapholElement implements Node {
     }
 
     if (instance.labelYpos === undefined || instance.labelYpos === null) {
-      instance.labelYpos = -18
+      instance.labelYpos = -20
     }
 
     return instance
