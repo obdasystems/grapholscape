@@ -33,6 +33,10 @@ export default class Iri {
     return this._namespace
   }
 
+  public get namespaceValue() {
+    return this.namespace?.value || this.fullIri.substring(0, this.fullIri.length - this.remainder.length);
+  }
+
   public get prefix() {
     return this.namespace?.prefixes[0]
   }
