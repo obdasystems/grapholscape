@@ -279,6 +279,10 @@ class Iri {
     get namespace() {
         return this._namespace;
     }
+    get namespaceValue() {
+        var _a;
+        return ((_a = this.namespace) === null || _a === void 0 ? void 0 : _a.value) || this.fullIri.substring(0, this.fullIri.length - this.remainder.length);
+    }
     get prefix() {
         var _a;
         return (_a = this.namespace) === null || _a === void 0 ? void 0 : _a.prefixes[0];
@@ -17500,7 +17504,7 @@ class GscapeSettings extends TippyDropPanelMixin(BaseMixin(s), 'left') {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.1.3-snap.4"}</span>
+            <span>${"4.1.3-snap.5"}</span>
           </div>
         </div>
       </div>

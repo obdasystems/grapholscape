@@ -3445,6 +3445,7 @@ declare class Iri {
     get remainder(): string;
     private set namespace(value);
     get namespace(): Namespace | undefined;
+    get namespaceValue(): string;
     get prefix(): string | undefined;
     get prefixed(): string;
     equals(iriToCheck: string | Iri): boolean;
