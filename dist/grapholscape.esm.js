@@ -258,41 +258,18 @@ const DefaultNamespaces = {
 
 class Iri {
     constructor(iri, namespaces, remainder) {
-        let isPrefixed = false;
         this.fullIri = iri;
-        this.namespace = namespaces.find(n => {
-            if (iri.includes(n.toString()))
-                return true;
-            for (let prefix of n.prefixes) {
-                if (iri === `${prefix}:${iri.split(':')[1]}` && !iri.startsWith('http://')) {
-                    isPrefixed = true;
-                    return true;
-                }
-            }
-        });
-        if (remainder) {
-            this.remainder = remainder;
-        }
-        else {
-            if (!this.namespace) {
-                console.warn(`Namespace not found for [${iri}]. The prefix undefined has been assigned`);
-                // try {
-                //   const uri = new URL(iri)
-                //   this.remainder = uri.hash || uri.pathname.slice(uri.pathname.lastIndexOf('/') + 1)
-                //   this.namespace = new Namespace([], uri.toString().slice(0, uri.toString().length - this.remainder.length))
-                // } catch (e) {
-                //   this.remainder = iri
-                // }
-                this.remainder = iri;
-            }
-            else {
-                this.remainder = isPrefixed ? iri.split(':')[1] : iri.slice(this.namespace.toString().length);
+        let matchLength = 0;
+        for (let n of namespaces) {
+            if (iri.startsWith(n.toString()) && n.value.length > matchLength) {
+                this.namespace = n;
+                matchLength = n.value.length;
             }
         }
+        const lastSeparatorIndex = Math.max(this.fullIri.lastIndexOf('/'), this.fullIri.lastIndexOf('#'));
+        this._remainder = this.fullIri.substring(lastSeparatorIndex + 1);
     }
-    set remainder(value) {
-        this._remainder = value;
-    }
+    /** @readonly */
     get remainder() {
         return this._remainder;
     }
@@ -302,6 +279,10 @@ class Iri {
     get namespace() {
         return this._namespace;
     }
+    get namespaceValue() {
+        var _a;
+        return ((_a = this.namespace) === null || _a === void 0 ? void 0 : _a.value) || this.fullIri.substring(0, this.fullIri.length - this.remainder.length);
+    }
     get prefix() {
         var _a;
         return (_a = this.namespace) === null || _a === void 0 ? void 0 : _a.prefixes[0];
@@ -310,7 +291,9 @@ class Iri {
     //   return this.namespace?.toString() ? `${this.namespace.toString()}${this.remainder}` : this.remainder
     // }
     get prefixed() {
-        return this.prefix || this.prefix === '' ? `${this.prefix}:${this.remainder}` : `${this.remainder}`;
+        return this.prefix || this.prefix === ''
+            ? `${this.prefix}:${this.fullIri.split(this.namespace.value)[1]}`
+            : `${this.fullIri}`;
     }
     equals(iriToCheck) {
         if (typeof iriToCheck !== 'string') {
@@ -1004,7 +987,6 @@ function FunctionPropertiesEnumToJSON(value) {
  */
 function instanceOfGrapholscapeAnnotation(value) {
     let isInstance = true;
-    isInstance = isInstance && "value" in value;
     isInstance = isInstance && "property" in value;
     return isInstance;
 }
@@ -1017,7 +999,7 @@ function GrapholscapeAnnotationFromJSONTyped(json, ignoreDiscriminator) {
     }
     return {
         'lexicalForm': !exists(json, 'lexicalForm') ? undefined : json['lexicalForm'],
-        'value': json['value'],
+        'value': !exists(json, 'value') ? undefined : json['value'],
         'hasIriValue': !exists(json, 'hasIriValue') ? undefined : json['hasIriValue'],
         'property': json['property'],
         'language': !exists(json, 'language') ? undefined : json['language'],
@@ -4410,7 +4392,7 @@ class GrapholNode extends GrapholElement {
             instance.labelXpos = 0;
         }
         if (instance.labelYpos === undefined || instance.labelYpos === null) {
-            instance.labelYpos = -18;
+            instance.labelYpos = -20;
         }
         return instance;
     }
@@ -5035,7 +5017,17 @@ class Ontology extends AnnotatedElement {
     }
     /** @param {Namespace} namespace */
     addNamespace(namespace) {
-        this.namespaces.push(namespace);
+        const ns = this.namespaces.find(ns => ns.value === namespace.value);
+        if (ns) {
+            namespace.prefixes.forEach(newPrefix => {
+                if (!ns.hasPrefix(newPrefix)) {
+                    ns.addPrefix(newPrefix);
+                }
+            });
+        }
+        else {
+            this.namespaces.push(namespace);
+        }
     }
     /**
      * Get the Namspace object given its IRI string
@@ -7108,6 +7100,58 @@ class FloatyTransformer extends BaseGrapholTransformer {
             });
         }
     }
+    static removeUnnecessaryOWLThingProperties(ontology) {
+        ontology.diagrams.forEach(diagram => {
+            const representation = diagram.representations.get(RendererStatesEnum.FLOATY);
+            if (!representation)
+                return;
+            const owlThingCyNode = representation.cy.$(`[ iri = "${DefaultNamespaces.OWL.toString()}Thing"]`).nodes().first();
+            if (owlThingCyNode.empty())
+                return;
+            owlThingCyNode.connectedEdges().forEach(edge => {
+                var _a, _b;
+                let propertyIri, propertyGrapholElem;
+                if (edge.data('type') === TypesEnum.OBJECT_PROPERTY) {
+                    if (!edge.isLoop()) {
+                        return;
+                    }
+                    propertyIri = edge.data('iri');
+                    propertyGrapholElem = representation.grapholElements.get(edge.id());
+                }
+                else {
+                    propertyIri = edge.connectedNodes(`[type = "${TypesEnum.DATA_PROPERTY}"]`).first().data('iri');
+                    propertyGrapholElem = representation.grapholElements.get(edge.connectedNodes(`[type = "${TypesEnum.DATA_PROPERTY}"]`).first().id());
+                }
+                if (propertyIri && propertyGrapholElem) {
+                    const propertyEntity = ontology.getEntity(propertyIri);
+                    if (propertyEntity) {
+                        let canBeRemoved = false;
+                        if (propertyEntity.is(TypesEnum.DATA_PROPERTY)) {
+                            canBeRemoved = (propertyEntity.occurrences.get(RendererStatesEnum.FLOATY) || []).length > 1;
+                        }
+                        else if (propertyEntity.is(TypesEnum.OBJECT_PROPERTY)) {
+                            // can be removed if there is at least another occurrence different from this one that is a loop on owl:Thing
+                            for (let occurrence of propertyEntity.occurrences.get(RendererStatesEnum.FLOATY) || []) {
+                                if (occurrence.id !== propertyGrapholElem.id && occurrence.diagramId !== diagram.id) {
+                                    canBeRemoved = !((_b = (_a = ontology.getDiagram(occurrence.diagramId)) === null || _a === void 0 ? void 0 : _a.representations.get(RendererStatesEnum.FLOATY)) === null || _b === void 0 ? void 0 : _b.cy.$id(occurrence.id).isLoop());
+                                    if (canBeRemoved)
+                                        break;
+                                }
+                            }
+                        }
+                        if (canBeRemoved) {
+                            propertyEntity.removeOccurrence(propertyGrapholElem, RendererStatesEnum.FLOATY);
+                            representation.removeElement(propertyGrapholElem.id);
+                            representation.removeElement(edge.id());
+                        }
+                    }
+                }
+            });
+            if (owlThingCyNode.degree(true) === 0) {
+                representation.removeElement(owlThingCyNode.id());
+            }
+        });
+    }
     makeEdgesStraight() {
         this.result.cy.$('edge').forEach(edge => {
             const grapholEdge = this.getGrapholElement(edge.id());
@@ -7345,9 +7389,16 @@ class FloatyTransformer extends BaseGrapholTransformer {
 /** @internal */
 function rdfgraphSerializer (grapholscape, modelType = RDFGraphModelTypeEnum.ONTOLOGY) {
     const ontology = grapholscape.ontology;
+    const usedLanguages = new Set();
+    let entityJSON;
     const result = {
         diagrams: [],
-        entities: Array.from(ontology.entities.values()).map(e => e.json()),
+        entities: Array.from(ontology.entities.values()).map(e => {
+            var _a;
+            entityJSON = e.json();
+            (_a = entityJSON.annotations) === null || _a === void 0 ? void 0 : _a.forEach(ann => usedLanguages.add(ann.language));
+            return entityJSON;
+        }),
         modelType: modelType,
         metadata: {
             name: ontology.name,
@@ -7360,8 +7411,9 @@ function rdfgraphSerializer (grapholscape, modelType = RDFGraphModelTypeEnum.ONT
             }),
             iri: ontology.iri,
             defaultLanguage: ontology.defaultLanguage,
-            languages: ontology.languages,
+            // languages: ontology.languages,
             annotations: ontology.getAnnotations().map(ann => {
+                usedLanguages.add(ann.language);
                 return {
                     property: ann.property,
                     value: ann.value,
@@ -7374,6 +7426,7 @@ function rdfgraphSerializer (grapholscape, modelType = RDFGraphModelTypeEnum.ONT
         },
         constraints: Array.from(ontology.shaclConstraints.values()).flat()
     };
+    result.metadata.languages = Array.from(usedLanguages).filter(l => l !== undefined);
     let diagrams = [];
     if (modelType === RDFGraphModelTypeEnum.VKG) {
         if (grapholscape.incremental) {
@@ -8538,7 +8591,9 @@ function getNodeLabelColor(node, theme) {
          * 4.5:1 minimum contrast suggested by
          * https://www.w3.org/TR/WCAG20-TECHS/G18.html
          */
-        if (chroma.contrast(nodeBGColor, labelColor) > 4.5) {
+        const constrast1 = chroma.contrast(nodeBGColor, labelColor);
+        const constrast2 = chroma.contrast(nodeBGColor, theme.getColour(ColoursNames.label_contrast) || '#000');
+        if (Math.max(constrast1, constrast2) === constrast1) {
             return theme.getColour(ColoursNames.label);
         }
         else {
@@ -8565,7 +8620,7 @@ function floatyStyle (theme) {
             }
         },
         {
-            selector: `[type = "${TypesEnum.CLASS}"]`,
+            selector: `[type = "${TypesEnum.CLASS}"],[type = "${TypesEnum.INDIVIDUAL}"]`,
             style: {
                 'text-margin-x': 0,
                 'text-margin-y': 0,
@@ -8573,6 +8628,11 @@ function floatyStyle (theme) {
                 'text-halign': 'center',
                 'height': (node) => node.data('width') || 80,
                 'width': (node) => node.data('width') || 80,
+            }
+        },
+        {
+            selector: `[type = "${TypesEnum.CLASS}"]`,
+            style: {
                 // 'text-background-color': (node) => getNodeBodyColor(node, theme) || 'rgba(0, 0, 0, 0)',
                 // 'text-background-opacity': (node) => getNodeBodyColor(node, theme) ? 1 : 0,
                 'text-background-shape': 'roundrectangle',
@@ -9126,6 +9186,7 @@ class FloatyRendererState extends BaseRenderer {
     }
     postOntologyTransform(grapholscape) {
         FloatyTransformer.addAnnotationPropertyEdges(grapholscape);
+        FloatyTransformer.removeUnnecessaryOWLThingProperties(grapholscape.ontology);
     }
     runLayout(customOptions) {
         return new Promise((resolve) => {
@@ -9928,7 +9989,9 @@ function parseRDFGraph(rdfGraph) {
         ? RendererStatesEnum.FLOATY
         : RendererStatesEnum.INCREMENTAL;
     const ontology = getOntology(rdfGraph);
-    ontology.entities = getEntities(rdfGraph, ontology.namespaces);
+    ontology.entities = new Map(Array.from(getEntities(rdfGraph, ontology.namespaces))
+        .concat(Array.from(getClassInstances(rdfGraph, ontology.namespaces))));
+    // ontology.entities = getEntities(rdfGraph, ontology.namespaces)
     // const classInstances = getClassInstances(rdfGraph, ontology.namespaces)
     // let incrementalDiagram: IncrementalDiagram
     if (rdfGraph.modelType === RDFGraphModelTypeEnum.ONTOLOGY) {
@@ -10393,7 +10456,7 @@ class Grapholscape {
         if (newConfig.entityNameType) {
             this.displayedNamesManager.setEntityNameType(newConfig.entityNameType);
         }
-        if (newConfig.renderers) {
+        if (newConfig.renderers && newConfig.renderers.length > 0) {
             this.availableRenderers = newConfig.renderers;
         }
         let rendererStateToSet = undefined;
@@ -10431,7 +10494,7 @@ class Grapholscape {
                 }
             }
         }
-        if (newConfig.themes) {
+        if (newConfig.themes && newConfig.themes.length > 0) {
             this.themesManager.removeThemes();
             newConfig.themes.forEach(newTheme => {
                 const _castedNewTheme = newTheme;
@@ -10448,7 +10511,7 @@ class Grapholscape {
         if (newConfig.selectedTheme && this.themeList.map(theme => theme.id).includes(newConfig.selectedTheme)) {
             this.themesManager.setTheme(newConfig.selectedTheme);
         }
-        else if (!this.themeList.includes(this.theme)) {
+        else if (!this.themeList.includes(this.theme) && this.themeList[0]) {
             this.themesManager.setTheme(this.themeList[0].id);
         }
         if (newConfig.widgets) {
@@ -11264,10 +11327,10 @@ const authorIcon = b `<svg xmlns="http://www.w3.org/2000/svg" width="20" height=
 const addDiagramIcon = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="M746.5 801.5v-132h-132v-67h132v-132h67v132h132v67h-132v132h-67Zm-600-132v-379h667v113h-67v-46h-533v245h334v67h-401Zm67-134v-178 245-67Z"/></svg>`;
 const addClassIcon = b `<svg fill="var(--gscape-color-class-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="M480.207 953q-78.083 0-146.895-29.75-68.812-29.75-120.838-81.522-52.027-51.772-81.75-120.954Q101 651.593 101 573.883q0-148.383 98.783-255.444Q298.567 211.378 444 197v87q-109 14.5-182.5 96.729T188 574.536q0 120.964 85.171 206.214Q358.343 866 480 866q72.5 0 132.25-31.5T712 750l77 43q-53 73.5-133.176 116.75Q575.649 953 480.207 953ZM447 737V607H317v-67h130V410h67v130h130v67H514v130h-67Zm378-6-77-43q11-26 17.5-55t6.5-59q0-111.864-73.75-193.932Q624.5 298 516 284v-87q144.933 14.397 243.967 121.604Q859 425.812 859 573.793q0 42.194-8.765 81.511Q841.471 694.621 825 731Z"/></svg>`;
 const addDataPropertyIcon = b `<svg fill="var(--gscape-color-data-property-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="M480.207 953q-78.083 0-146.895-29.75-68.812-29.75-120.838-81.522-52.027-51.772-81.75-120.954Q101 651.593 101 573.883q0-148.383 98.783-255.444Q298.567 211.378 444 197v87q-109 14.5-182.5 96.729T188 574.536q0 120.964 85.171 206.214Q358.343 866 480 866q72.5 0 132.25-31.5T712 750l77 43q-53 73.5-133.176 116.75Q575.649 953 480.207 953ZM447 737V607H317v-67h130V410h67v130h130v67H514v130h-67Zm378-6-77-43q11-26 17.5-55t6.5-59q0-111.864-73.75-193.932Q624.5 298 516 284v-87q144.933 14.397 243.967 121.604Q859 425.812 859 573.793q0 42.194-8.765 81.511Q841.471 694.621 825 731Z"/></svg>`;
-const addIndividualIcon = b `<svg fill="var(--gscape-color-class-instance-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="M480.207 953q-78.083 0-146.895-29.75-68.812-29.75-120.838-81.522-52.027-51.772-81.75-120.954Q101 651.593 101 573.883q0-148.383 98.783-255.444Q298.567 211.378 444 197v87q-109 14.5-182.5 96.729T188 574.536q0 120.964 85.171 206.214Q358.343 866 480 866q72.5 0 132.25-31.5T712 750l77 43q-53 73.5-133.176 116.75Q575.649 953 480.207 953ZM447 737V607H317v-67h130V410h67v130h130v67H514v130h-67Zm378-6-77-43q11-26 17.5-55t6.5-59q0-111.864-73.75-193.932Q624.5 298 516 284v-87q144.933 14.397 243.967 121.604Q859 425.812 859 573.793q0 42.194-8.765 81.511Q841.471 694.621 825 731Z"/></svg>`;
+const addIndividualIcon = b `<svg fill="var(--gscape-color-individual-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="M480.207 953q-78.083 0-146.895-29.75-68.812-29.75-120.838-81.522-52.027-51.772-81.75-120.954Q101 651.593 101 573.883q0-148.383 98.783-255.444Q298.567 211.378 444 197v87q-109 14.5-182.5 96.729T188 574.536q0 120.964 85.171 206.214Q358.343 866 480 866q72.5 0 132.25-31.5T712 750l77 43q-53 73.5-133.176 116.75Q575.649 953 480.207 953ZM447 737V607H317v-67h130V410h67v130h130v67H514v130h-67Zm378-6-77-43q11-26 17.5-55t6.5-59q0-111.864-73.75-193.932Q624.5 298 516 284v-87q144.933 14.397 243.967 121.604Q859 425.812 859 573.793q0 42.194-8.765 81.511Q841.471 694.621 825 731Z"/></svg>`;
 const addObjectPropertyIcon = b `<svg fill="var(--gscape-color-object-property-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="m575 762-47-47.5 105-105H199v-67h434l-105-105 47-47.5 186 186-186 186Z"/></svg>`;
 const addISAIcon = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="m575 762-47-47.5 105-105H199v-67h434l-105-105 47-47.5 186 186-186 186Z"/></svg>`;
-const addInstanceIcon = b `<svg fill="var(--gscape-color-class-instance-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="m575 762-47-47.5 105-105H199v-67h434l-105-105 47-47.5 186 186-186 186Z"/></svg>`;
+const addInstanceIcon = b `<svg fill="var(--gscape-color-individual-contrast)" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 96 960 960" width="20"><path d="m575 762-47-47.5 105-105H199v-67h434l-105-105 47-47.5 186 186-186 186Z"/></svg>`;
 const addParentClassIcon = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M479.747-194.5q-78.747 0-133.997-55.471-55.25-55.471-55.25-134.173 0-69.733 44.5-121.795Q379.5-558 446.5-570.562V-732.5l-58 58.5-47.5-47.5 139-139 139 139-47.5 47-58-58v161.938q67 12.411 111.5 64.475 44.5 52.063 44.5 121.798 0 79.289-55.503 134.539-55.502 55.25-134.25 55.25Zm.224-67q51.029 0 86.779-35.721 35.75-35.72 35.75-86.75 0-51.029-35.721-86.779-35.72-35.75-86.75-35.75-51.029 0-86.779 35.721-35.75 35.72-35.75 86.75 0 51.029 35.721 86.779 35.72 35.75 86.75 35.75ZM480-384Z"/></svg>`;
 const addChildClassIcon = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="m480-99.5-139-139 47.5-47 58 58v-161.938q-67-12.411-111.5-64.475-44.5-52.063-44.5-121.798 0-79.289 55.503-134.539 55.502-55.25 134.25-55.25 78.747 0 133.997 55.471 55.25 55.471 55.25 134.173 0 69.733-44.5 121.795Q580.5-402 513.5-389.438V-227.5l58-58.5 47.5 47.5-139 139Zm-.029-354q51.029 0 86.779-35.721 35.75-35.72 35.75-86.75 0-51.029-35.721-86.779-35.72-35.75-86.75-35.75-51.029 0-86.779 35.721-35.75 35.72-35.75 86.75 0 51.029 35.721 86.779 35.72 35.75 86.75 35.75ZM480-576Z"/></svg>`;
 const addSubhierarchyIcon = b `<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20"><path d="M251.788-410q-29.288 0-49.538-20.462Q182-450.925 182-480.212q0-29.288 20.462-49.538Q222.925-550 252.212-550q29.288 0 49.538 20.462Q322-509.075 322-479.788q0 29.288-20.462 49.538Q281.075-410 251.788-410Zm228 0q-29.288 0-49.538-20.462Q410-450.925 410-480.212q0-29.288 20.462-49.538Q450.925-550 480.212-550q29.288 0 49.538 20.462Q550-509.075 550-479.788q0 29.288-20.462 49.538Q509.075-410 479.788-410Zm228 0q-29.288 0-49.538-20.462Q638-450.925 638-480.212q0-29.288 20.462-49.538Q678.925-550 708.212-550q29.288 0 49.538 20.462Q778-509.075 778-479.788q0 29.288-20.462 49.538Q737.075-410 707.788-410Z"/></svg>`;
@@ -12491,7 +12554,7 @@ class NodeButton extends ContextualWidgetMixin(BaseMixin(s)) {
             placement: "right",
             appendTo: ((ref) => {
                 return document.querySelector('.gscape-ui') || ref;
-            }) || undefined,
+            }),
             // content prop can be used when the target is a single element https://atomiks.github.io/tippyjs/v6/constructor/#prop
             content: this,
             offset: [0, 0],
@@ -12680,15 +12743,14 @@ class GscapeContextMenu extends ContextualWidgetMixin(BaseMixin(s)) {
                 ${command.icon ? x `<span class="command-icon slotted-icon">${command.icon}</span>` : null}
                 <span class="command-text">${command.content}</span>
 
-                <span style="min-width: 20px">
-                  ${this.loadingCommandsIds.includes(id.toString())
-                    ? x `<span class="command-icon slotted-icon">${getContentSpinner()}</span>`
+                ${command.shortcut ? x `<span class="shortcut">${command.shortcut}</span>` : null}
+                ${this.loadingCommandsIds.includes(id.toString())
+                    ? x `<span class="command-icon slotted-icon" style="min-width: 20px">${getContentSpinner()}</span>`
                     : command.subCommands
                         ? x `
-                        <span class="command-icon slotted-icon">${arrow_right}</span>
-                      `
+                      <span class="command-icon slotted-icon" style="min-width: 20px">${arrow_right}</span>
+                    `
                         : null}
-                </span>
               </div>
             `;
             })}
@@ -12819,6 +12881,12 @@ GscapeContextMenu.styles = [
         display: flex;
         align-items: center;
         justify-content: center;
+      }
+
+      .shortcut {
+        color: var(--gscape-color-fg-subtle);
+        font-size: 0.9em;
+        margin-left: 48px;
       }
     `
 ];
@@ -13427,8 +13495,8 @@ GscapeEntityTypeFilters.styles = [
       }
 
       .chip[entity-type = "class-instance"] {
-        color: var(--gscape-color-class-instance-contrast);
-        border-color: var(--gscape-color-class-instance-contrast);
+        color: var(--gscape-color-individual-contrast);
+        border-color: var(--gscape-color-individual-contrast);
       }
 
       .chip {
@@ -16610,8 +16678,8 @@ GscapeOntologyInfo.styles = [
       }
 
       .counter-bar[type = "class-instance"] {
-        background: var(--gscape-color-class-instance);
-        border: solid 1px var(--gscape-color-class-instance-contrast);
+        background: var(--gscape-color-individual);
+        border: solid 1px var(--gscape-color-individual-contrast);
       }
     `,
 ];
@@ -17436,7 +17504,7 @@ class GscapeSettings extends TippyDropPanelMixin(BaseMixin(s), 'left') {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.1.2"}</span>
+            <span>${"4.1.3"}</span>
           </div>
         </div>
       </div>

@@ -491,7 +491,7 @@ interface GrapholscapeAnnotation {
      * @type {string}
      * @memberof GrapholscapeAnnotation
      */
-    value: string;
+    value?: string;
     /**
      *
      * @type {boolean}
@@ -3441,10 +3441,11 @@ declare class Iri {
     private _remainder;
     fullIri: string;
     constructor(iri: string, namespaces: Namespace[], remainder?: string);
-    set remainder(value: string);
+    /** @readonly */
     get remainder(): string;
     private set namespace(value);
     get namespace(): Namespace | undefined;
+    get namespaceValue(): string;
     get prefix(): string | undefined;
     get prefixed(): string;
     equals(iriToCheck: string | Iri): boolean;
@@ -4669,6 +4670,7 @@ interface Command {
     description?: string;
     disabled?: boolean;
     hidden?: boolean;
+    shortcut?: string;
 }
 type CommandList = Command[] | {
     searchable: boolean;
