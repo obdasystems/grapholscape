@@ -113,6 +113,10 @@ export default function (theme: GrapholscapeTheme): StylesheetJson {
       style: {
         'width': 35,
         'height': 35,
+        'text-margin-x': 0,
+        'text-margin-y': 0,
+        'text-valign': 'center',
+        'text-halign': 'center',
       }
     },
 
