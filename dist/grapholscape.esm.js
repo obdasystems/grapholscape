@@ -8712,6 +8712,10 @@ function floatyStyle (theme) {
             style: {
                 'width': 35,
                 'height': 35,
+                'text-margin-x': 0,
+                'text-margin-y': 0,
+                'text-valign': 'center',
+                'text-halign': 'center',
             }
         },
         {
@@ -17504,7 +17508,7 @@ class GscapeSettings extends TippyDropPanelMixin(BaseMixin(s), 'left') {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.1.3-snap.5"}</span>
+            <span>${"4.1.4-snap.0"}</span>
           </div>
         </div>
       </div>
