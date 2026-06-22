@@ -109,6 +109,13 @@ export default function (theme: GrapholscapeTheme): StylesheetJson {
     },
 
     {
+      selector: `[type = "${TypesEnum.IRI}"]`,
+      style: {
+        "text-margin-y": -25,
+      }
+    },
+
+    {
       selector: `node[type = "${TypesEnum.UNION}"], node[type = "${TypesEnum.DISJOINT_UNION}"]`,
       style: {
         'width': 35,
