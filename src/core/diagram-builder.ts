@@ -1,9 +1,13 @@
 import cytoscape, { EdgeSingular } from "cytoscape";
+import { Language } from "../config";
 import { Diagram, EntityNameType, GrapholEdge, GrapholElement, GrapholEntity, GrapholNode, Hierarchy, Iri, isGrapholNode, Position, RendererStatesEnum, Shape, TypesEnum } from "../model";
-import { GrapholClassNode, GrapholDataPropertyNode, GrapholIndividualNode } from "../model/graphol-elems/node";
 import { GrapholObjectPropertyEdge } from "../model/graphol-elems/edge";
+import { GrapholClassNode, GrapholDataPropertyNode, GrapholIndividualNode } from "../model/graphol-elems/node";
 
 export default class DiagramBuilder {
+
+  public entityNameType: EntityNameType = EntityNameType.LABEL
+  public language: string = Language.EN
 
   constructor(public diagram: Diagram, private rendererState: RendererStatesEnum) { }
 
@@ -27,7 +31,7 @@ export default class DiagramBuilder {
 
     if (!classNode) {
       classNode = new GrapholClassNode(this.getNewId('node'), classEntity.iri.fullIri)
-      classNode.displayedName = classEntity.getDisplayedName(EntityNameType.LABEL)
+      classNode.displayedName = classEntity.getDisplayedName(this.entityNameType, this.language)
       classNode.height = classNode.width = 80
 
       if (position)
@@ -51,7 +55,7 @@ export default class DiagramBuilder {
     const dataPropertyNode = new GrapholDataPropertyNode(this.getNewId('node'), dataPropertyEntity.iri.fullIri)
 
     dataPropertyNode.diagramId = this.diagram.id
-    dataPropertyNode.displayedName = dataPropertyEntity.getDisplayedName(EntityNameType.LABEL)
+    dataPropertyNode.displayedName = dataPropertyEntity.getDisplayedName(this.entityNameType, this.language)
     dataPropertyNode.labelXpos = 0
     dataPropertyNode.labelYpos = -15
 
@@ -223,7 +227,7 @@ export default class DiagramBuilder {
       } else {
         propertyEdge = new GrapholEdge(this.getNewId('edge'), propertyType)
       }
-      propertyEdge.displayedName = propertyEntity.getDisplayedName(EntityNameType.LABEL)
+      propertyEdge.displayedName = propertyEntity.getDisplayedName(this.entityNameType, this.language)
       propertyEdge.originalId = propertyEdge.id
     } else {
       propertyEdge = propertyEdgeElement
@@ -259,7 +263,7 @@ export default class DiagramBuilder {
       individualNode.renderedPosition = this.getCurrentCenterPos()
 
     individualNode.diagramId = this.diagram.id
-    individualNode.displayedName = individualEntity.getDisplayedName(EntityNameType.LABEL)
+    individualNode.displayedName = individualEntity.getDisplayedName(this.entityNameType, this.language)
     individualNode.height = individualNode.width = 50
     individualNode.shape = Shape.ELLIPSE
     individualNode.labelXpos = 0
