@@ -8708,6 +8708,12 @@ function floatyStyle (theme) {
             }
         },
         {
+            selector: `[type = "${TypesEnum.IRI}"]`,
+            style: {
+                "text-margin-y": -25,
+            }
+        },
+        {
             selector: `node[type = "${TypesEnum.UNION}"], node[type = "${TypesEnum.DISJOINT_UNION}"]`,
             style: {
                 'width': 35,
@@ -10640,6 +10646,8 @@ class DiagramBuilder {
     constructor(diagram, rendererState) {
         this.diagram = diagram;
         this.rendererState = rendererState;
+        this.entityNameType = RDFGraphConfigEntityNameTypeEnum.LABEL;
+        this.language = Language.EN;
     }
     addClass(classEntity, positionOrNode) {
         var _a, _b;
@@ -10658,7 +10666,7 @@ class DiagramBuilder {
         }
         if (!classNode) {
             classNode = new GrapholClassNode(this.getNewId('node'), classEntity.iri.fullIri);
-            classNode.displayedName = classEntity.getDisplayedName(RDFGraphConfigEntityNameTypeEnum.LABEL);
+            classNode.displayedName = classEntity.getDisplayedName(this.entityNameType, this.language);
             classNode.height = classNode.width = 80;
             if (position)
                 classNode.position = position;
@@ -10675,7 +10683,7 @@ class DiagramBuilder {
         var _a, _b, _c, _d, _e;
         const dataPropertyNode = new GrapholDataPropertyNode(this.getNewId('node'), dataPropertyEntity.iri.fullIri);
         dataPropertyNode.diagramId = this.diagram.id;
-        dataPropertyNode.displayedName = dataPropertyEntity.getDisplayedName(RDFGraphConfigEntityNameTypeEnum.LABEL);
+        dataPropertyNode.displayedName = dataPropertyEntity.getDisplayedName(this.entityNameType, this.language);
         dataPropertyNode.labelXpos = 0;
         dataPropertyNode.labelYpos = -15;
         dataPropertyNode.originalId = dataPropertyNode.id;
@@ -10809,7 +10817,7 @@ class DiagramBuilder {
             else {
                 propertyEdge = new GrapholEdge(this.getNewId('edge'), propertyType);
             }
-            propertyEdge.displayedName = propertyEntity.getDisplayedName(RDFGraphConfigEntityNameTypeEnum.LABEL);
+            propertyEdge.displayedName = propertyEntity.getDisplayedName(this.entityNameType, this.language);
             propertyEdge.originalId = propertyEdge.id;
         }
         else {
@@ -10842,7 +10850,7 @@ class DiagramBuilder {
         else
             individualNode.renderedPosition = this.getCurrentCenterPos();
         individualNode.diagramId = this.diagram.id;
-        individualNode.displayedName = individualEntity.getDisplayedName(RDFGraphConfigEntityNameTypeEnum.LABEL);
+        individualNode.displayedName = individualEntity.getDisplayedName(this.entityNameType, this.language);
         individualNode.height = individualNode.width = 50;
         individualNode.shape = Shape.ELLIPSE;
         individualNode.labelXpos = 0;
@@ -17508,7 +17516,7 @@ class GscapeSettings extends TippyDropPanelMixin(BaseMixin(s), 'left') {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.1.4-snap.0"}</span>
+            <span>${"4.1.4-snap.1"}</span>
           </div>
         </div>
       </div>

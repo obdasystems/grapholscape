@@ -4135,6 +4135,8 @@ declare class ThemeManager {
 declare class DiagramBuilder {
     diagram: Diagram;
     private rendererState;
+    entityNameType: RDFGraphConfigEntityNameTypeEnum;
+    language: string;
     constructor(diagram: Diagram, rendererState: RendererStatesEnum);
     addClass(classEntity: GrapholEntity, classNode?: GrapholNode): GrapholNode;
     addClass(classEntity: GrapholEntity, position?: Position): GrapholNode;
