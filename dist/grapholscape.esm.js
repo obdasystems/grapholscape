@@ -2920,6 +2920,7 @@ function RDFGraphFromJSONTyped(json, ignoreDiscriminator) {
         'actions': !exists(json, 'actions') ? undefined : (json['actions'].map(ActionFromJSON)),
         'creator': !exists(json, 'creator') ? undefined : json['creator'],
         'constraints': !exists(json, 'constraints') ? undefined : (json['constraints'].map(SHACLShapeFromJSON)),
+        'importDeclarations': !exists(json, 'importDeclarations') ? undefined : json['importDeclarations'],
     };
 }
 function RDFGraphToJSON(value) {
@@ -2940,6 +2941,7 @@ function RDFGraphToJSON(value) {
         'actions': value.actions === undefined ? undefined : (value.actions.map(ActionToJSON)),
         'creator': value.creator,
         'constraints': value.constraints === undefined ? undefined : (value.constraints.map(SHACLShapeToJSON)),
+        'importDeclarations': value.importDeclarations,
     };
 }
 
@@ -4875,6 +4877,7 @@ class Ontology extends AnnotatedElement {
         this.languages = [];
         this.usedColorScales = [];
         this.shaclConstraints = new Map();
+        this._importDeclarations = new Set();
         this._entities = new Map();
         // computed only in floaty
         this._hierarchies = new Map();
@@ -5230,6 +5233,16 @@ class Ontology extends AnnotatedElement {
         if (annotationPropertyEntity && newAnnotation.rangeIri) {
             this.annotationsDiagram.addIRIValueAnnotation(this.ontologyEntity, annotationPropertyEntity, newAnnotation.rangeIri, RDFGraphConfigEntityNameTypeEnum.LABEL, Language.EN, this.getEntity(newAnnotation.rangeIri));
         }
+    }
+    addImportDeclaration(newImportDeclaration) {
+        this._importDeclarations.add(newImportDeclaration);
+    }
+    removeImportDeclaration(importDeclarationToRemove) {
+        this._importDeclarations.delete(importDeclarationToRemove);
+    }
+    get importDeclarations() { return Array.from(this._importDeclarations); }
+    set importDeclarations(newDeclarations) {
+        this._importDeclarations = new Set(newDeclarations);
     }
     get isEntitiesEmpty() { return (!this._entities || Object.keys(this._entities).length === 0); }
     get entities() { return this._entities; }
@@ -7424,7 +7437,8 @@ function rdfgraphSerializer (grapholscape, modelType = RDFGraphModelTypeEnum.ONT
             }),
             annotationProperties: ontology.annProperties.map(ap => ap.fullIri)
         },
-        constraints: Array.from(ontology.shaclConstraints.values()).flat()
+        constraints: Array.from(ontology.shaclConstraints.values()).flat(),
+        importDeclarations: ontology.importDeclarations,
     };
     result.metadata.languages = Array.from(usedLanguages).filter(l => l !== undefined);
     let diagrams = [];
@@ -10057,6 +10071,9 @@ function getOntology(rdfGraph) {
             (_a = ontology.shaclConstraints.get(c.targetClass)) === null || _a === void 0 ? void 0 : _a.push(c);
         });
     }
+    if (rdfGraph.importDeclarations && rdfGraph.importDeclarations.length > 0) {
+        ontology.importDeclarations = rdfGraph.importDeclarations;
+    }
     return ontology;
 }
 function getEntities(rdfGraph, namespaces) {
@@ -11671,6 +11688,8 @@ var baseStyle = i$1 `
   border-radius: var(--gscape-border-radius-btn);
   padding: 6px 8px;
   cursor: pointer;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .actionable:hover, .actionable:focus, .actionable:focus-visible {
@@ -16379,7 +16398,7 @@ GscapeExplorer.styles = [
         height: 50vh;
         max-height: unset;
         min-width: 300px;
-        min-height: 200px;
+        min-height: 500px;
         display: flex;
         flex-direction: column;
       }
@@ -16487,65 +16506,99 @@ class GscapeOntologyInfo extends TippyDropPanelMixin(BaseMixin(s), 'left') {
       </gscape-button>  
 
       <div class="gscape-panel gscape-panel-in-tray hide" id="drop-panel">
-        ${this.ontology && itemWithIriTemplate({
-            name: this.ontology.name,
-            iri: this.ontology.iri || '',
-            typeOrVersion: [this.ontology.version],
-        })}
-        
-        <div class="content-wrapper">
-          ${this.ontology && this.ontology.getAnnotations().length > 0
+        ${this.ontology
             ? x `
-                <div class="area" style="display: flex; flex-direction: column; gap: 16px">
-                  ${annotationsTemplate(this.ontology.getAnnotations())}
-                  ${this.ontology && this.ontology.getComments().length > 0
-                ? commentsTemplate(this.ontology, this.language, (e) => { var _a; this.language = (_a = e.target) === null || _a === void 0 ? void 0 : _a.value; })
+            ${itemWithIriTemplate({
+                name: this.ontology.name,
+                iri: this.ontology.iri || '',
+                typeOrVersion: [this.ontology.version],
+            })}
+            
+            <div class="content-wrapper">
+              ${this.ontology.importDeclarations.length > 0
+                ? x ``
+                : x ``}
+              <div class="area">
+                <div class="bold-text">Import Declarations</div>
+                <div class="area-content">
+                  ${this.ontology.importDeclarations.length > 0
+                ? x `
+                      <div id="import-declarations">
+                        ${this.ontology.importDeclarations.map(importedOntologyIri => x `
+                          <a 
+                            class="actionable rtl"
+                            href="${importedOntologyIri}"
+                            target="_blank"
+                            alt="${importedOntologyIri}"
+                          >
+                            ${importedOntologyIri}
+                          </a>
+                          `)} 
+                      </div>
+                    `
                 : null}
                 </div>
-              `
-            : null}
-
-          <div class="area">
-            <div class="bold-text">Entity Counters</div>
-            <div class="area-content">
-              ${this.ontology && this.ontology.diagrams.length > 1
-            ? x `
-                  <gscape-select
-                    size=${SizeEnum.S}
-                    .options=${this.ontology.diagrams.map(diagram => {
-                return {
-                    id: diagram.id.toString(),
-                    text: diagram.name,
-                };
-            })}
-                    .placeholder=${{ text: 'Filter by Diagram' }}
-                    ?clearable=${true}
-                    .selected-options=${this.diagramIdFilter ? new Set([this.diagramIdFilter]) : undefined}
-                    @change=${this.handleDiagramFilterChange}
-                    style="margin-bottom: 4px;"
-                  >
-                  </gscape-select>
-                `
-            : null}
-
-              ${Object.entries(this.entityCounters).map(([entityType, number]) => {
-            return x `
-                  <div class="entity-counter actionable" title=${number}>
-                    <span>${capitalizeFirstChar(entityType.replace('-', ' '))} - <span class="muted-text" style="font-size: 90%">${number}</span></span>
-                    <div 
-                      class="counter-bar"
-                      type=${entityType}
-                      style="width: ${Math.round((number / this.totalEntityNumber) * 100)}%"
-                    >
+              </div>
+              ${this.ontology.getAnnotations().length > 0
+                ? x `
+                    <div class="area" style="display: flex; flex-direction: column; gap: 16px">
+                      ${annotationsTemplate(this.ontology.getAnnotations())}
+                      ${this.ontology.getComments().length > 0
+                    ? commentsTemplate(this.ontology, this.language, (e) => { var _a; this.language = (_a = e.target) === null || _a === void 0 ? void 0 : _a.value; })
+                    : null}
                     </div>
-                  </div>
-                `;
-        })}
-            </div>
-          </div>
+                  `
+                : null}
 
-          ${this.iriPrefixesTemplate()}
-        </div>
+              <div class="area">
+                <div class="bold-text">Entity Counters</div>
+                <div class="area-content">
+                  ${this.ontology.diagrams.length > 1
+                ? x `
+                      <gscape-select
+                        size=${SizeEnum.S}
+                        .options=${this.ontology.diagrams.map(diagram => {
+                    return {
+                        id: diagram.id.toString(),
+                        text: diagram.name,
+                    };
+                })}
+                        .placeholder=${{ text: 'Filter by Diagram' }}
+                        ?clearable=${true}
+                        .selected-options=${this.diagramIdFilter ? new Set([this.diagramIdFilter]) : undefined}
+                        @change=${this.handleDiagramFilterChange}
+                        style="margin-bottom: 4px;"
+                      >
+                      </gscape-select>
+                    `
+                : null}
+
+                  ${Object.entries(this.entityCounters).map(([entityType, number]) => {
+                return x `
+                      <div class="entity-counter actionable" title=${number}>
+                        <span>${capitalizeFirstChar(entityType.replace('-', ' '))} - <span class="muted-text" style="font-size: 90%">${number}</span></span>
+                        <div 
+                          class="counter-bar"
+                          type=${entityType}
+                          style="width: ${Math.round((number / this.totalEntityNumber) * 100)}%"
+                        >
+                        </div>
+                      </div>
+                    `;
+            })}
+                </div>
+              </div>
+
+              ${this.iriPrefixesTemplate()}
+            </div>
+          `
+            : x `
+            <div class="blank-slate" style="height: 100%">
+              ${blankSlateDiagrams}
+              <div class="header">No details available</div>
+              <div class="description">It seems like this ontology is empty or not defined.</div>
+            </div>
+          `}
       </div>
     `;
     }
@@ -16625,7 +16678,7 @@ GscapeOntologyInfo.styles = [
 
       .gscape-panel {
         padding:0;
-        min-height: 200px;
+        min-height: 500px;
       }
 
       .gscape-panel > * {
@@ -16692,6 +16745,11 @@ GscapeOntologyInfo.styles = [
       .counter-bar[type = "class-instance"] {
         background: var(--gscape-color-individual);
         border: solid 1px var(--gscape-color-individual-contrast);
+      }
+
+      #import-declarations {
+        display: flex;
+        flex-direction: column;
       }
     `,
 ];
@@ -17516,7 +17574,7 @@ class GscapeSettings extends TippyDropPanelMixin(BaseMixin(s), 'left') {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.1.4-snap.1"}</span>
+            <span>${"4.1.4-snap.2"}</span>
           </div>
         </div>
       </div>

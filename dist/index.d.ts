@@ -2504,6 +2504,12 @@ interface RDFGraph {
      * @memberof RDFGraph
      */
     constraints?: Array<SHACLShape>;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof RDFGraph
+     */
+    importDeclarations?: Array<string>;
 }
 /**
 * @export
@@ -6220,11 +6226,14 @@ declare class AnnotationsDiagram extends Diagram {
     addIRIValueAnnotation(sourceEntity: GrapholEntity, annotationPropertyEntity: GrapholEntity, targetIri: Iri, entityNameType: RDFGraphConfigEntityNameTypeEnum, language: Language, targetEntity?: GrapholEntity): void;
 }
 
+interface IOntology extends RDFGraphMetadata {
+    importDeclarations: string[];
+}
 /**
  * ### Ontology
  * Class used as the Model of the whole app.
  */
-declare class Ontology extends AnnotatedElement implements RDFGraphMetadata {
+declare class Ontology extends AnnotatedElement implements IOntology {
     name: string;
     version: string;
     namespaces: Namespace[];
@@ -6236,6 +6245,7 @@ declare class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     iri?: string;
     usedColorScales: string[];
     shaclConstraints: Map<string, SHACLShape[]>;
+    private _importDeclarations;
     constructor(name: string, version: string, iri?: string, namespaces?: Namespace[], annProperties?: AnnotationProperty[], diagrams?: Diagram[]);
     private _entities;
     private _hierarchies;
@@ -6319,6 +6329,10 @@ declare class Ontology extends AnnotatedElement implements RDFGraphMetadata {
     computeInverseObjectProperties(): void;
     /** @override */
     addAnnotation(newAnnotation: Annotation): void;
+    addImportDeclaration(newImportDeclaration: string): void;
+    removeImportDeclaration(importDeclarationToRemove: string): void;
+    get importDeclarations(): string[];
+    set importDeclarations(newDeclarations: string[]);
     get isEntitiesEmpty(): boolean;
     get entities(): Map<string, GrapholEntity>;
     set entities(newEntities: Map<string, GrapholEntity>);
