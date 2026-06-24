@@ -34,7 +34,7 @@ describe('test serializing an ontology', () => {
   }
 
   const rdfGraph = rdfgraphSerializer(gscapeMock)
-  fs.writeFileSync('test/rdf-graph.json', JSON.stringify(rdfGraph))
+  // fs.writeFileSync('test/rdf-graph.json', JSON.stringify(rdfGraph))
 
   // temporary
   test('RDF Graph serialization finishes and is defined', () => {
