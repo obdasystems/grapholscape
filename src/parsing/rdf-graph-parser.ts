@@ -86,6 +86,10 @@ export function getOntology(rdfGraph: RDFGraph) {
     })
   }
 
+  if (rdfGraph.importDeclarations && rdfGraph.importDeclarations.length > 0) {
+    ontology.importDeclarations = rdfGraph.importDeclarations
+  }
+
   return ontology
 }
 

@@ -122,6 +122,12 @@ export interface RDFGraph {
      * @memberof RDFGraph
      */
     constraints?: Array<SHACLShape>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof RDFGraph
+     */
+    importDeclarations?: Array<string>;
 }
 
 /**
@@ -168,6 +174,7 @@ export function RDFGraphFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'actions': !exists(json, 'actions') ? undefined : ((json['actions'] as Array<any>).map(ActionFromJSON)),
         'creator': !exists(json, 'creator') ? undefined : json['creator'],
         'constraints': !exists(json, 'constraints') ? undefined : ((json['constraints'] as Array<any>).map(SHACLShapeFromJSON)),
+        'importDeclarations': !exists(json, 'importDeclarations') ? undefined : json['importDeclarations'],
     };
 }
 
@@ -190,6 +197,7 @@ export function RDFGraphToJSON(value?: RDFGraph | null): any {
         'actions': value.actions === undefined ? undefined : ((value.actions as Array<any>).map(ActionToJSON)),
         'creator': value.creator,
         'constraints': value.constraints === undefined ? undefined : ((value.constraints as Array<any>).map(SHACLShapeToJSON)),
+        'importDeclarations': value.importDeclarations,
     };
 }
 

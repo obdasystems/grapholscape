@@ -51,7 +51,7 @@ export default class GscapeExplorer extends TippyDropPanelMixin(BaseMixin(LitEle
         height: 50vh;
         max-height: unset;
         min-width: 300px;
-        min-height: 200px;
+        min-height: 500px;
         display: flex;
         flex-direction: column;
       }
