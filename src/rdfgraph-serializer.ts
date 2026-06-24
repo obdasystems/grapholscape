@@ -61,7 +61,8 @@ export default function (grapholscape: IGscape, modelType = RDFGraphModelTypeEnu
       }),
       annotationProperties: ontology.annProperties.map(ap => ap.fullIri)
     },
-    constraints: Array.from(ontology.shaclConstraints.values()).flat()
+    constraints: Array.from(ontology.shaclConstraints.values()).flat(),
+    importDeclarations: ontology.importDeclarations,
   }
   result.metadata.languages = Array.from(usedLanguages).filter(l => l !== undefined) as string[]
 

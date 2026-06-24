@@ -78,6 +78,8 @@ export default css`
   border-radius: var(--gscape-border-radius-btn);
   padding: 6px 8px;
   cursor: pointer;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .actionable:hover, .actionable:focus, .actionable:focus-visible {

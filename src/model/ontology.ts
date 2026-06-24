@@ -15,11 +15,15 @@ import Annotation from './annotation'
 import { Language } from '../config'
 import AnnotationsDiagram from './diagrams/annotations-diagram'
 
+interface IOntology extends RDFGraphMetadata {
+  importDeclarations: string[]
+}
+
 /**
  * ### Ontology
  * Class used as the Model of the whole app.
  */
-class Ontology extends AnnotatedElement implements RDFGraphMetadata {
+class Ontology extends AnnotatedElement implements IOntology {
   name: string
   version: string
   namespaces: Namespace[] = []
@@ -31,6 +35,7 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
   iri?: string
   usedColorScales: string[] = []
   shaclConstraints: Map<string, SHACLShape[]> = new Map()
+  private _importDeclarations: Set<string> = new Set()
 
   constructor(name: string, version: string, iri?: string, namespaces: Namespace[] = [], annProperties: AnnotationProperty[] = [], diagrams: Diagram[] = []) {
     super()
@@ -469,6 +474,19 @@ class Ontology extends AnnotatedElement implements RDFGraphMetadata {
         this.getEntity(newAnnotation.rangeIri)
       )
     }
+  }
+
+  public addImportDeclaration(newImportDeclaration: string) {
+    this._importDeclarations.add(newImportDeclaration)
+  }
+
+  public removeImportDeclaration(importDeclarationToRemove: string) {
+    this._importDeclarations.delete(importDeclarationToRemove)
+  }
+
+  get importDeclarations() { return Array.from(this._importDeclarations) }
+  set importDeclarations(newDeclarations: string[]) {
+    this._importDeclarations = new Set(newDeclarations)
   }
 
   get isEntitiesEmpty() { return (!this._entities || Object.keys(this._entities).length === 0) }
