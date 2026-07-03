@@ -129,7 +129,13 @@ function getAnnotations(annotatedElem: Entity | RDFGraphMetadata, namespaces: Na
     const annotationProperty = Object.values(DefaultAnnotationProperties).find(property => {
       return property.equals(a.property)
     }) || new Iri(a.property, namespaces)
-    return new Annotation(annotationProperty, (a as any).lexicalForm || a.value, a.language, a.datatype)
+
+    let range = (a as any).lexicalForm || a.value
+    if (a.hasIriValue) {
+      range = new Iri(range, namespaces)
+    }
+
+    return new Annotation(annotationProperty, range, a.language, a.datatype)
   }) || []
 }
 
