@@ -62,6 +62,12 @@ export interface GrapholscapeEntity {
      * @memberof GrapholscapeEntity
      */
     functionProperties?: Array<FunctionPropertiesEnum>;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof GrapholscapeEntity
+     */
+    mainOccurrences?: { [key: string]: string; };
 }
 
 /**
@@ -89,6 +95,7 @@ export function GrapholscapeEntityFromJSONTyped(json: any, ignoreDiscriminator: 
         'datatype': !exists(json, 'datatype') ? undefined : json['datatype'],
         'isDataPropertyFunctional': !exists(json, 'isDataPropertyFunctional') ? undefined : json['isDataPropertyFunctional'],
         'functionProperties': !exists(json, 'functionProperties') ? undefined : ((json['functionProperties'] as Array<any>).map(FunctionPropertiesEnumFromJSON)),
+        'mainOccurrences': !exists(json, 'mainOccurrences') ? undefined : json['mainOccurrences'],
     };
 }
 
@@ -106,6 +113,7 @@ export function GrapholscapeEntityToJSON(value?: GrapholscapeEntity | null): any
         'datatype': value.datatype,
         'isDataPropertyFunctional': value.isDataPropertyFunctional,
         'functionProperties': value.functionProperties === undefined ? undefined : ((value.functionProperties as Array<any>).map(FunctionPropertiesEnumToJSON)),
+        'mainOccurrences': value.mainOccurrences,
     };
 }
 
