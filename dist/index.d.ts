@@ -573,6 +573,14 @@ interface GrapholscapeEntity {
      * @memberof GrapholscapeEntity
      */
     functionProperties?: Array<FunctionPropertiesEnum>;
+    /**
+     *
+     * @type {{ [key: string]: string; }}
+     * @memberof GrapholscapeEntity
+     */
+    mainOccurrences?: {
+        [key: string]: string;
+    };
 }
 /**
  * Check if a given object implements the GrapholscapeEntity interface.
@@ -1184,6 +1192,14 @@ interface ClassInstanceEntity$1 {
      * @memberof ClassInstanceEntity
      */
     functionProperties?: Array<FunctionPropertiesEnum>;
+    /**
+     *
+     * @type {{ [key: string]: string; }}
+     * @memberof ClassInstanceEntity
+     */
+    mainOccurrences?: {
+        [key: string]: string;
+    };
     /**
      *
      * @type {Array<string>}
@@ -4326,6 +4342,7 @@ declare const colaLayoutIcon: lit_html.TemplateResult<2>;
 declare const clustersLaoutIcon: lit_html.TemplateResult<2>;
 declare const coordinateIcon: lit_html.TemplateResult<2>;
 declare const calendarClock: lit_html.TemplateResult<2>;
+declare const star: lit_html.TemplateResult<2>;
 declare const entityIcons: {
     [x in TypesEnum.CLASS | TypesEnum.OBJECT_PROPERTY | TypesEnum.DATA_PROPERTY | TypesEnum.INDIVIDUAL | TypesEnum.ANNOTATION_PROPERTY]: SVGTemplateResult;
 };
@@ -4417,6 +4434,7 @@ declare const index_d$3_searchOff: typeof searchOff;
 declare const index_d$3_settings_icon: typeof settings_icon;
 declare const index_d$3_settings_play: typeof settings_play;
 declare const index_d$3_shieldCheck: typeof shieldCheck;
+declare const index_d$3_star: typeof star;
 declare const index_d$3_stopCircle: typeof stopCircle;
 declare const index_d$3_subHierarchies: typeof subHierarchies;
 declare const index_d$3_superHierarchies: typeof superHierarchies;
@@ -4510,6 +4528,7 @@ declare namespace index_d$3 {
     index_d$3_settings_icon as settings_icon,
     index_d$3_settings_play as settings_play,
     index_d$3_shieldCheck as shieldCheck,
+    index_d$3_star as star,
     index_d$3_stopCircle as stopCircle,
     index_d$3_subHierarchies as subHierarchies,
     index_d$3_superHierarchies as superHierarchies,
@@ -5102,6 +5121,7 @@ type DiagramViewData = {
 type OccurrenceIdViewData = {
     originalId: string;
     realId: string;
+    isMain: boolean;
 };
 declare function getEntityOccurrencesTemplate(occurrences: Map<DiagramViewData, OccurrenceIdViewData[]>, onNodeNavigation: (elementId: string, diagramId: number) => void): lit_html.TemplateResult<1>;
 
@@ -6073,6 +6093,7 @@ declare class GrapholEntity extends AnnotatedElement implements GrapholscapeEnti
     private _isDataPropertyFunctional;
     private _functionProperties;
     private _color?;
+    private _mainOccurrences;
     protected _manualTypes?: Set<TypesEnum>;
     private _inverseObjectProperties?;
     constructor(iri: Iri);
@@ -6107,6 +6128,18 @@ declare class GrapholEntity extends AnnotatedElement implements GrapholscapeEnti
     set datatype(datatype: string);
     get color(): string | undefined;
     set color(color: string | undefined);
+    get mainOccurrences(): Partial<Record<RendererStatesEnum, string>>;
+    set mainOccurrences(mainOccurrences: Partial<Record<RendererStatesEnum, string>>);
+    getMainOccurrence(renderState: RendererStatesEnum): GrapholElement | undefined;
+    /**
+     * Adds the occurrence as a main occurrence for a given render state
+     * if the occurrence does not appear to be an occurrence for this
+     * entity it is ignored
+     * @param renderState
+     * @param occurrence
+     */
+    setMainOccurrence(renderState: RendererStatesEnum, occurrence: GrapholElement): void;
+    isMainOccurrence(occurrence: string | GrapholElement, renderState: RendererStatesEnum): boolean;
     addInverseObjectProperty(iri: string): void;
     getInverseObjectProperties(): string[] | undefined;
     getOccurrenceByType(type: TypesEnum, rendererState: RendererStatesEnum): GrapholElement | undefined;

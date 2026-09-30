@@ -1057,6 +1057,7 @@ function GrapholscapeEntityFromJSONTyped(json, ignoreDiscriminator) {
         'datatype': !exists(json, 'datatype') ? undefined : json['datatype'],
         'isDataPropertyFunctional': !exists(json, 'isDataPropertyFunctional') ? undefined : json['isDataPropertyFunctional'],
         'functionProperties': !exists(json, 'functionProperties') ? undefined : (json['functionProperties'].map(FunctionPropertiesEnumFromJSON)),
+        'mainOccurrences': !exists(json, 'mainOccurrences') ? undefined : json['mainOccurrences'],
     };
 }
 function GrapholscapeEntityToJSON(value) {
@@ -1072,6 +1073,7 @@ function GrapholscapeEntityToJSON(value) {
         'datatype': value.datatype,
         'isDataPropertyFunctional': value.isDataPropertyFunctional,
         'functionProperties': value.functionProperties === undefined ? undefined : (value.functionProperties.map(FunctionPropertiesEnumToJSON)),
+        'mainOccurrences': value.mainOccurrences,
     };
 }
 
@@ -1647,6 +1649,7 @@ function ClassInstanceEntityFromJSONTyped(json, ignoreDiscriminator) {
         'datatype': !exists(json, 'datatype') ? undefined : json['datatype'],
         'isDataPropertyFunctional': !exists(json, 'isDataPropertyFunctional') ? undefined : json['isDataPropertyFunctional'],
         'functionProperties': !exists(json, 'functionProperties') ? undefined : (json['functionProperties'].map(FunctionPropertiesEnumFromJSON)),
+        'mainOccurrences': !exists(json, 'mainOccurrences') ? undefined : json['mainOccurrences'],
         'parentClasses': !exists(json, 'parentClasses') ? undefined : json['parentClasses'],
         'dataProperties': !exists(json, 'dataProperties') ? undefined : (json['dataProperties'].map(DataPropertyValueFromJSON)),
         'shortIri': !exists(json, 'shortIri') ? undefined : json['shortIri'],
@@ -1665,6 +1668,7 @@ function ClassInstanceEntityToJSON(value) {
         'datatype': value.datatype,
         'isDataPropertyFunctional': value.isDataPropertyFunctional,
         'functionProperties': value.functionProperties === undefined ? undefined : (value.functionProperties.map(FunctionPropertiesEnumToJSON)),
+        'mainOccurrences': value.mainOccurrences,
         'parentClasses': value.parentClasses,
         'dataProperties': value.dataProperties === undefined ? undefined : (value.dataProperties.map(DataPropertyValueToJSON)),
         'shortIri': value.shortIri,
@@ -3851,6 +3855,7 @@ class GrapholEntity extends AnnotatedElement {
         this._occurrences = new Map([[RendererStatesEnum.GRAPHOL, []]]);
         this._isDataPropertyFunctional = false;
         this._functionProperties = [];
+        this._mainOccurrences = {};
         this.iri = iri;
     }
     addOccurrence(newGrapholElement, representationKind = RendererStatesEnum.GRAPHOL) {
@@ -3956,6 +3961,39 @@ class GrapholEntity extends AnnotatedElement {
     set datatype(datatype) { this._datatype = datatype; }
     get color() { return this._color; }
     set color(color) { this._color = color; }
+    get mainOccurrences() { return this.mainOccurrences; }
+    set mainOccurrences(mainOccurrences) { this._mainOccurrences = mainOccurrences; }
+    getMainOccurrence(renderState) {
+        var _a;
+        const occurrenceId = this._mainOccurrences[renderState];
+        return (_a = this.occurrences.get(renderState)) === null || _a === void 0 ? void 0 : _a.find(occ => {
+            return !occurrenceId ? true : occ.id === occurrenceId;
+        });
+    }
+    /**
+     * Adds the occurrence as a main occurrence for a given render state
+     * if the occurrence does not appear to be an occurrence for this
+     * entity it is ignored
+     * @param renderState
+     * @param occurrence
+     */
+    setMainOccurrence(renderState, occurrence) {
+        var _a;
+        const isOccurrenceOfThis = (_a = this.occurrences.get(renderState)) === null || _a === void 0 ? void 0 : _a.some(occ => occ === occurrence);
+        if (isOccurrenceOfThis) {
+            this._mainOccurrences[renderState] = occurrence.id;
+        }
+    }
+    isMainOccurrence(occurrence, renderState) {
+        var _a;
+        const occurrenceID = typeof occurrence === 'string' ? occurrence : occurrence.id;
+        if (this._mainOccurrences[renderState]) {
+            return this._mainOccurrences[renderState] === occurrenceID;
+        }
+        else {
+            return ((_a = this.getMainOccurrence(renderState)) === null || _a === void 0 ? void 0 : _a.id) === occurrenceID;
+        }
+    }
     addInverseObjectProperty(iri) {
         if (!this._inverseObjectProperties) {
             this._inverseObjectProperties = new Set();
@@ -4047,6 +4085,7 @@ class GrapholEntity extends AnnotatedElement {
             datatype: this.datatype,
             functionProperties: this.functionProperties,
             isDataPropertyFunctional: this.isDataPropertyFunctional,
+            mainOccurrences: this._mainOccurrences
         };
     }
 }
@@ -8700,7 +8739,6 @@ function floatyStyle (theme) {
             style: {
                 'target-arrow-shape': 'triangle',
                 'target-arrow-fill': 'filled',
-                'source-arrow-shape': 'square',
                 'source-arrow-fill': 'hollow',
                 'width': 4,
             }
@@ -10111,7 +10149,11 @@ function getAnnotations(annotatedElem, namespaces) {
         const annotationProperty = Object.values(DefaultAnnotationProperties).find(property => {
             return property.equals(a.property);
         }) || new Iri(a.property, namespaces);
-        return new Annotation(annotationProperty, a.lexicalForm || a.value, a.language, a.datatype);
+        let range = a.lexicalForm || a.value;
+        if (a.hasIriValue) {
+            range = new Iri(range, namespaces);
+        }
+        return new Annotation(annotationProperty, range, a.language, a.datatype);
     })) || [];
 }
 function getDiagrams(rdfGraph, rendererState = RendererStatesEnum.GRAPHOL, entities, namespaces) {
@@ -10629,6 +10671,7 @@ class Grapholscape {
     }
     set incremental(incrementalController) {
         this._incremental = incrementalController;
+        this.ontology.addDiagram(incrementalController.diagram);
         this._incremental.init();
     }
 }
@@ -11393,6 +11436,7 @@ const colaLayoutIcon = b `<svg xmlns="http://www.w3.org/2000/svg" height="20px" 
 const clustersLaoutIcon = b `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M350.21-316q28.55 0 48.67-20.33T419-385.21q0-28.55-20.33-48.67T349.79-454q-28.55 0-48.67 20.33T281-384.79q0 28.55 20.33 48.67T350.21-316Zm260 0q28.55 0 48.67-20.33T679-385.21q0-28.55-20.33-48.67T609.79-454q-28.55 0-48.67 20.33T541-384.79q0 28.55 20.33 48.67T610.21-316Zm-130-226q28.55 0 48.67-20.33T549-611.21q0-28.55-20.33-48.67T479.79-680q-28.55 0-48.67 20.33T411-610.79q0 28.55 20.33 48.67T480.21-542Zm.07 436q-77.19 0-145.35-29.26-68.15-29.27-119.29-80.5Q164.5-267 135.25-335.05 106-403.09 106-480.46q0-77.45 29.26-145.11 29.27-67.65 80.5-118.79Q267-795.5 335.05-824.75 403.09-854 480.46-854q77.45 0 145.11 29.26 67.65 29.27 118.79 80.5Q795.5-693 824.75-625.19T854-480.28q0 77.19-29.26 145.35-29.27 68.15-80.5 119.29Q693-164.5 625.19-135.25T480.28-106Zm-.28-67q127.5 0 217.25-89.75T787-480q0-127.5-89.75-217.25T480-787q-127.5 0-217.25 89.75T173-480q0 127.5 89.75 217.25T480-173Zm0-307Z"/></svg>`;
 const coordinateIcon = b `<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="M480-98.5q-106.5 0-172-30.8T242.5-210q0-29 24.5-52.5t70-39.5l53 49.5q-20.5 6.5-43.33 17.24-22.84 10.73-38.17 26.26 8.36 15 63.68 29.25T480-165.5q56.5 0 110.82-14.25Q645.14-194 651.5-212q-16.5-13.5-40-24.25T568-253l53.5-50.5q46.5 15.5 71.25 40.17Q717.5-238.65 717.5-210q0 49.9-65.5 80.7-65.5 30.8-172 30.8Zm1-211q92.51-68.84 139.26-141.17Q667-523 667-592q0-96.51-60.37-145.76Q546.25-787 480-787t-126.62 49.24Q293-688.52 293-592.02q0 64.02 46.78 135.08Q386.56-385.87 481-309.5Zm-1 83.5q-128-94.5-191-187.13T226-592q0-63.5 23.12-112.51 23.13-49 59.75-82 36.63-32.99 81.78-50.24Q435.81-854 480-854t89.35 17.25q45.15 17.25 81.78 50.24 36.62 33 59.75 82Q734-655.5 734-591.87q0 85.87-63 178.62T480-226Zm.04-305q27.96 0 47.46-19.54 19.5-19.55 19.5-47.5 0-27.96-19.54-47.46-19.55-19.5-47.5-19.5-27.96 0-47.46 20.04-19.5 20.05-19.5 47Q413-571 432.54-551q19.55 20 47.5 20Zm-.04-67Z"/></svg>`;
 const calendarClock = b `<svg xmlns="http://www.w3.org/2000/svg" style="box-sizing: border-box; padding: 1px" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="M182-626.5h596v-132H182v132Zm0 0v-132 132ZM182-85q-22.97 0-40.23-17.27-17.27-17.26-17.27-40.23v-616q0-22.97 17.27-40.23Q159.03-816 182-816h67.5v-60H312v60h336v-60h62.5v60H778q22.97 0 40.23 17.27 17.27 17.26 17.27 40.23v307q-13.54-6.29-27.93-10.94-14.38-4.66-29.57-7.06V-569H182v426.5h327q5.55 16.12 13.19 30.37T540.5-85H182Zm552.97 40q-77.4 0-131.44-54.07-54.03-54.06-54.03-131.46t54.07-131.44Q657.63-416 735.03-416t131.44 54.07q54.03 54.06 54.03 131.46T866.43-99.03Q812.37-45 734.97-45Zm57.77-86L820-158.5l-74.48-73.3V-343H707v124.49L792.74-131Z"/></svg>`;
+const star = b `<svg xmlns="http://www.w3.org/2000/svg" style="box-sizing: border-box; padding: 2px" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="m243-144 63-266L96-589l276-24 108-251 108 252 276 23-210 179 63 266-237-141-237 141Z"/></svg>`;
 const entityIcons = {
     [TypesEnum.CLASS]: classIcon,
     [TypesEnum.OBJECT_PROPERTY]: objectPropertyIcon,
@@ -11598,6 +11642,7 @@ var index$3 = /*#__PURE__*/Object.freeze({
     settings_icon: settings_icon,
     settings_play: settings_play,
     shieldCheck: shieldCheck,
+    star: star,
     stopCircle: stopCircle,
     subHierarchies: subHierarchies,
     superHierarchies: superHierarchies,
@@ -14206,6 +14251,7 @@ function getEntityViewOccurrences (grapholEntity, grapholscape) {
             const occurrenceIdViewData = {
                 realId: occurrence.id,
                 originalId: occurrence.originalId || occurrence.id,
+                isMain: grapholEntity.isMainOccurrence(occurrence.id, grapholscape.renderState)
             };
             const d = Array.from(result).find(([diagramViewData, _]) => diagramViewData.id === diagram.id);
             let diagramViewData;
@@ -14237,18 +14283,21 @@ function getEntityOccurrencesTemplate(occurrences, onNodeNavigation) {
         onNodeNavigation(elementId, parseInt(diagramId));
     }
     return x `
-  ${Array.from(occurrences).map(([diagram, occurrencesIds]) => {
+  ${Array.from(occurrences).map(([diagram, occurrences]) => {
         return x `
       <div diagram-id="${diagram.id}" style="display: flex; align-items: center; gap: 2px; flex-wrap: wrap;">
-        <span class="diagram-name">${diagram.name}</span>
-        ${occurrencesIds.map(occurrenceId => x `
+        <span class="diagram-name" style="margin-right: 4px">${diagram.name}</span>
+        ${occurrences.map(occurrence => x `
           <gscape-button
-            label="${occurrenceId.originalId || occurrenceId.realId}"
-            real-id="${occurrenceId.realId}"
-            type="subtle"
+            label="${occurrence.originalId || occurrence.realId}"
+            real-id="${occurrence.realId}"
             size="s"
+            type="${occurrence.isMain ? 'secondary' : 'subtle'}"
+            title="${occurrence.isMain ? 'Go to main occurrence' : 'Go to'}"
             @click=${nodeNavigationHandler}
-          ></gscape-button>
+          >
+          ${occurrence.isMain ? getIconSlot('icon', star) : null}
+          </gscape-button>
         `)}
       </div>
     `;
@@ -17574,7 +17623,7 @@ class GscapeSettings extends TippyDropPanelMixin(BaseMixin(s), 'left') {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.1.4-snap.2"}</span>
+            <span>${"4.1.5-snap.0"}</span>
           </div>
         </div>
       </div>
