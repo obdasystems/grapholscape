@@ -34,6 +34,7 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
   private _isDataPropertyFunctional: boolean = false
   private _functionProperties: FunctionPropertiesEnum[] = []
   private _color?: string
+  private _mainOccurrences: Partial<Record<RendererStatesEnum, string>> = {}
 
   // only used when resuming from VKG, in that case we need entities to store their types
   // even if they do not appear in graph.
@@ -171,6 +172,40 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
   public get color() { return this._color }
   public set color(color) { this._color = color }
 
+  public get mainOccurrences() { return this.mainOccurrences}
+  public set mainOccurrences(mainOccurrences: Partial<Record<RendererStatesEnum, string>>) { this._mainOccurrences = mainOccurrences }
+
+  public getMainOccurrence(renderState: RendererStatesEnum) {
+    const occurrenceId = this._mainOccurrences[renderState]
+    return this.occurrences.get(renderState)?.find(occ =>{
+      return !occurrenceId ? true : occ.id === occurrenceId
+    })
+  }
+
+  /**
+   * Adds the occurrence as a main occurrence for a given render state
+   * if the occurrence does not appear to be an occurrence for this
+   * entity it is ignored
+   * @param renderState 
+   * @param occurrence 
+   */
+  public setMainOccurrence(renderState: RendererStatesEnum, occurrence: GrapholElement) {
+    const isOccurrenceOfThis = this.occurrences.get(renderState)?.some(occ => occ === occurrence)
+
+    if (isOccurrenceOfThis) {
+      this._mainOccurrences[renderState] = occurrence.id
+    }
+  }
+
+  public isMainOccurrence(occurrence: string | GrapholElement, renderState: RendererStatesEnum) {
+    const occurrenceID = typeof occurrence === 'string' ? occurrence : occurrence.id
+    if (this._mainOccurrences[renderState]) {
+      return this._mainOccurrences[renderState] === occurrenceID
+    } else {
+      return this.getMainOccurrence(renderState)?.id === occurrenceID
+    }
+  }
+
   public addInverseObjectProperty(iri: string) {
     if (!this._inverseObjectProperties) {
       this._inverseObjectProperties = new Set()
@@ -275,6 +310,7 @@ export default class GrapholEntity extends AnnotatedElement implements Entity {
       datatype: this.datatype,
       functionProperties: this.functionProperties,
       isDataPropertyFunctional: this.isDataPropertyFunctional,
+      mainOccurrences: this._mainOccurrences
     }
   }
 }

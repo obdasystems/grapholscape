@@ -509,6 +509,7 @@ export default abstract class Grapholscape {
 
   set incremental(incrementalController: IIncremental) {
     this._incremental = incrementalController
+    this.ontology.addDiagram(incrementalController.diagram)
     this._incremental.init()
   }
 }

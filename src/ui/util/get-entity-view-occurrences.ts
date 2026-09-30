@@ -1,9 +1,11 @@
 import { html } from "lit"
 import Grapholscape from '../../core'
 import { GrapholElement, GrapholEntity, RendererStatesEnum } from "../../model"
+import { star } from "../assets"
+import getIconSlot from "./get-icon-slot"
 
 export type DiagramViewData = { id: number, name: string }
-export type OccurrenceIdViewData = { originalId: string, realId: string }
+export type OccurrenceIdViewData = { originalId: string, realId: string, isMain: boolean }
 
 export default function (grapholEntity: GrapholEntity, grapholscape: Grapholscape): Map<DiagramViewData, OccurrenceIdViewData[]> {
   const result = new Map<DiagramViewData, OccurrenceIdViewData[]>()
@@ -33,6 +35,7 @@ export default function (grapholEntity: GrapholEntity, grapholscape: Grapholscap
       const occurrenceIdViewData: OccurrenceIdViewData = {
         realId: occurrence.id,
         originalId: occurrence.originalId || occurrence.id,
+        isMain: grapholEntity.isMainOccurrence(occurrence.id, grapholscape.renderState)
       }
 
       const d = Array.from(result).find(([diagramViewData, _]) => diagramViewData.id === diagram.id)
@@ -71,18 +74,21 @@ export function getEntityOccurrencesTemplate(occurrences: Map<DiagramViewData, O
   }
 
   return html`
-  ${Array.from(occurrences).map(([diagram, occurrencesIds]) => {
+  ${Array.from(occurrences).map(([diagram, occurrences]) => {
     return html`
       <div diagram-id="${diagram.id}" style="display: flex; align-items: center; gap: 2px; flex-wrap: wrap;">
-        <span class="diagram-name">${diagram.name}</span>
-        ${occurrencesIds.map(occurrenceId => html`
+        <span class="diagram-name" style="margin-right: 4px">${diagram.name}</span>
+        ${occurrences.map(occurrence => html`
           <gscape-button
-            label="${occurrenceId.originalId || occurrenceId.realId}"
-            real-id="${occurrenceId.realId}"
-            type="subtle"
+            label="${occurrence.originalId || occurrence.realId}"
+            real-id="${occurrence.realId}"
             size="s"
+            type="${occurrence.isMain ? 'secondary' : 'subtle'}"
+            title="${occurrence.isMain ? 'Go to main occurrence' : 'Go to'}"
             @click=${nodeNavigationHandler}
-          ></gscape-button>
+          >
+          ${occurrence.isMain ? getIconSlot('icon', star) : null}
+          </gscape-button>
         `)}
       </div>
     `

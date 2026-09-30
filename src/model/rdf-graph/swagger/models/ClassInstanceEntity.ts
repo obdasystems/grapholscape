@@ -70,6 +70,12 @@ export interface ClassInstanceEntity {
     functionProperties?: Array<FunctionPropertiesEnum>;
     /**
      * 
+     * @type {{ [key: string]: string; }}
+     * @memberof ClassInstanceEntity
+     */
+    mainOccurrences?: { [key: string]: string; };
+    /**
+     * 
      * @type {Array<string>}
      * @memberof ClassInstanceEntity
      */
@@ -113,6 +119,7 @@ export function ClassInstanceEntityFromJSONTyped(json: any, ignoreDiscriminator:
         'datatype': !exists(json, 'datatype') ? undefined : json['datatype'],
         'isDataPropertyFunctional': !exists(json, 'isDataPropertyFunctional') ? undefined : json['isDataPropertyFunctional'],
         'functionProperties': !exists(json, 'functionProperties') ? undefined : ((json['functionProperties'] as Array<any>).map(FunctionPropertiesEnumFromJSON)),
+        'mainOccurrences': !exists(json, 'mainOccurrences') ? undefined : json['mainOccurrences'],
         'parentClasses': !exists(json, 'parentClasses') ? undefined : json['parentClasses'],
         'dataProperties': !exists(json, 'dataProperties') ? undefined : ((json['dataProperties'] as Array<any>).map(DataPropertyValueFromJSON)),
         'shortIri': !exists(json, 'shortIri') ? undefined : json['shortIri'],
@@ -133,6 +140,7 @@ export function ClassInstanceEntityToJSON(value?: ClassInstanceEntity | null): a
         'datatype': value.datatype,
         'isDataPropertyFunctional': value.isDataPropertyFunctional,
         'functionProperties': value.functionProperties === undefined ? undefined : ((value.functionProperties as Array<any>).map(FunctionPropertiesEnumToJSON)),
+        'mainOccurrences': value.mainOccurrences,
         'parentClasses': value.parentClasses,
         'dataProperties': value.dataProperties === undefined ? undefined : ((value.dataProperties as Array<any>).map(DataPropertyValueToJSON)),
         'shortIri': value.shortIri,
