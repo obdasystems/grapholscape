@@ -84,7 +84,6 @@ export default function (theme: GrapholscapeTheme): StylesheetJson {
       style: {
         'target-arrow-shape': 'triangle',
         'target-arrow-fill': 'filled',
-        'source-arrow-shape': 'square',
         'source-arrow-fill': 'hollow',
         'width': 4,
       }
