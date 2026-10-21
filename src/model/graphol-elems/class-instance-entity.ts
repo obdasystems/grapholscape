@@ -26,6 +26,14 @@ export default class ClassInstanceEntity extends GrapholEntity implements IClass
     }
   }
 
+  removeParentClass(parentClassIri: Iri | string) {
+    const index = this._parentClassIris.findIndex(iri => iri.equals(parentClassIri))
+
+    if (index !== -1) {
+      this._parentClassIris.splice(index, 1)
+    }
+  }
+
   /**
    * Check if the instance is instance of a class with such an IRI
    * @param parentClassIri 
