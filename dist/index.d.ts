@@ -6413,6 +6413,7 @@ declare class ClassInstanceEntity extends GrapholEntity implements ClassInstance
      * @param parentClassIri the IRI of the Class
      */
     addParentClass(parentClassIri: Iri): void;
+    removeParentClass(parentClassIri: Iri | string): void;
     /**
      * Check if the instance is instance of a class with such an IRI
      * @param parentClassIri

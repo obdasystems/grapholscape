@@ -5828,6 +5828,12 @@ class ClassInstanceEntity extends GrapholEntity {
             (_a = this._parentClassIris) === null || _a === void 0 ? void 0 : _a.push(parentClassIri);
         }
     }
+    removeParentClass(parentClassIri) {
+        const index = this._parentClassIris.findIndex(iri => iri.equals(parentClassIri));
+        if (index !== -1) {
+            this._parentClassIris.splice(index, 1);
+        }
+    }
     /**
      * Check if the instance is instance of a class with such an IRI
      * @param parentClassIri
@@ -17623,7 +17629,7 @@ class GscapeSettings extends TippyDropPanelMixin(BaseMixin(s), 'left') {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.1.5-snap.0"}</span>
+            <span>${"4.1.5-snap.1"}</span>
           </div>
         </div>
       </div>
