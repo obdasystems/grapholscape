@@ -59,7 +59,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     const ontology = grapholscape.ontology
 
     let diagram = ontology.annotationsDiagram
-    if (!diagram)
+    if (!diagram || !diagram.isEmpty())
       return
 
     let annotationPropertyEntity: GrapholEntity | undefined
