@@ -59,7 +59,7 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     const ontology = grapholscape.ontology
 
     let diagram = ontology.annotationsDiagram
-    if (!diagram)
+    if (!diagram || !diagram.isEmpty())
       return
 
     let annotationPropertyEntity: GrapholEntity | undefined
@@ -69,6 +69,8 @@ export default class FloatyTransformer extends BaseGrapholTransformer {
     let node: GrapholNode | undefined
 
     for (let [sourceEntityIri, sourceEntity] of ontology.entities) {
+      if (!sourceEntity.is(TypesEnum.CLASS) && !sourceEntity.is(TypesEnum.INDIVIDUAL))
+        continue
       sourceEntity.getAnnotations().filter(ann => ann.hasIriValue).forEach(annotation => {
         if (!annotation.rangeIri) return
         // diagramsUsed.clear()

@@ -1,5 +1,5 @@
 import { floatyOptions, Language } from "../../config";
-import {GrapholEdge} from "../graphol-elems/edge";
+import { GrapholEdge } from "../graphol-elems/edge";
 import GrapholEntity from "../graphol-elems/entity";
 import { GrapholIndividualNode, GrapholNode } from "../graphol-elems/node";
 import Iri from "../iri";
@@ -50,14 +50,21 @@ export default class AnnotationsDiagram extends Diagram {
       targetEntity?.addOccurrence(node, RendererStatesEnum.FLOATY)
     }
 
-    const annotationPropertyEdge = new GrapholEdge(this.representation.getNewId('edge'), TypesEnum.ANNOTATION_PROPERTY)
-    annotationPropertyEdge.diagramId = this.id
-    annotationPropertyEdge.sourceId = sourceEntityNode.id()
-    annotationPropertyEdge.targetId = targetNode.id()
-    annotationPropertyEdge.displayedName = annotationPropertyEntity
-      ?.getDisplayedName(entityNameType, language)
-
-    this.representation.addElement(annotationPropertyEdge, annotationPropertyEntity)
-    annotationPropertyEntity.addOccurrence(annotationPropertyEdge, RendererStatesEnum.FLOATY)
+    if (
+      sourceEntityNode.edges().filter(e => (
+        e.data().iri === annotationPropertyEntity.iri.fullIri &&
+        e.target().data().iri === targetIri.toString()
+      )).nonempty()
+    ) {
+      const annotationPropertyEdge = new GrapholEdge(this.representation.getNewId('edge'), TypesEnum.ANNOTATION_PROPERTY)
+      annotationPropertyEdge.diagramId = this.id
+      annotationPropertyEdge.sourceId = sourceEntityNode.id()
+      annotationPropertyEdge.targetId = targetNode.id()
+      annotationPropertyEdge.displayedName = annotationPropertyEntity
+        ?.getDisplayedName(entityNameType, language)
+  
+      this.representation.addElement(annotationPropertyEdge, annotationPropertyEntity)
+      annotationPropertyEntity.addOccurrence(annotationPropertyEdge, RendererStatesEnum.FLOATY)
+    }
   }
 }
