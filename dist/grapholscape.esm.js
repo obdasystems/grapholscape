@@ -4893,13 +4893,16 @@ class AnnotationsDiagram extends Diagram {
             targetNode = this.representation.addElement(node);
             targetEntity === null || targetEntity === void 0 ? void 0 : targetEntity.addOccurrence(node, RendererStatesEnum.FLOATY);
         }
-        const annotationPropertyEdge = new GrapholEdge(this.representation.getNewId('edge'), TypesEnum.ANNOTATION_PROPERTY);
-        annotationPropertyEdge.diagramId = this.id;
-        annotationPropertyEdge.sourceId = sourceEntityNode.id();
-        annotationPropertyEdge.targetId = targetNode.id();
-        annotationPropertyEdge.displayedName = annotationPropertyEntity === null || annotationPropertyEntity === void 0 ? void 0 : annotationPropertyEntity.getDisplayedName(entityNameType, language);
-        this.representation.addElement(annotationPropertyEdge, annotationPropertyEntity);
-        annotationPropertyEntity.addOccurrence(annotationPropertyEdge, RendererStatesEnum.FLOATY);
+        if (sourceEntityNode.edges().filter(e => (e.data().iri === annotationPropertyEntity.iri.fullIri &&
+            e.target().data().iri === targetIri.toString())).nonempty()) {
+            const annotationPropertyEdge = new GrapholEdge(this.representation.getNewId('edge'), TypesEnum.ANNOTATION_PROPERTY);
+            annotationPropertyEdge.diagramId = this.id;
+            annotationPropertyEdge.sourceId = sourceEntityNode.id();
+            annotationPropertyEdge.targetId = targetNode.id();
+            annotationPropertyEdge.displayedName = annotationPropertyEntity === null || annotationPropertyEntity === void 0 ? void 0 : annotationPropertyEntity.getDisplayedName(entityNameType, language);
+            this.representation.addElement(annotationPropertyEdge, annotationPropertyEntity);
+            annotationPropertyEntity.addOccurrence(annotationPropertyEdge, RendererStatesEnum.FLOATY);
+        }
     }
 }
 
@@ -7141,11 +7144,13 @@ class FloatyTransformer extends BaseGrapholTransformer {
     static addAnnotationPropertyEdges(grapholscape) {
         const ontology = grapholscape.ontology;
         let diagram = ontology.annotationsDiagram;
-        if (!diagram)
+        if (!diagram || !diagram.isEmpty())
             return;
         let annotationPropertyEntity;
         let targetEntity;
         for (let [sourceEntityIri, sourceEntity] of ontology.entities) {
+            if (!sourceEntity.is(TypesEnum.CLASS) && !sourceEntity.is(TypesEnum.INDIVIDUAL))
+                continue;
             sourceEntity.getAnnotations().filter(ann => ann.hasIriValue).forEach(annotation => {
                 if (!annotation.rangeIri)
                     return;
@@ -17629,7 +17634,7 @@ class GscapeSettings extends TippyDropPanelMixin(BaseMixin(s), 'left') {
 
           <div id="version" class="muted-text">
             <span>Version: </span>
-            <span>${"4.1.5-snap.1"}</span>
+            <span>${"4.1.5-snap.2"}</span>
           </div>
         </div>
       </div>
